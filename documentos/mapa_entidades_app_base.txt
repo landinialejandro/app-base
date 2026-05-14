@@ -995,6 +995,97 @@ No deben mezclarse por conveniencia de implementación.
 
 <<END SECTION>>
 
+<<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
+SECTION_VERSION: 00001
+
+CONTRATO MATERIAL ENTRE ORDERS E INVENTORY
+
+Orders puede funcionar como destino operativo de materiales cuando una orden requiere ejecución material, producción, servicio, mantenimiento o entrega interna.
+
+Inventory conserva ownership de stock, movimientos, saldos, trazabilidad material, entregas, devoluciones, consumos y validaciones físicas.
+
+Orders conserva ownership de la orden, sus líneas, su lifecycle administrativo y sus cierres.
+
+Regla central:
+
+el depósito entrega.
+
+la orden consume o aplica.
+
+el cierre regulariza.
+
+ENTREGA
+
+La salida física de materiales desde depósito hacia una orden, persona, técnico, frente operativo, producción o servicio se registra como entrega.
+
+La entrega reduce stock disponible de depósito.
+
+La entrega no implica consumo definitivo.
+
+La entrega abre un saldo material pendiente de regularización contra el destino operativo.
+
+CONSUMO / APLICACIÓN
+
+El consumo representa aplicación definitiva del material entregado.
+
+El consumo no debe imputarse directamente contra depósito cuando el flujo exige entrega previa.
+
+El consumo debe cerrar total o parcialmente materiales previamente entregados al destino operativo.
+
+DEVOLUCIÓN
+
+La devolución reintegra al depósito materiales entregados y no aplicados.
+
+La devolución reduce el saldo pendiente entregado al destino operativo.
+
+CIERRE MATERIAL
+
+El cierre técnico, productivo, administrativo o final debe validar la relación entre:
+
+material requerido
+material entregado
+material aplicado o consumido
+material devuelto
+material pendiente
+material faltante
+
+Ninguna orden debe cerrar como materialmente cumplida si declara consumos o aplicaciones superiores a los materiales entregados disponibles para esa orden, salvo excepción explícita, autorizada y trazable.
+
+PRODUCCIÓN
+
+En producción formal por etapas, la orden de producción funciona como destino operativo de componentes.
+
+Los componentes se entregan a la orden.
+
+El producto terminado se ingresa según avance real.
+
+La cantidad producible se limita por el componente entregado disponible más restrictivo.
+
+El ingreso de producto terminado aplica componentes previamente entregados.
+
+No debe descontar nuevamente esos componentes desde depósito.
+
+SERVICIO / MANTENIMIENTO
+
+En servicio o mantenimiento, repuestos, insumos y consumibles deben entregarse a la orden o responsable operativo antes de su aplicación definitiva cuando el flujo material lo requiera.
+
+El cierre técnico debe validar que lo aplicado no exceda lo entregado disponible.
+
+MODO SIMPLE
+
+Puede existir un modo simple o instantáneo donde entrega, consumo e ingreso se resuelvan en una única acción operativa validada.
+
+Ese modo debe leerse como simplificación explícita.
+
+No debe confundirse con producción o servicio formal por etapas.
+
+Regla final:
+
+entregar, consumir, devolver e ingresar no son solo tipos de movimiento.
+
+Son etapas materiales distintas dentro del contrato operativo entre Inventory y Orders.
+<<END SECTION>>
+
 <<SECTION: ENTIDADES DEL SISTEMA>>
 ENTIDADES DEL SISTEMA
 

@@ -2203,6 +2203,66 @@ Fase 1 no debe reintroducir acoplamientos activos en Orders.
 
 <<END SECTION>>
 
+<<SECTION: PENDIENTE — CONTRATO MATERIAL POR ENTREGAS Y CIERRES>>
+SECTION_VERSION: 00001
+
+PENDIENTE — CONTRATO MATERIAL POR ENTREGAS Y CIERRES
+
+Diseñar e implementar, después de auditoría específica, el contrato formal de materiales entregados a órdenes.
+
+Objetivo:
+
+separar salida física de depósito, aplicación material real, devolución y cierre.
+
+Regla funcional aprobada:
+
+todo material que sale de depósito se entrega.
+
+el consumo o aplicación se realiza contra entregas previas.
+
+el cierre regulariza consumos, devoluciones, pendientes y faltantes.
+
+Casos alcanzados:
+
+órdenes de producción
+órdenes de servicio
+mantenimiento
+consumibles entregados a técnicos
+ropa de trabajo
+materiales entregados a empleados o frentes operativos
+
+Controles requeridos:
+
+no consumir más de lo entregado disponible
+
+no producir más de lo permitido por el componente entregado limitante
+
+no cerrar orden como materialmente cumplida si existen faltantes no resueltos
+
+permitir devolución de sobrantes
+
+distinguir modo simple instantáneo de modo formal por etapas
+
+Pendiente de auditoría técnica:
+
+evaluar si alcanza con InventoryMovement e InventoryOperation
+
+evaluar si se requiere lectura consolidada de saldo entregado por orden
+
+evaluar si hace falta metadata, tipo de operación, estado material o entidad satélite mínima
+
+evaluar cómo se integran OrdersHooks, InventoryOrderItemHooks y cierre de orden
+
+evaluar impacto en producción, servicio y documentos
+
+No implementar como movimiento manual suelto.
+
+No resolver por parche en Orders.
+
+Inventory debe conservar ownership material.
+
+<<END SECTION>>
+
 <<SECTION: ATTACHMENTS>>
 ATTACHMENTS
 

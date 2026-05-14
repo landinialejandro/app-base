@@ -336,7 +336,7 @@ Autorización, permisos y restricciones owner/admin pertenecen a seguridad_acces
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00041
+SECTION_VERSION: 00043
 
 [GLOBAL]
 Gobierno plataforma.
@@ -375,36 +375,29 @@ Capacidades operativas visibles del tenant.
 
 [CAPAS SATÉLITE]
 Capa satélite = frente especializado que orquesta módulos existentes.
-Puede tener entrada, universo, dashboard mínimo, permiso área o entrada pública.
+Puede tener universo, entrada pública, administración interna separada o dashboard mínimo.
 No absorbe ownership.
-No duplica CRUD.
+No duplica CRUD por reflejo.
+No mezcla plano interno y plano externo.
 
 Casos estructurales:
 
 * /service = universo Servicio y mantenimiento. Owner real órdenes = Orders.
-* /shop/{tenant:slug} = tienda pública tenant-scoped. self_service_sales.
-* /tienda = entrada pública general externa.
+* self_service_sales = capa satélite comercial externa. Customer externo ≠ User/Membership.
 
 [PLANO INTERNO / PLANO EXTERNO]
-Interno:
-User
-Membership
-Tenant
-panel interno
+Plano interno = User, Membership, tenant activo, roles internos, panel interno y configuración autorizada.
 
-Externo:
-customer externo
-cuenta externa futura
-relación customer-tienda futura
-tienda pública
+Plano externo = customer externo, cuenta externa, relación customer-tienda, sesión externa mínima, tienda pública y catálogo publicado.
 
 [REGLAS]
-Customer externo ≠ User.
-Customer externo ≠ Membership.
 Entrada pública ≠ pertenencia.
 Ruta pública ≠ panel interno.
-Confirmación de email ≠ habilitación operativa completa.
-Capacidades futuras externas requieren contrato y evidencia real.
+Tienda pública ≠ panel interno.
+Catálogo publicado ≠ operación comercial real.
+Administración interna de tienda ≠ consumo público de tienda.
+self_service_sales no reemplaza Products, Inventory, Parties, Documents, Security, Membership ni User.
+Capacidades externas futuras requieren contrato y evidencia real.
 
 [SUBCAPAS CONTEXTUALES]
 Capacidad alojada en módulo host.
@@ -418,7 +411,7 @@ Caso:
 ProductOperationalSummary bajo Products.
 
 [REGLA]
-Detalle operativo, rutas, UI, permisos, validaciones y estado de implementación van a documentos especializados.
+Detalle operativo, rutas, UI, permisos, validaciones, entidades auxiliares y estado de implementación van a documentos especializados.
 
 <<END SECTION>>
 
@@ -805,7 +798,7 @@ Ownership se conserva aunque haya integración.
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 [RELACIONES BASE]
 users → memberships → tenants
@@ -834,26 +827,29 @@ group = service
 Lectura:
 Orders conserva ownership.
 
-[SHOP]
-/shop/{tenant:slug}
-↓
+[SHOPPING AUTOSERVICIO]
 self_service_sales
 ↓
-Parties
+plano externo customer
+↓
+Parties / Products según contrato publicado
 
 Lectura:
-self_service_sales organiza experiencia externa.
-Parties representa customer confirmado.
+self_service_sales organiza experiencia comercial externa.
+Parties representa customer confirmado cuando corresponda.
+Products conserva catálogo maestro.
 Ruta pública ≠ acceso interno.
+Catálogo publicado ≠ operación comercial real.
 
 [REGLAS]
 self_service_sales no reemplaza Parties/Products/Inventory/Documents/Security.
 OperationalActivity no reemplaza relaciones funcionales.
 Lectura contextual ampliada debe declararla módulo dueño.
 Intervención externa requiere frontera explícita.
+Entidades auxiliares de capa satélite no reemplazan módulos dueños.
 
 [FRONTERA]
-Rutas, helpers, UI, campos, validaciones y flows van a documentos especializados.
+Rutas, helpers, UI, campos, validaciones, entidades auxiliares y flujos detallados van a documentos especializados.
 
 <<END SECTION>>
 

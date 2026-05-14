@@ -10,7 +10,7 @@ GESTIÓN: Documento rector inicial para la capacidad self_service_sales como cap
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 OBJETIVO DEL DOCUMENTO
 
@@ -38,7 +38,12 @@ definir el token temporal de selección de tienda
 definir la acción mínima de selección externa de tienda
 definir la sesión externa mínima namespaced
 definir el middleware externo pasivo de resolución contextual
-definir saldo real, fichas, fichas promocionales y consumo
+definir la administración interna inicial de tienda
+distinguir configuración interna de tienda y consumo público externo
+definir la tienda interna como SelfServiceShop
+definir los artículos publicados como SelfServiceShopItem
+definir publicación inicial de productos activos
+definir saldo real, fichas, fichas promocionales y consumo futuros
 establecer límites frente a Products, Inventory y Documents
 preparar integración futura con Mercado Pago
 preparar integración futura con controladores externos
@@ -50,6 +55,7 @@ evitar que la selección de tienda se confunda con sesión interna
 evitar que la sesión externa mínima se confunda con guard externo definitivo
 evitar que el middleware externo pasivo se confunda con autorización obligatoria
 evitar que el selector externo prometa operación comercial real
+evitar que la administración interna de tienda se confunda con operación externa customer
 
 No define:
 
@@ -148,6 +154,38 @@ Si la sesión externa corresponde a otro tenant, /shop/{tenant:slug} se muestra 
 
 Si no existe sesión externa, /shop/{tenant:slug} se muestra como tienda pública visitante.
 
+Corte operativo vigente de administración interna de tienda:
+
+self_service_sales incorpora una primera administración interna UI de Tienda.
+
+La administración interna permite gestionar la cabecera/configuración de tienda y artículos publicados sin tocar el plano público externo ni agregar operación transaccional.
+
+Rutas internas vigentes:
+
+/self-service/shops...
+
+Nombres de ruta vigentes:
+
+self_service_sales.shops.*
+
+Autorización vigente:
+
+owner/admin mediante TenantProfileAccess::canManageSelfServiceSales()
+
+Activación vigente:
+
+SelfServiceShopPublisher::activate($shop)
+
+Lectura:
+
+SelfServiceShop representa la tienda interna del tenant.
+
+SelfServiceShopItem representa productos publicados en la tienda.
+
+ProductLineItemSelector funciona como base para seleccionar productos activos publicables.
+
+La administración interna de tienda no habilita compra, saldo, fichas, QR, pagos, carrito ni operación comercial real.
+
 La selección válida no crea:
 
 guard externo definitivo
@@ -169,7 +207,7 @@ Toda evolución futura debe validarse contra documentación vigente, código rea
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 NATURALEZA DE SHOPPING AUTOSERVICIO
 
@@ -195,7 +233,11 @@ capacidad comercial autogestiva
 tienda pública controlada por tenant
 frente externo para clientes
 capa de registro externo
+capa de identidad externa customer
+capa de selección externa de tienda
+capa de sesión externa mínima
 capa de publicación comercial
+capa de administración interna de tienda
 capa de saldo prepago futura
 capa de consumo por ficha futura
 capa de movimientos comerciales futura
@@ -219,6 +261,14 @@ Entrada pública general vigente:
 
 /tienda
 
+Rutas internas vigentes de administración:
+
+/self-service/shops...
+
+Nombres internos de ruta vigentes:
+
+self_service_sales.shops.*
+
 Label visible:
 
 Tienda
@@ -237,7 +287,7 @@ Documents conserva formalización documental y comprobantes cuando correspondan.
 
 Security conserva autorización.
 
-self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo, el saldo futuro, las fichas futuras, los movimientos comerciales futuros y el consumo por QR futuro.
+self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo, la identidad externa, la relación customer-tienda, la publicación comercial, el saldo futuro, las fichas futuras, los movimientos comerciales futuros y el consumo por QR futuro.
 
 Primer corte operativo validado:
 
@@ -250,6 +300,22 @@ creación de PartyRole role = customer
 ausencia de User interno
 ausencia de Membership
 ausencia de acceso al panel interno
+
+Corte operativo vigente de administración interna:
+
+self_service_sales incorpora administración interna inicial para tiendas mediante SelfServiceShop y SelfServiceShopItem.
+
+Lectura:
+
+SelfServiceShop configura la tienda del tenant desde el plano interno.
+
+SelfServiceShopItem representa un producto publicado en esa tienda.
+
+SelfServiceShopItem no reemplaza Product.
+
+SelfServiceShop no reemplaza Tenant.
+
+La tienda pública muestra únicamente lo que el contrato público permita exponer.
 
 Regla:
 
@@ -269,10 +335,20 @@ No habilita navegación tenant interna.
 
 Su función es separar el acceso externo de customers del acceso interno de usuarios del sistema.
 
+Regla adicional de administración interna:
+
+la administración interna de tienda pertenece al plano interno autenticado.
+
+No puede ser operada por customer externo.
+
+No puede ser autorizada por sesión externa self_service_sales.*.
+
+No puede confundirse con la tienda pública /shop/{tenant:slug}.
+
 <<END SECTION>>
 
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO
 
@@ -293,6 +369,10 @@ roles internos
 panel interno
 configuración del tenant
 gestión interna de la operación
+administración interna de tienda
+SelfServiceShop
+SelfServiceShopItem
+publicación de productos activos
 
 El plano interno continúa gobernado por el modelo vigente:
 
@@ -303,6 +383,8 @@ session('tenant_id')
 Auth interno
 Fortify interno
 panel interno
+Security
+TenantProfileAccess
 
 PLANO EXTERNO
 
@@ -322,6 +404,7 @@ tienda pública
 entrada pública general externa
 selector externo de tiendas
 salida externa
+catálogo publicado visible
 saldo futuro
 compras futuras
 consumos futuros
@@ -343,6 +426,8 @@ El cliente externo no accede al panel interno.
 El cliente externo no posee roles internos del tenant.
 
 El cliente externo no participa de owner, admin, operator, sales ni administrator.
+
+El cliente externo no administra SelfServiceShop ni SelfServiceShopItem.
 
 El cliente externo solo opera dentro de Shopping Autoservicio y únicamente sobre sus propios datos comerciales autorizados.
 
@@ -394,6 +479,8 @@ Resolver contexto externo pasivo no equivale a proteger la tienda como ruta priv
 
 Redirigir a /shop/{tenant:slug} no equivale a habilitar operación comercial.
 
+Ver catálogo publicado no equivale a habilitar operación comercial.
+
 POST /tienda/salir limpia solo la sesión externa de self_service_sales.
 
 POST /tienda/salir no debe invalidar la sesión Laravel completa.
@@ -402,10 +489,24 @@ POST /tienda/salir no debe cerrar sesión interna si existiera.
 
 La entrada pública externa no debe mostrar ni prometer acceso a dashboard, tenant/profile, parties.show ni rutas internas.
 
+Regla adicional para administración interna:
+
+las rutas self_service_sales.shops.* pertenecen al plano interno.
+
+No son rutas públicas.
+
+No son rutas customer.
+
+No pertenecen a sesión externa mínima.
+
+No deben consumir autorización externa.
+
+Deben requerir usuario interno autenticado, tenant activo y autorización backend efectiva.
+
 <<END SECTION>>
 
 <<SECTION: CLIENTE EXTERNO Y PARTIES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CLIENTE EXTERNO Y PARTIES
 
@@ -455,6 +556,28 @@ El flujo validado no crea Membership.
 
 El flujo validado no vincula la Party customer a una membership.
 
+Corte vigente adicional:
+
+la confirmación externa puede crear o vincular una cuenta externa customer y una relación customer-tienda según contrato vigente.
+
+Relaciones vigentes:
+
+SelfServiceCustomerAccount = cuenta externa customer
+
+SelfServiceStoreCustomer = relación customer-tienda
+
+Party = representación comercial tenant-scoped
+
+Lectura:
+
+SelfServiceCustomerAccount no reemplaza User.
+
+SelfServiceStoreCustomer no reemplaza Membership.
+
+Party no reemplaza cuenta externa.
+
+Party no reemplaza relación customer-tienda.
+
 Regla de duplicados:
 
 el alta autogestiva debe bloquearse si ya existe cualquier Party dentro del mismo tenant con el mismo email o teléfono.
@@ -493,12 +616,60 @@ Regla:
 
 que Party permita datos mínimos no implica habilitación operativa comercial completa.
 
-La habilitación operativa del customer externo debe resolverse por contrato propio de self_service_sales cuando se implemente cuenta externa, saldo, fichas, QR, comprobantes o compras.
+La habilitación operativa del customer externo debe resolverse por contrato propio de self_service_sales.
+
+Identidad operativa vigente:
+
+identity_stage = operational_identity_completed
+
+Lectura:
+
+el customer completó la identidad requerida para este corte.
+
+No significa operación comercial habilitada.
+
+Operación vigente:
+
+operation_enabled = false
+
+significa:
+
+customer completo, pero todavía no aprobado para operar.
+
+operation_enabled = true
+
+junto con canOperate() = true
+
+significa:
+
+customer aprobado por owner/admin para operar en tienda según contrato vigente.
+
+Reglas:
+
+confirmar email no habilita operación comercial completa
+
+completar identidad operativa no habilita operación comercial completa
+
+crear contraseña externa no habilita operación comercial completa
+
+validar credencial externa no habilita operación comercial completa
+
+seleccionar tienda no habilita operación comercial completa
+
+iniciar sesión externa mínima no habilita operación comercial completa
+
+resolver contexto externo pasivo no habilita operación comercial completa
+
+ver catálogo publicado no habilita operación comercial completa
+
+Regla final:
+
+el cliente externo existe comercialmente como Party dentro del tenant, pero su acceso y operación pertenecen a self_service_sales.
 
 <<END SECTION>>
 
 <<SECTION: REGISTRO DEL CUSTOMER>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGISTRO DEL CUSTOMER
 
@@ -522,7 +693,7 @@ teléfono no reemplaza al email como vínculo principal.
 
 DNI, nombre real completo, datos fiscales y contraseña externa completa no forman parte obligatoria del registro inicial liviano vigente.
 
-Pueden incorporarse luego en una validación posterior de identidad operativa o en fases futuras.
+Pueden incorporarse luego en una validación posterior de identidad operativa o en fases posteriores.
 
 Datos opcionales o posteriores:
 
@@ -627,12 +798,73 @@ crea Party kind = person
 crea PartyRole role = customer
 marca el registro como confirmed
 vincula party_id
+crea o vincula SelfServiceCustomerAccount según contrato vigente
+crea SelfServiceStoreCustomer según contrato vigente
+mantiene operation_enabled = false
 
 Validación runtime vigente:
 
 registration_status = confirmed
 party_kind = person
 party_roles = ["customer"]
+
+Regla de finalización de registro:
+
+luego de confirmar email, el customer debe completar datos críticos y crear contraseña externa dentro de un trayecto único, sin caminos ambiguos.
+
+Datos críticos de finalización:
+
+nombre completo
+tipo de documento
+número de documento
+teléfono
+contraseña
+confirmación de contraseña
+aceptación de términos
+
+Reglas:
+
+la finalización no debe crear User
+
+la finalización no debe crear Membership
+
+la finalización no debe usar Fortify interno
+
+la finalización no debe habilitar panel interno
+
+la finalización no debe habilitar operación comercial completa
+
+El token de confirmación puede retomar onboarding incompleto cuando corresponda al contrato vigente.
+
+Retomar onboarding incompleto no debe crear duplicados.
+
+Lectura vigente de identidad operativa:
+
+identity_stage = operational_identity_completed
+
+significa:
+
+customer con identidad operativa completa para el corte vigente.
+
+No significa:
+
+operación comercial habilitada.
+
+Lectura vigente de operación:
+
+operation_enabled = false
+
+significa:
+
+customer completo, pero todavía no aprobado para operar.
+
+operation_enabled = true
+
+junto con canOperate() = true
+
+significa:
+
+customer aprobado por owner/admin para operar en tienda según contrato vigente.
 
 Regla de experiencia:
 
@@ -644,17 +876,21 @@ Regla adicional:
 
 la confirmación de email no equivale a habilitación operativa completa.
 
+La finalización de identidad operativa no equivale a habilitación comercial completa.
+
 El flujo debe distinguir:
 
 registro inicial liviano
 confirmación de email
-validación posterior de identidad operativa
-habilitación para operar
+finalización de identidad operativa
+creación de contraseña externa
+habilitación interna para operar
+operación comercial real futura
 
 <<END SECTION>>
 
 <<SECTION: LOGIN EXTERNO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 LOGIN EXTERNO
 
@@ -784,6 +1020,8 @@ no debe habilitar parties.show
 
 no debe habilitar operación comercial real
 
+no debe autorizar administración interna de tienda
+
 no debe invalidar toda la sesión Laravel al salir
 
 no debe cerrar sesión interna al salir del acceso externo
@@ -809,6 +1047,8 @@ No exige login externo para ver tienda pública.
 No redirige por falta de sesión externa.
 
 No habilita operación comercial.
+
+No autoriza administración interna de tienda.
 
 No reemplaza guard externo definitivo.
 
@@ -854,6 +1094,7 @@ selección mínima de tienda externa cuando el token es válido
 sesión externa mínima namespaced cuando la selección es válida
 customer externo activo visible en tienda pública cuando la sesión corresponde al tenant de la ruta
 contexto externo pasivo cuando ResolveSelfServiceExternalCustomer puede resolverlo
+operación bloqueada cuando operation_enabled = false
 
 Si el cliente está registrado en un solo tenant, puede continuar hacia esa tienda según contrato vigente.
 
@@ -907,6 +1148,8 @@ no habilitar operación comercial por redirigir a /shop/{tenant:slug}
 
 no convertir /shop/{tenant:slug} en ruta privada por existencia de middleware pasivo
 
+no autorizar administración interna con sesión externa mínima
+
 Un mismo customer externo puede operar en una o más tiendas app-base si existe relación customer-tienda vigente.
 
 Toda tienda seleccionable por un customer externo debe corresponder siempre a un tenant app-base.
@@ -921,12 +1164,12 @@ No debe revelar causa exacta del fallo.
 
 Regla final:
 
-la existencia de login externo, credencial externa, token temporal de selección, sesión externa mínima namespaced o middleware externo pasivo no habilita por sí misma operación comercial completa.
+la existencia de login externo, credencial externa, token temporal de selección, sesión externa mínima namespaced o middleware externo pasivo no habilita por sí misma operación comercial completa ni administración interna de tienda.
 
 <<END SECTION>>
 
 <<SECTION: TIENDA PÚBLICA DEL TENANT>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 TIENDA PÚBLICA DEL TENANT
 
@@ -958,7 +1201,7 @@ Tienda
 
 La tienda pública puede funcionar como:
 
-canal de venta
+canal de venta futuro
 canal de registro
 pseudo invitación
 acceso desde QR
@@ -966,6 +1209,7 @@ acceso desde link público
 superficie comercial externa del tenant
 destino de sesión externa mínima namespaced
 superficie con contexto externo pasivo cuando corresponda
+superficie de catálogo publicado inicial no transaccional
 
 La entrada pública general /tienda puede funcionar como:
 
@@ -1028,6 +1272,11 @@ customer externo activo cuando exista sesión externa mínima válida para el te
 acción para cambiar tienda o cuenta externa
 acción para salir del acceso externo
 aviso de operación pendiente cuando corresponda
+catálogo publicado inicial cuando exista tienda activa y artículos visibles
+artículos visibles
+precio visible
+unidad
+botón deshabilitado de operación en preparación
 productos habilitados en etapa futura
 fichas o servicios disponibles en etapa futura
 precio actual según configuración futura
@@ -1048,6 +1297,7 @@ el middleware pasivo no comparte payload externo
 La tienda pública no debe mostrar ni prometer como implementado:
 
 panel interno
+administración interna de tienda
 saldos operativos reales
 historial comercial real
 datos de otros clientes
@@ -1061,6 +1311,9 @@ QR operativo
 pagos reales
 movimientos comerciales reales
 servicios comerciales reales
+compra
+carrito
+selección transaccional
 
 Regla:
 
@@ -1085,6 +1338,10 @@ La redirección desde /tienda/seleccionar hacia /shop/{tenant:slug} no crea sesi
 La sesión externa mínima namespaced permite lectura externa del customer activo, pero no habilita por sí misma compra, saldo, fichas, QR, pagos, movimientos ni comprobantes.
 
 El middleware externo pasivo permite resolver contexto, pero no autoriza operación comercial ni restringe el acceso público a la tienda.
+
+El catálogo publicado inicial permite visibilidad comercial.
+
+No permite operación comercial real por sí mismo.
 
 Rutas públicas vigentes:
 
@@ -1146,10 +1403,18 @@ No debe reutilizarse visual ni funcionalmente como selector interno de empresas.
 
 No debe invalidar la sesión Laravel completa.
 
+Regla final:
+
+tienda pública visible ≠ operación comercial real.
+
+catálogo publicado ≠ compra.
+
+customer externo activo ≠ habilitación comercial completa.
+
 <<END SECTION>>
 
 <<SECTION: PUBLICACIÓN DE PRODUCTOS EN TIENDA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PUBLICACIÓN DE PRODUCTOS EN TIENDA
 
@@ -1157,32 +1422,29 @@ No todos los Products deben publicarse automáticamente en Shopping Autoservicio
 
 Debe existir una capa intermedia de publicación de tienda.
 
-Lectura conceptual:
+Relación conceptual vigente:
 
+SelfServiceShop
+↓
+SelfServiceShopItem
+↓
 Product
-publicación en tienda
-setup comercial de self_service_sales
 
-La publicación de tienda puede definir:
+Lectura:
 
-visible en tienda
-activo o inactivo
-orden de aparición
-categoría comercial
-descripción comercial
-imagen comercial
-precio público si corresponde
-permite pago con saldo
-requiere retiro en mostrador
-stock visible o no visible
-tipo de oferta
-restricciones comerciales
+Product conserva el catálogo maestro.
 
-Reglas:
+SelfServiceShop representa cabecera/configuración de tienda.
 
-Products conserva el catálogo maestro.
+SelfServiceShopItem representa un producto publicado dentro de una tienda concreta.
+
+SelfServiceShop no reemplaza Tenant.
+
+SelfServiceShopItem no reemplaza Product.
 
 Shopping Autoservicio publica la oferta comercial externa.
+
+Products conserva el catálogo maestro.
 
 Inventory conserva stock físico y trazabilidad material.
 
@@ -1198,14 +1460,103 @@ un producto puede existir en Products sin estar publicado en Shopping Autoservic
 
 Regla adicional:
 
-la publicación de productos en tienda no forma parte del primer corte operativo validado.
+la publicación pública debe ser explícita.
 
-No debe abrirse esta etapa sin antes cerrar contrato de identidad externa, relación customer-tienda, permisos internos de administración comercial y reglas de visibilidad pública.
+No debe derivarse automáticamente de products.is_active.
+
+products.is_active puede ser condición necesaria para visibilidad, pero no suficiente para publicar en tienda.
+
+Campos funcionales consolidados para SelfServiceShopItem:
+
+self_service_shop_id
+tenant_id
+product_id
+is_visible
+use_product_price
+price
+display_name
+display_description
+sort_order
+status
+meta
+
+Regla:
+
+SelfServiceShopItem siempre pertenece a SelfServiceShop.
+
+self_service_shop_id es obligatorio.
+
+No debe existir SelfServiceShopItem huérfano.
+
+Estados vigentes de SelfServiceShop:
+
+draft
+active
+inactive
+
+Regla:
+
+archived no forma parte del contrato vigente de SelfServiceShop.
+
+inactive cubre la desactivación operativa de tienda.
+
+Visibilidad efectiva de artículo publicado:
+
+item.status = published
+item.is_visible = true
+shop.status = active
+product.is_active = true
+
+Reglas:
+
+publicar producto no equivale a vender
+
+publicar producto no mueve stock
+
+publicar producto no crea documento
+
+publicar producto no habilita carrito
+
+publicar producto no inicia pago
+
+activar tienda no habilita operación comercial completa
+
+catálogo publicado no habilita operación comercial
+
+operation_enabled = false mantiene bloqueada la operación comercial aunque el catálogo sea visible
+
+La publicación vigente permite mostrar:
+
+tienda activa
+catálogo publicado inicial
+artículos visibles
+precio visible
+unidad
+botón deshabilitado de operación en preparación
+
+No implementa:
+
+compra
+pago
+saldo
+fichas operativas
+QR
+órdenes
+documentos
+movimientos de stock
+carrito
+selección transaccional
+
+Regla final:
+
+catálogo publicado = visibilidad comercial inicial.
+
+catálogo publicado ≠ operación comercial real.
 
 <<END SECTION>>
 
 <<SECTION: FICHA COMO UNIDAD COMERCIAL DE CONSUMO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 FICHA COMO UNIDAD COMERCIAL DE CONSUMO
 
@@ -1247,7 +1598,22 @@ Regla adicional:
 
 la confirmación de email no habilita consumo de fichas.
 
-Antes de consumir fichas debe existir identidad operativa suficiente, habilitación para operar, saldo o ficha disponible y aceptación válida del controlador externo cuando corresponda.
+La finalización de identidad operativa no habilita consumo de fichas por sí sola.
+
+La creación de contraseña externa no habilita consumo de fichas por sí sola.
+
+La sesión externa mínima no habilita consumo de fichas por sí sola.
+
+Ver catálogo publicado no habilita consumo de fichas.
+
+Antes de consumir fichas debe existir:
+
+identidad operativa suficiente
+relación customer-tienda vigente
+operation_enabled = true
+saldo o ficha disponible
+contrato de movimientos
+aceptación válida del controlador externo cuando corresponda
 
 Primer corte vigente:
 
@@ -1259,10 +1625,16 @@ no hay QR operativo
 
 no hay controlador externo integrado
 
+Regla final:
+
+la ficha queda como unidad comercial futura.
+
+No debe implementarse consumo real sin contrato específico, ledger o movimiento trazable y validación runtime.
+
 <<END SECTION>>
 
 <<SECTION: SALDO REAL EN PESOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SALDO REAL EN PESOS
 
@@ -1321,7 +1693,24 @@ Regla adicional:
 
 la confirmación de email no habilita saldo operativo.
 
-Antes de activar saldo real, debe existir identidad operativa suficiente, relación customer-tienda y contrato de movimientos.
+La finalización de identidad operativa no habilita saldo operativo por sí sola.
+
+La creación de contraseña externa no habilita saldo operativo por sí sola.
+
+La sesión externa mínima no habilita saldo operativo por sí sola.
+
+La habilitación operation_enabled no crea saldo.
+
+Ver catálogo publicado no crea saldo.
+
+Antes de activar saldo real, debe existir:
+
+identidad operativa suficiente
+relación customer-tienda vigente
+operation_enabled = true cuando corresponda
+contrato de movimientos
+ledger o mecanismo equivalente trazable
+validación backend
 
 Primer corte vigente:
 
@@ -1333,10 +1722,16 @@ no hay acreditación real por pago
 
 no hay consumo real de saldo
 
+Regla final:
+
+saldo real = movimiento trazable.
+
+No debe existir edición directa manual como fuente principal de saldo.
+
 <<END SECTION>>
 
 <<SECTION: SALDO NEGATIVO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 SALDO NEGATIVO
 
@@ -1385,6 +1780,10 @@ puede recibir cargas de saldo
 
 las transferencias o cargas recibidas deben cancelar primero fichas negativas
 
+operation_enabled = false impide uso de tolerancia negativa
+
+saldo negativo no forma parte del corte operativo vigente
+
 El cliente debe poder ver:
 
 cantidad de fichas en deuda
@@ -1405,10 +1804,16 @@ Se registra consumo.
 
 La deuda se valoriza al momento de cobro o regularización.
 
+Regla final:
+
+saldo negativo requiere contrato específico, trazabilidad y autorización explícita.
+
+No debe aparecer como simple número editable.
+
 <<END SECTION>>
 
 <<SECTION: FICHAS PROMOCIONALES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 FICHAS PROMOCIONALES
 
@@ -1430,6 +1835,14 @@ aplican a todos los boxes del tenant salvo configuración futura específica
 
 deben comunicarse claramente al cliente cuando tengan vencimiento
 
+no habilitan compra de productos físicos
+
+no habilitan minimercado
+
+no pueden convertirse automáticamente en dinero
+
+operation_enabled = false impide consumo promocional
+
 Orden inicial de consumo:
 
 primero saldo real
@@ -1450,10 +1863,16 @@ No forman parte del núcleo inicial de implementación.
 
 Quedan documentadas como evolución prevista.
 
+Regla final:
+
+promoción = derecho de consumo controlado.
+
+Promoción ≠ saldo real.
+
 <<END SECTION>>
 
 <<SECTION: PRECIO DE FICHA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PRECIO DE FICHA
 
@@ -1475,6 +1894,10 @@ el cambio de precio puede aplicar de inmediato
 
 debe existir trazabilidad del cambio
 
+operation_enabled no define precio
+
+catálogo publicado no define precio de ficha salvo contrato específico futuro
+
 Regla operativa inicial sugerida:
 
 no permitir más de un cambio de precio de ficha cada 12 horas
@@ -1489,10 +1912,24 @@ fecha
 usuario interno responsable
 motivo cuando corresponda
 
+Regla:
+
+el precio de ficha pertenece a configuración comercial del tenant.
+
+No pertenece a customer externo.
+
+No pertenece a sesión externa mínima.
+
+No pertenece al QR.
+
+Regla final:
+
+precio de ficha requiere configuración, trazabilidad y lectura tenant-scoped.
+
 <<END SECTION>>
 
 <<SECTION: QR Y CONSUMO DE FICHA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 QR Y CONSUMO DE FICHA
 
@@ -1514,6 +1951,12 @@ app-base identifica tenant y box
 
 app-base valida customer
 
+app-base valida relación customer-tienda
+
+app-base valida identity_stage suficiente
+
+app-base valida operation_enabled = true
+
 app-base valida saldo, fichas promocionales o tolerancia negativa
 
 app-base prepara intento de consumo
@@ -1531,6 +1974,42 @@ Regla crítica:
 si app-base no puede confirmar que el controlador aceptó el consumo, no debe descontar saldo, no debe consumir ficha promocional y no debe registrar consumo definitivo.
 
 Puede registrarse intento fallido si aporta valor operativo.
+
+Reglas:
+
+confirmar email no habilita consumo QR
+
+finalizar identidad operativa no habilita consumo QR por sí solo
+
+crear contraseña externa no habilita consumo QR por sí solo
+
+sesión externa mínima no habilita consumo QR por sí sola
+
+catálogo publicado no habilita consumo QR
+
+operation_enabled = false bloquea consumo QR
+
+Primer corte vigente:
+
+no hay QR operativo
+
+no hay consumo real de ficha
+
+no hay controlador externo integrado
+
+no hay ledger operativo completo
+
+Regla final:
+
+QR inicia contexto.
+
+No autoriza por sí mismo.
+
+No cobra por sí mismo.
+
+No define precio.
+
+No reemplaza confirmación del controlador externo.
 
 <<END SECTION>>
 
@@ -1584,7 +2063,7 @@ No debe descontarse ficha por intención visual, click, QR leído o solicitud en
 <<END SECTION>>
 
 <<SECTION: MINIMERCADO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 MINIMERCADO
 
@@ -1633,10 +2112,54 @@ La compra de minimercado debe generar el movimiento de negocio correspondiente.
 
 El movimiento físico debe confirmarse al retirar en mostrador.
 
+Relación con catálogo publicado inicial:
+
+SelfServiceShopItem puede servir como publicación visible de productos físicos.
+
+Esa publicación no equivale a compra.
+
+Esa publicación no mueve stock.
+
+Esa publicación no genera orden, documento ni movimiento comercial por sí misma.
+
+Regla:
+
+minimercado transaccional sigue fuera del corte operativo vigente.
+
+La tienda pública puede mostrar artículos publicados, precio visible y unidad, pero no debe permitir compra hasta que exista contrato específico.
+
+No implementado en el corte vigente:
+
+selección transaccional
+
+cantidad
+
+carrito
+
+intención de compra
+
+pago
+
+orden derivada
+
+documento derivado
+
+movimiento de stock
+
+retiro operativo
+
+validación de mostrador
+
+Regla final:
+
+publicar productos físicos en tienda no convierte el minimercado en operativo.
+
+El minimercado requiere contrato transaccional propio antes de habilitar compra real.
+
 <<END SECTION>>
 
 <<SECTION: FACTURACIÓN Y DATOS FISCALES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 FACTURACIÓN Y DATOS FISCALES
 
@@ -1686,10 +2209,42 @@ Facturación no forma parte del núcleo inicial de implementación.
 
 Debe quedar preparada como evolución.
 
+Regla adicional para el corte vigente:
+
+la finalización de identidad operativa del customer no equivale a facturación fiscal completa.
+
+La creación de contraseña externa no equivale a datos fiscales completos.
+
+La habilitación operation_enabled no equivale a facturación disponible.
+
+El catálogo publicado inicial no genera comprobante.
+
+El botón deshabilitado de operación en preparación no debe prometer comprobante fiscal real.
+
+No implementado en el corte vigente:
+
+solicitud real de comprobante
+
+datos fiscales avanzados autogestionados
+
+vinculación fiscal operativa completa
+
+comprobante real
+
+documento fiscal derivado
+
+plazo fiscal configurable
+
+integración documental final con Documents para comprobantes de tienda
+
+Regla final:
+
+los datos fiscales pertenecen a una evolución posterior y deben integrarse sin convertir customer externo en User, Membership ni sujeto interno del panel.
+
 <<END SECTION>>
 
 <<SECTION: MERCADO PAGO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 MERCADO PAGO
 
@@ -1705,83 +2260,78 @@ Mercado Pago queda como puerta futura preparada doctrinalmente, sin integración
 
 Regla doctrinal futura:
 
-cada tenant cobra con su propia configuración de Mercado Pago
+Mercado Pago confirma pago externo.
 
-app-base no actúa como intermediario financiero en la etapa inicial
+app-base acredita saldo o habilita operación solo después de confirmación válida.
 
-app-base crea una intención interna antes de enviar al cliente a pagar
+No se acredita saldo por:
 
-Mercado Pago procesa el cobro
+redirect visual
 
-el redirect visual no acredita saldo
+click del usuario
 
-la confirmación debe venir por webhook, consulta o verificación segura
+intención de pago
 
-app-base valida la operación
+pantalla de éxito no verificada
 
-app-base acredita saldo o registra compra
+notificación no validada
 
-app-base debe operar con idempotencia
-
-Regla:
-
-Mercado Pago cobra.
-
-app-base gobierna saldo, fichas, movimientos, historial, consumo y trazabilidad.
-
-Mercado Pago no decide qué saldo acreditar ni qué ficha consumir.
-
-La integración futura debe contemplar:
-
-configuración por tenant
-credenciales o autorización por tenant
-sandbox o cuentas de prueba
-webhooks
-idempotencia
-validación de monto
-validación de intención interna
-estados de pago
-errores de acreditación
-datos adicionales requeridos para pagos
-datos adicionales requeridos para comprobantes o facturación
-prevención de abuso cuando corresponda
+respuesta no autenticada
 
 Reglas:
 
-no asumir credenciales globales de app-base
+la integración debe validar tenant
 
-no asumir que app-base cobra por cuenta del tenant
+la integración debe validar customer externo
 
-no acreditar saldo sin confirmación segura del pago
+la integración debe validar relación customer-tienda
 
-no ejecutar consumo por pago pendiente
+la integración debe validar operación habilitada
 
-no confiar solo en retorno frontend
+la integración debe validar monto
 
-no usar Mercado Pago como autorización interna
+la integración debe validar moneda
 
-no mezclar pago externo con membership interna
+la integración debe validar estado real del pago
 
-Regla:
+la integración debe evitar doble acreditación
 
-la pasarela de pago confirma cobro externo.
+la integración debe registrar movimiento comercial trazable
 
-El sistema debe decidir, bajo contrato propio, qué efecto operativo produce ese cobro dentro del tenant.
+Mercado Pago no reemplaza ledger interno.
 
-Primer corte vigente:
+Mercado Pago no reemplaza saldo interno.
 
-no hay Mercado Pago real
+Mercado Pago no reemplaza Documents.
 
-no hay cobro real
+Mercado Pago no reemplaza Security.
 
-no hay saldo operativo acreditable por pago
+Mercado Pago no reemplaza validación backend.
 
-no hay webhook implementado
+Regla sobre operation_enabled:
+
+operation_enabled = false bloquea operación comercial aunque exista acceso externo, tienda visible, catálogo publicado o intento de pago futuro.
+
+No debe iniciarse operación real de pago si el customer no está habilitado para operar según contrato vigente.
+
+Regla sobre catálogo publicado:
+
+ver un producto publicado no habilita pago.
+
+seleccionar un producto futuro no habilita pago.
+
+agregar a carrito futuro no habilita pago sin contrato transaccional.
+
+Regla final:
+
+Mercado Pago debe integrarse como confirmación externa de pago, no como autoridad de negocio interna.
+
+La autoridad final de acreditación, movimiento y operación queda en app-base bajo contrato propio.
 
 <<END SECTION>>
 
 <<SECTION: ALCANCE DE LA PRIMERA IMPLEMENTACIÓN>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ALCANCE DE LA PRIMERA IMPLEMENTACIÓN
 
@@ -1789,7 +2339,7 @@ La primera implementación de Shopping Autoservicio debe ser mínima y segura.
 
 Objetivo inicial validado:
 
-habilitar el registro del customer externo, su representación como Party customer person dentro del tenant, una primera arquitectura de identidad externa separada del plano interno y un flujo externo mínimo completo sin operación comercial real.
+habilitar el registro del customer externo, su representación como Party customer person dentro del tenant, una arquitectura inicial de identidad externa separada del plano interno, selección externa de tienda, sesión externa mínima, finalización de identidad operativa, habilitación interna manual y catálogo publicado inicial no transaccional.
 
 Incluye:
 
@@ -1901,6 +2451,44 @@ errores genéricos para fallos del selector externo
 
 aviso de operación pendiente cuando operation_enabled = false
 
+finalización de registro externo
+
+completado de identidad operativa
+
+creación de contraseña externa
+
+identity_stage = operational_identity_completed
+
+access_enabled
+
+operation_enabled = false hasta habilitación interna
+
+canOperate() verdadero solo con operation_enabled = true
+
+habilitación manual desde tenant/profile / Clientes Tienda
+
+operation_enabled como columna operativa fuente de verdad
+
+trazabilidad mínima de habilitación manual en meta
+
+SelfServiceShop como cabecera/configuración de tienda
+
+SelfServiceShopItem como producto publicado en tienda
+
+SelfServiceShopCatalogReader
+
+SelfServiceShopPublisher
+
+catálogo publicado inicial
+
+self_service_shop_id obligatorio en SelfServiceShopItem
+
+tienda activa por tenant
+
+/shop/{tenant:slug} muestra catálogo publicado inicial cuando corresponde
+
+/shop/{tenant:slug} puede mostrar artículos visibles, precio visible, unidad y acción deshabilitada de operación en preparación
+
 cuenta demo multi-tienda para validación del flujo externo
 
 validación con Lavadero SA como tenant demo/base para pruebas reales
@@ -1911,37 +2499,29 @@ Mercado Pago real
 
 saldo operativo completo
 
-consumo QR real
+fichas operativas
 
-integración con controlador externo
+QR operativo
 
-minimercado
+movimientos comerciales reales
 
-promociones
+carrito
 
-transferencias
+compra
 
-facturación
+selección transaccional
 
-saldo negativo operativo
+órdenes generadas desde tienda
 
-productos físicos operativos
+documentos generados desde tienda
 
-retiro en mostrador
+movimientos de stock por tienda
 
-hardware
-
-envío real de email de confirmación
-
-validación final de identidad operativa
-
-habilitación operativa completa del customer
-
-operación comercial real
-
-middleware externo definitivo de autorización obligatoria
+facturación/comprobantes reales
 
 guard externo definitivo
+
+middleware externo definitivo de autorización obligatoria
 
 remember token externo
 
@@ -1949,60 +2529,43 @@ recuperación real de contraseña
 
 cambio real de contraseña externa
 
-guardar tenant interno en session('tenant_id')
+operación comercial completa
 
-Auth::login()
+Reglas:
 
-Regla:
+confirmar email no habilita operación comercial completa
 
-la primera implementación no debe intentar resolver todo Shopping Autoservicio.
+completar identidad operativa no habilita operación comercial completa
 
-Debe cerrar correctamente la base de cliente externo autogestivo, identidad externa separada, relación customer-tienda, selección mínima externa, sesión externa mínima namespaced, middleware externo pasivo, cambio de tienda y salida externa sin mezclarla con User, Membership ni panel interno.
+crear contraseña externa no habilita operación comercial completa
 
-Corte vigente cerrado:
+validar credencial externa no habilita operación comercial completa
 
-registro externo pendiente
-confirmación por token
-creación de Party customer person
-separación total frente a membership
-entrada pública general /tienda
-credencial externa propia
-cuenta externa customer
-relación customer-tienda
-token temporal selector
-selector externo visible por token
-acción mínima de selección externa de tienda
-marcado de token used_at al seleccionar
-sesión externa mínima namespaced
-lectura de customer externo activo en tienda pública
-middleware externo pasivo ResolveSelfServiceExternalCustomer
-redirección a /shop/{tenant:slug}
-cambio de tienda externa
-logout externo mínimo
-limpieza de claves self_service_sales.*
-lectura interna inicial desde tenant/profile cuando corresponda
-pruebas negativas del selector externo con error genérico
-validación de tienda pública como visitante sin sesión externa
-validación de tienda pública como visitante con sesión externa de otro tenant
+seleccionar tienda no habilita operación comercial completa
 
-Pendiente inmediato:
+iniciar sesión externa mínima no habilita operación comercial completa
 
-middleware externo definitivo de autorización obligatoria
-guard externo futuro
-recuperación de contraseña real
-identidad operativa completa
-habilitación comercial
-operación comercial real
+resolver contexto externo pasivo no habilita operación comercial completa
 
-Regla adicional:
+redirigir a /shop/{tenant:slug} no habilita operación comercial completa
 
-la visualización interna owner/admin de registros y customers no convierte self_service_sales en navegación principal tenant ni en CRUD ordinario.
+ver catálogo publicado no habilita operación comercial completa
 
-Regla final:
+publicar producto no equivale a vender
 
-la sesión externa mínima namespaced y el middleware externo pasivo no habilitan compra, saldo, fichas, QR, pagos, movimientos comerciales, Mercado Pago, facturación ni comprobantes.
+publicar producto no mueve stock
 
-operation_enabled = false mantiene bloqueada toda operación comercial real.
+activar tienda no habilita operación comercial completa
+
+operation_enabled = false bloquea operación comercial
+
+La implementación inicial debe seguir dejando claro:
+
+puede ingresar ≠ puede operar
+
+puede ver tienda ≠ puede comprar
+
+catálogo publicado ≠ operación comercial real
 
 <<END SECTION>>
 
@@ -2088,7 +2651,7 @@ No se considera cierre válido si confirmar email habilita operación comercial 
 <<END SECTION>>
 
 <<SECTION: FUERA DE ALCANCE INICIAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 FUERA DE ALCANCE INICIAL
 
@@ -2114,11 +2677,11 @@ transferencias entre clientes
 
 saldo negativo operativo
 
-minimercado
+minimercado transaccional
 
-stock de productos físicos
+stock de productos físicos operado desde tienda
 
-retiro en mostrador
+retiro en mostrador operativo
 
 facturación fiscal completa
 
@@ -2136,44 +2699,90 @@ historial avanzado de precios
 
 hardware
 
-login externo completo
+guard externo definitivo
 
-envío real de email de confirmación
+middleware externo definitivo de autorización obligatoria
+
+remember token externo
+
+recuperación real de contraseña
+
+cambio real de contraseña externa
 
 experiencia completa de customer autenticado
 
-cuenta externa definitiva
+compra
 
-relación customer-tienda definitiva
+carrito
 
-selector externo de tiendas
+selección transaccional
 
-recuperación de contraseña externa
+órdenes generadas desde tienda
 
-cambio de contraseña externa
+documentos generados desde tienda
 
-habilitación operativa completa
+movimientos comerciales reales
 
-operation_enabled como capacidad operativa real
+movimientos de stock por tienda
+
+operación comercial completa
+
+Ya no debe tratarse como fuera de alcance global del corte vigente:
+
+cuenta externa customer base
+
+relación customer-tienda base
+
+selector externo de tiendas base
+
+sesión externa mínima namespaced
+
+middleware externo pasivo
+
+finalización de identidad operativa
+
+creación de contraseña externa
+
+operation_enabled como columna operativa
+
+habilitación manual desde plano interno
+
+catálogo publicado inicial no transaccional
+
+SelfServiceShop
+
+SelfServiceShopItem
+
+SelfServiceShopCatalogReader
+
+SelfServiceShopPublisher
 
 Regla:
 
-estos elementos pueden documentarse como evolución prevista, pero no deben mezclarse con la primera implementación si comprometen el cierre seguro del registro del customer.
+estos elementos ya forman parte del corte base implementado o doctrinalmente consolidado según la documentación vigente.
+
+Regla:
+
+los elementos fuera de alcance pueden documentarse como evolución prevista, pero no deben mezclarse con la primera implementación si comprometen el cierre seguro del registro del customer y la separación de planos.
 
 Regla adicional:
 
-antes de continuar con saldo, ficha, QR, email real, Mercado Pago, login externo completo, cuenta externa, relación customer-tienda o habilitación operativa, debe respetarse el corte actual y validar con código real.
+antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado transaccional, facturación, promociones, guard externo definitivo, middleware externo definitivo de autorización obligatoria u operación comercial real, debe respetarse el corte actual y validar con código real.
 
 Regla específica:
 
 la confirmación de email no equivale a habilitación operativa completa.
 
-Para operar deberá existir una validación posterior de identidad operativa y un contrato específico de operación externa.
+La finalización de identidad operativa no equivale a operación comercial completa.
+
+La habilitación manual operation_enabled no implementa por sí misma saldo, compra, fichas, QR, pagos, carrito ni comprobantes.
+
+Para operar comercialmente deberá existir contrato específico de operación externa.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS DE SEGURIDAD>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS DE SEGURIDAD
 
@@ -2193,13 +2802,15 @@ el cliente externo no usa Fortify interno
 
 el cliente externo no usa tenants/select
 
+el cliente externo no administra tienda
+
 el cliente externo solo opera sobre sus propios datos comerciales autorizados
 
 la tienda pública no expone información interna del tenant
 
 la tienda pública no habilita operación interna del tenant
 
-la compra exige registro o login cuando corresponda
+la compra exige registro o login externo cuando corresponda
 
 el consumo exige cliente validado
 
@@ -2270,17 +2881,77 @@ No debe iniciar sesión interna mediante Auth::login().
 
 No debe reutilizar Fortify interno como si el customer fuera usuario interno.
 
+Regla sobre sesión externa mínima:
+
+SelfServiceExternalSession no es sesión interna.
+
+SelfServiceExternalSession no es tenant activo interno.
+
+SelfServiceExternalSession no es guard externo definitivo.
+
+SelfServiceExternalSession no habilita operación comercial.
+
+SelfServiceExternalSession no autoriza administración interna de tienda.
+
+Regla sobre middleware externo pasivo:
+
+ResolveSelfServiceExternalCustomer no es middleware de autorización obligatoria.
+
+No convierte /shop/{tenant:slug} en ruta privada.
+
+No bloquea visitantes públicos.
+
+No exige login externo.
+
+No habilita operación comercial.
+
+No autoriza administración interna de tienda.
+
 Regla sobre habilitación operativa:
 
 confirmar email no habilita operación comercial completa.
 
-Para operar deberá existir validación posterior de identidad operativa según contrato vigente o futuro específico.
+completar identidad operativa no habilita operación comercial completa.
+
+crear contraseña externa no habilita operación comercial completa.
+
+validar credencial externa propia no habilita operación comercial completa.
+
+seleccionar tienda no habilita operación comercial completa.
+
+iniciar sesión externa mínima no habilita operación comercial completa.
+
+operation_enabled = false bloquea operación comercial.
+
+operation_enabled = true solo habilita canOperate() dentro del contrato vigente.
+
+No reemplaza contratos futuros de saldo, fichas, QR, pagos, carrito, órdenes, documentos ni stock.
+
+Regla sobre administración interna de tienda:
+
+SelfServiceShop y SelfServiceShopItem pertenecen al plano interno.
+
+Deben requerir:
+
+User autenticado
+Membership vigente
+tenant activo
+autorización backend efectiva
+
+No autorizan administración interna:
+
+customer externo
+SelfServiceExternalSession
+ResolveSelfServiceExternalCustomer
+/shop/{tenant:slug}
+/tienda
+/tienda/seleccionar
 
 Regla sobre errores de acceso externo:
 
 el acceso externo de customer debe responder con mensajes genéricos ante fallas.
 
-No debe revelar si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas o estado no habilitado para operar.
+No debe revelar si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas, token ausente, token inválido, token vencido, token usado, store_customer_id manipulado, pertenencia de cuenta, relación bloqueada, sesión externa o estado no habilitado para operar.
 
 Regla final:
 
@@ -2288,10 +2959,12 @@ la autenticación externa futura no equivale a autorización interna.
 
 Operar en la tienda no habilita acceso al panel interno.
 
+Administrar tienda no pertenece al plano customer.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS DE DOCUMENTACIÓN FUTURA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLAS DE DOCUMENTACIÓN FUTURA
 
@@ -2315,6 +2988,8 @@ base visual
 
 todo del proyecto
 
+plantilla de inicio de chats
+
 paquete de servicios y mantenimiento solo si existiera relación funcional real
 
 Regla:
@@ -2323,6 +2998,39 @@ Shopping Autoservicio no debe contaminar documentos especializados ajenos con de
 
 Los documentos generales solo deben incorporar la lectura estructural mínima necesaria.
 
-Este documento debe concentrar la doctrina específica de self_service_sales.
+Regla de frontera documental:
+
+si un cambio pertenece al plano externo customer, debe documentarse principalmente en este documento y solo impactar seguridad, navegación, entidades o contexto fijo cuando modifique doctrina general.
+
+si un cambio pertenece a administración interna de tienda, debe documentarse como plano interno autorizado de self_service_sales, sin confundirlo con tienda pública.
+
+si un cambio pertenece a catálogo publicado, debe distinguir visibilidad comercial de operación comercial real.
+
+si un cambio pertenece a operación comercial real, debe documentarse recién cuando exista contrato específico, evidencia técnica y validación runtime.
+
+Regla sobre secciones:
+
+las actualizaciones documentales automáticas deben usar nombres exactos de secciones existentes.
+
+No deben inventarse nombres de sección por síntesis, estilo o interpretación.
+
+No deben usarse títulos conceptuales como si fueran secciones reales.
+
+Si el contenido corresponde a una sección existente, debe integrarse dentro de esa sección.
+
+Si se requiere una sección nueva, debe proponerse mediante alta controlada y no como reemplazo.
+
+Regla final:
+
+toda evolución futura debe mantener explícita la separación entre:
+
+plano interno
+plano externo
+registro externo
+identidad operativa
+habilitación comercial
+catálogo publicado
+operación comercial real
+administración interna de tienda
 
 <<END SECTION>>

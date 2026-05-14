@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -650,24 +650,7 @@ salida externa sin invalidar toda la sesión Laravel
 salida externa sin cerrar sesión interna si existiera
 salida externa sin limpiar session('tenant_id') por reflejo
 
-Reglas validadas del corte:
-
-SelfServiceExternalSession no es User
-SelfServiceExternalSession no es Membership
-SelfServiceExternalSession no es guard externo definitivo
-SelfServiceExternalSession no es tenant activo interno
-SelfServiceExternalSession no habilita panel interno
-SelfServiceExternalSession no habilita operación comercial real
-la sesión externa mínima no usa Auth::login()
-la sesión externa mínima no usa Fortify interno
-la sesión externa mínima no escribe session('tenant_id')
-la sesión externa mínima no crea User
-la sesión externa mínima no crea Membership
-/tienda/salir no es logout interno
-
 Corte operativo de middleware externo pasivo consolidado:
-
-self_service_sales ya cuenta con middleware externo pasivo de resolución contextual para /shop/{tenant:slug}.
 
 Pieza vigente:
 
@@ -675,113 +658,160 @@ ResolveSelfServiceExternalCustomer
 
 Implementado y validado:
 
-middleware externo pasivo ResolveSelfServiceExternalCustomer
-resolución contextual de customer externo para /shop/{tenant:slug}
-payload externo compartido por request attribute cuando corresponde
-/shop/{tenant:slug} puede recibir contexto externo sin convertirse en ruta privada
-tienda pública visible para visitantes sin sesión externa
+middleware externo pasivo para /shop/{tenant:slug}
+resolución de contexto externo solo si existe sesión externa mínima válida
+validación de correspondencia entre sesión externa y tenant público de la ruta
+payload externo compartido en request para vista pública
+tienda pública visible como visitante si no existe sesión externa
 tienda pública visible como visitante si la sesión externa corresponde a otro tenant
-tienda pública con customer externo activo si la sesión corresponde al tenant público de la ruta
-session('tenant_id') permanece null en el flujo externo
 
-Validaciones realizadas:
+Reglas vigentes:
 
-sesión Lavadero visitando Lavadero muestra customer externo
+no bloquea visitantes públicos
+no exige login externo
+no convierte /shop/{tenant:slug} en ruta privada
+no habilita operación comercial
+no usa Auth
+no escribe session('tenant_id')
+no crea User
+no crea Membership
+no reemplaza guard externo definitivo
+no reemplaza middleware externo definitivo de autorización obligatoria
 
-sesión Lavadero visitando Constructora no muestra customer externo
+Corte operativo de finalización de registro externo consolidado:
 
-sin sesión externa visitando Lavadero entra como visitante
+Implementado y validado:
 
-session('tenant_id') permanece null
-
-Reglas validadas del corte:
-
-ResolveSelfServiceExternalCustomer no es guard externo definitivo
-ResolveSelfServiceExternalCustomer no es middleware de autorización obligatoria
-ResolveSelfServiceExternalCustomer no protege /shop/{tenant:slug} como ruta privada
-ResolveSelfServiceExternalCustomer no bloquea visitantes públicos
-ResolveSelfServiceExternalCustomer no exige login externo para ver tienda pública
-ResolveSelfServiceExternalCustomer no redirige por falta de sesión externa
-ResolveSelfServiceExternalCustomer no habilita operación comercial
-ResolveSelfServiceExternalCustomer no usa Auth
-ResolveSelfServiceExternalCustomer no escribe session('tenant_id')
-ResolveSelfServiceExternalCustomer no crea User
-ResolveSelfServiceExternalCustomer no crea Membership
-
-Corte funcional vigente:
-
-registro externo pendiente
-registro inicial liviano
-confirmación por token
-creación de Party kind = person
-creación de PartyRole role = customer
-Party mínima sin DNI/document_number en esta etapa
-cuenta externa customer
-relación customer-tienda
-credencial externa propia
-token temporal de selección
-selector externo visible por token
-selección mínima externa de tienda
-token consumido mediante used_at al seleccionar
-sesión externa mínima namespaced
-customer externo activo visible en tienda pública cuando corresponde
-middleware externo pasivo de resolución contextual
-redirección a tienda pública tenant-scoped
-cambio de tienda o cuenta externa
-salida externa mínima
-limpieza de claves externas self_service_sales.*
-separación total frente a Membership
-sin User interno
-sin Membership
-sin acceso interno al tenant
-sin Fortify interno
-sin tenants/select
-sin Auth::login()
-sin guard externo definitivo
-sin middleware externo definitivo de autorización obligatoria
-sin remember token externo
-sin habilitación operativa completa
-sin operación comercial real
-
-Datos mínimos vigentes del registro inicial:
-
-nombre para mostrar
-email
-teléfono
+finalización de registro externo
+completado de identidad operativa
+creación de contraseña externa
+flujo de finalización posterior a confirmación de email
+identity_stage = operational_identity_completed
+access_enabled
+operation_enabled = false hasta habilitación manual
+canOperate() solo verdadero con operación habilitada
+operación bloqueada luego de completar identidad mientras no exista habilitación interna
+validación de no creación de User
+validación de no creación de Membership
+validación de no acceso interno
 
 Lectura vigente:
 
-email = vínculo fuerte inicial del customer externo
+puede ingresar ≠ puede operar
 
-teléfono = dato obligatorio de contacto
+Confirmar email no habilita operación comercial completa.
 
-teléfono no reemplaza al email como vínculo principal
+Completar identidad operativa no habilita operación comercial completa.
 
-Etapas conceptuales vigentes:
+Crear contraseña externa no habilita operación comercial completa.
 
-registro inicial liviano
-confirmación de email
-cuenta externa customer
-relación customer-tienda
-validación de credencial externa
-selección temporal de tienda
-consumo del token temporal
-sesión externa mínima namespaced
-redirección a tienda pública
-lectura de customer externo activo
-resolución contextual pasiva en tienda pública
-cambio de tienda o cuenta externa
-salida externa
-validación posterior de identidad operativa
-habilitación para operar
+Validar credencial externa no habilita operación comercial completa.
 
-Metadata operativa inicial esperada cuando corresponda:
+Seleccionar tienda no habilita operación comercial completa.
 
-identity_stage = initial_contact al crear la solicitud
+Iniciar sesión externa mínima no habilita operación comercial completa.
 
-identity_stage = email_confirmed al confirmar email
+Corte operativo de habilitación manual consolidado:
 
-operation_enabled = false en ambos casos
+Implementado y validado:
+
+habilitación manual desde tenant/profile / Clientes Tienda
+operation_enabled como columna operativa fuente de verdad
+operation_enabled no duplicado en meta como estado operativo
+operation_enabled = false hasta decisión interna
+operation_enabled = true habilita canOperate()
+trazabilidad mínima en meta de habilitación manual
+
+Metadata operativa de habilitación manual:
+
+operation_enabled_source = tenant_profile_manual
+operation_enabled_by_user_id
+operation_enabled_at
+
+Reglas vigentes:
+
+habilitar operación comercial externa es acción sensible interna
+
+requiere owner/admin según contrato vigente
+
+debe resolverse por backend
+
+no puede depender de UI
+
+no puede ejecutarla customer externo
+
+Corte operativo de catálogo publicado inicial consolidado:
+
+Implementado y validado:
+
+SelfServiceShop
+SelfServiceShopItem
+SelfServiceShopCatalogReader
+SelfServiceShopPublisher
+catálogo publicado inicial
+self_service_shop_id obligatorio en SelfServiceShopItem
+tienda activa por tenant
+/shop/{tenant:slug} muestra catálogo publicado inicial
+artículos visibles
+precio visible
+unidad
+botón deshabilitado de operación en preparación
+
+Estados vigentes de SelfServiceShop:
+
+draft
+active
+inactive
+
+No se incorpora archived porque se consideró redundante con inactive.
+
+Relación vigente:
+
+Tenant
+→ SelfServiceShop
+→ SelfServiceShopItem
+→ Product
+
+Reglas vigentes:
+
+SelfServiceShop representa cabecera/configuración de tienda
+
+SelfServiceShopItem representa producto publicado en una tienda
+
+SelfServiceShopItem siempre pertenece a SelfServiceShop
+
+Product conserva catálogo maestro
+
+SelfServiceShopItem no reemplaza Product
+
+publicar producto no mueve stock
+
+publicar producto no equivale a vender
+
+tienda activa no habilita operación comercial completa
+
+Visibilidad efectiva de artículo publicado:
+
+item.status = published
+item.is_visible = true
+shop.status = active
+product.is_active = true
+
+Estado operativo vigente de /shop/{tenant:slug}:
+
+puede mostrar tienda activa
+
+puede mostrar catálogo publicado inicial
+
+puede mostrar artículos visibles
+
+puede mostrar precio visible
+
+puede mostrar unidad
+
+puede mostrar botón deshabilitado de operación en preparación
+
+sigue sin generar operación comercial real
 
 Reglas vigentes:
 
@@ -853,8 +883,6 @@ el token temporal se consume mediante used_at al seleccionar correctamente
 
 operation_enabled = false sigue bloqueando operación comercial
 
-para operar deberá completarse validación posterior de identidad operativa y habilitación operativa explícita
-
 el acceso externo debe usar mensajes genéricos ante fallas
 
 el selector externo debe usar mensaje genérico ante fallas
@@ -863,45 +891,38 @@ la sesión externa debe usar mensaje genérico ante fallas
 
 no debe revelarse si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas, token ausente, token inválido, token vencido, token usado, store_customer_id manipulado, pertenencia de cuenta, relación bloqueada, sesión externa o estado no habilitado para operar
 
-Mercado Pago queda como puerta futura, no implementada en esta fase
+No implementado todavía:
+
+administración interna UI de tienda
+selección transaccional
+compra
+pagos
+saldo operativo real
+fichas operativas
+QR operativo
+movimientos comerciales reales
+órdenes generadas desde tienda
+documents generados desde tienda
+carrito
+Mercado Pago real
+facturación/comprobantes reales
+operación comercial completa
 
 Pendientes estructurales próximos:
 
-middleware externo definitivo de autorización obligatoria
-guard externo futuro
-remember token externo
-recuperación de contraseña real
-cambio de contraseña externa
-validación de identidad operativa
-definir cuándo operation_enabled puede pasar a true
-habilitación comercial
-operación comercial real
-datos adicionales requeridos para pagos
-datos adicionales requeridos para comprobantes o facturación
-condiciones de prevención de abuso cuando corresponda
+auditar si la administración interna UI de tienda debe cerrarse antes de avanzar a operación comercial
 
-Pendientes posteriores:
+definir contrato de publicación visual de productos sin crear operación transaccional
 
-envío real de email de confirmación
-base de saldo/ficha
-movimientos comerciales
-QR y consumo de ficha
-integración con controlador externo
-Mercado Pago futuro
-minimercado
-facturación solicitada
-transferencias
-promociones
-saldo negativo
-Documents para Lavadero SA cuando corresponda al frente comercial real
+definir contrato de carrito solo cuando exista decisión explícita
 
-Regla de continuidad:
+definir contrato de saldo/fichas/QR antes de cualquier operación real
 
-antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado, facturación, promociones, guard externo definitivo, middleware externo definitivo de autorización obligatoria u operación comercial real, debe respetarse el corte actual y validar contra código real, seguridad, tenant activo, runtime y documentación vigente.
+definir si Documents participa en comprobantes futuros
 
-Regla:
+definir si Inventory participa solo en minimercado o también en consumos por ficha
 
-la cuenta externa customer, la relación customer-tienda, el token temporal de selección, la sesión externa mínima namespaced, el middleware externo pasivo y la redirección a tienda pública no habilitan por sí solos operación comercial completa.
+definir integración futura con Mercado Pago sin convertir app-base en intermediario financiero por defecto
 
 <<END SECTION>>
 

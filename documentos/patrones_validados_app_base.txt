@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 PATRONES VIGENTES
 
@@ -325,13 +325,15 @@ Responsabilidad:
 
 opciones de productos
 reglas de validación de productos
-verificación de acceso a productos para líneas
+verificación de acceso a productos para líneas o publicaciones cuando corresponda
 
 Consumidores vigentes:
 
 OrderItemController
 
 DocumentItemController
+
+self_service_sales como publicación de tienda cuando corresponda al contrato vigente
 
 Reglas:
 
@@ -341,7 +343,92 @@ Orders administra sus propios order_items
 
 Documents administra sus propios document_items
 
+self_service_sales administra sus propias publicaciones de tienda
+
 los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial
+
+PUBLICACIÓN INTERNA DE TIENDA SIN OPERACIÓN COMERCIAL
+
+Patrón validado:
+
+una capa satélite comercial puede publicar un catálogo visible sin habilitar todavía operación transaccional.
+
+Caso vigente:
+
+self_service_sales publica catálogo inicial mediante:
+
+SelfServiceShop
+SelfServiceShopItem
+SelfServiceShopCatalogReader
+SelfServiceShopPublisher
+
+Lectura:
+
+SelfServiceShop configura la tienda.
+
+SelfServiceShopItem publica productos.
+
+Product conserva catálogo maestro.
+
+Reglas:
+
+publicar producto no equivale a vender
+
+publicar producto no mueve stock
+
+publicar producto no crea documento
+
+publicar producto no habilita carrito
+
+activar tienda no habilita operación comercial completa
+
+catálogo visible no equivale a operación comercial habilitada
+
+SEPARACIÓN DE ADMINISTRACIÓN INTERNA Y PLANO CUSTOMER
+
+Patrón validado:
+
+una capacidad satélite con entrada pública puede tener administración interna, pero ambos planos deben permanecer separados.
+
+Caso vigente:
+
+self_service_sales
+
+Plano interno:
+
+self_service_sales.shops.*
+
+SelfServiceShop
+
+SelfServiceShopItem
+
+TenantProfileAccess::canManageSelfServiceSales()
+
+Plano externo:
+
+/tienda
+
+/tienda/seleccionar
+
+/shop/{tenant:slug}
+
+/tienda/salir
+
+SelfServiceExternalSession
+
+ResolveSelfServiceExternalCustomer
+
+Reglas:
+
+customer externo no administra tienda
+
+sesión externa mínima no autoriza administración interna
+
+middleware externo pasivo no autoriza administración interna
+
+vista pública no debe exponer rutas internas
+
+vista interna no debe depender de sesión externa
 
 NUMERACIÓN TRANSVERSAL CON SIGNIFICADO EN CATÁLOGOS
 
@@ -357,253 +444,10 @@ el servicio transversal ejecuta la mecánica.
 
 Caso vigente:
 
-RecordNumberGenerator ejecuta la mecánica de numeración.
+RecordNumberGenerator ejecuta numeración.
 
-OrderCatalog define prefijos de Orders.
+OrderCatalog define prefijos Orders.
 
-DocumentCatalog define prefijos de Documents.
-
-Caso eliminado como lectura vigente:
-
-DocumentNumberGenerator
-
-Reglas:
-
-los prefijos pertenecen al catálogo del módulo
-
-el generador transversal no debe decidir prefijos por sí mismo
-
-no debe usarse un service nombrado por un módulo si la mecánica es transversal y compartida
-
-RELACIONES PASIVAS EN MODELOS
-
-Patrón validado:
-
-los modelos pueden conservar relaciones pasivas, estructurales o transversales si corresponden al contrato real.
-
-Eso no habilita controllers invasivos.
-
-Reglas:
-
-una relación pasiva no equivale a ownership funcional
-
-una relación de consulta no equivale a autorización
-
-una relación inversa no necesaria debe eliminarse si induce navegación conceptual incorrecta o acoplamiento activo indebido
-
-Caso vigente:
-
-Order ya no expone tasks().
-
-La dirección conceptual es Task -> Order mediante tasks.order_id.
-
-Relaciones aceptadas actualmente en Order:
-
-party
-asset
-documents
-attachments
-
-Lectura:
-
-estas relaciones son pasivas, de consulta, derivación o transversales mientras no habiliten que OrderController gobierne módulos externos.
-
-RECONVERSIÓN LIMPIA DE CONSTRAINTS
-
-Cuando cambia la dimensión real de autorización, la constraint funcional debe migrar a esa dimensión y eliminar la convivencia legacy.
-
-Caso validado:
-
-parties:
-antes → allowed_kinds sobre parties.kind
-ahora → allowed_party_roles sobre party_roles.role
-
-Regla:
-
-cuando el dominio cambia, no sostener constraints sobre dimensión incorrecta.
-
-No mantener compatibilidad legacy interna si ya contradice el contrato vigente.
-
-REGISTRO EXTERNO LIVIANO CON CONFIRMACIÓN POSTERIOR
-
-Patrón validado:
-
-una capa satélite comercial externa puede registrar primero una solicitud liviana, confirmar contacto y postergar la identidad operativa completa.
-
-Caso vigente:
-
-Shopping Autoservicio / self_service_sales.
-
-Flujo validado:
-
-SelfServiceCustomerRegistration pending
-
-confirmación por token
-
-Party person tenant-scoped
-
-PartyRole customer
-
-sin User
-
-sin Membership
-
-Datos mínimos vigentes:
-
-nombre para mostrar
-email
-teléfono
-
-Lectura:
-
-email = vínculo fuerte inicial
-
-teléfono = contacto obligatorio
-
-confirmar email ≠ habilitación operativa completa
-
-Reglas:
-
-no exigir identidad completa si el corte vigente es registro liviano
-
-no habilitar operación solo por confirmar email
-
-separar registro inicial, confirmación, identidad operativa y habilitación
-
-no reutilizar flujo interno de users, memberships, invitations o Fortify
-
-CAPA SATÉLITE COMERCIAL AUTOGESTIVA CON ENTRADA PÚBLICA
-
-Patrón validado:
-
-una capa satélite comercial autogestiva puede tener entrada pública externa por tenant sin convertirse en módulo CRUD ordinario ni panel interno.
-
-Caso vigente:
-
-Shopping Autoservicio
-
-Key técnica:
-
-self_service_sales
-
-Entradas vigentes:
-
-/shop/{tenant:slug}
-/tienda
-
-Lectura:
-
-/shop/{tenant:slug} = tienda pública tenant-scoped
-
-/tienda = entrada pública general externa
-
-Reglas:
-
-customer externo ≠ User
-
-customer externo ≠ Membership
-
-customer externo ≠ roles internos
-
-entrada pública externa ≠ panel interno
-
-login externo futuro ≠ Fortify interno
-
-la entrada externa no habilita dashboard, tenant/profile ni rutas internas
-
-VALIDACIÓN RUNTIME DE PLANO EXTERNO
-
-Patrón validado:
-
-cuando se implementa un flujo externo paralelo al plano interno, la validación runtime debe comprobar explícitamente que no se mezclaron planos.
-
-Caso vigente:
-
-self_service_sales
-
-Validar:
-
-tenant correcto
-no exposición entre tenants
-no creación accidental de User
-no creación accidental de Membership
-no uso de login interno
-no uso de Fortify interno
-no acceso al panel interno
-no habilitación operativa antes de cumplir identidad requerida
-
-Regla:
-
-si un flujo externo se parece a uno interno, no reutilizar entidades ni controllers internos sin auditar plano de seguridad.
-
-La similitud de forma no implica equivalencia de contrato.
-
-ENTRADA INTERNA DE CONTROL SIN NAVEGACIÓN PRINCIPAL
-
-Patrón validado:
-
-una capa satélite puede ofrecer lectura interna de control dentro de tenant/profile sin convertirse todavía en navegación principal tenant.
-
-Caso vigente:
-
-Clientes Tienda dentro de tenant/profile.
-
-Lectura:
-
-lectura interna owner/admin de registros y customers externos
-
-filtro visual por estado
-
-control operativo inicial
-
-Reglas:
-
-la tab interna no crea módulo CRUD
-
-la tab interna no crea navegación principal
-
-la tab interna no convierte customers externos en memberships
-
-la tab interna debe representar datos preparados por backend
-
-la tab interna debe respetar autorización central
-
-LANDING PÚBLICA CON ACCESOS SEPARADOS POR INTENCIÓN
-
-Patrón validado:
-
-la landing pública puede separar intenciones de acceso sin mezclar planos.
-
-Caso vigente:
-
-Ver planes
-
-Ingresar
-
-Solicitar acceso
-
-Tienda
-
-Lectura:
-
-Ingresar = acceso interno
-
-Solicitar acceso = alta o solicitud de empresa
-
-Tienda = acceso externo customers
-
-Reglas:
-
-no asumir que welcome.blade.php es la landing real
-
-auditar routes/web.php y resources/views/landing antes de modificar página pública inicial
-
-no mezclar acceso externo de customer con login interno
-
-no presentar Tienda como panel interno
-
-REGLA FINAL
-
-Patrón validado = solución repetible ya probada que reduce deriva, acoplamiento o ambigüedad.
+DocumentCatalog define prefijos Documents.
 
 <<END SECTION>>

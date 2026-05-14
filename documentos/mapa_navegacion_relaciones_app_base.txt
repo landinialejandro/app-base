@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 REGLA GENERAL
 
@@ -82,6 +82,12 @@ middleware externo pasivo no equivale a autorización obligatoria
 selección externa de tienda no equivale a operación comercial habilitada
 
 redirección a tienda pública no equivale a operación comercial habilitada
+
+catálogo publicado no equivale a operación comercial habilitada
+
+administración interna de tienda no equivale a tienda pública customer
+
+customer externo no equivale a administrador interno de tienda
 
 el trail preserva contexto entre pantallas relacionadas
 
@@ -171,7 +177,7 @@ un universo semántico debe conservar coherencia de trail, breadcrumbs y redirec
 
 Regla adicional para capas satélite comerciales autogestivas:
 
-una capa satélite comercial autogestiva puede tener entrada pública externa, selector externo, sesión externa mínima namespaced, middleware externo pasivo, tienda tenant-scoped y salida externa sin convertirse automáticamente en navegación interna del tenant.
+una capa satélite comercial autogestiva puede tener entrada pública externa, selector externo, sesión externa mínima namespaced, middleware externo pasivo, tienda tenant-scoped, salida externa y administración interna separada sin convertirse automáticamente en navegación interna ordinaria del tenant ni en CRUD externo customer.
 
 Caso vigente:
 
@@ -191,6 +197,14 @@ Entradas públicas vigentes:
 
 /tienda/salir
 
+Administración interna vigente:
+
+/self-service/shops...
+
+Rutas internas vigentes:
+
+self_service_sales.shops.*
+
 Middleware externo pasivo vigente:
 
 ResolveSelfServiceExternalCustomer
@@ -208,6 +222,8 @@ Lectura:
 /shop/{tenant:slug} representa la tienda pública tenant-scoped
 
 /tienda/salir representa la salida externa del acceso customer
+
+/self-service/shops... representa administración interna de tienda por usuario interno autorizado
 
 ResolveSelfServiceExternalCustomer representa resolución contextual pasiva para la tienda pública
 
@@ -248,6 +264,30 @@ Si no existe sesión externa, /shop/{tenant:slug} se muestra como visitante.
 POST /tienda/salir limpia la sesión externa self_service_sales.*.
 
 POST /tienda/salir devuelve al acceso externo sin cerrar sesión interna.
+
+Recorrido interno vigente de administración de tienda:
+
+dashboard interno o sección interna autorizada
+
+→ self_service_sales.shops.*
+
+→ configuración de tienda
+
+→ publicación de artículos
+
+→ activación mediante publisher
+
+Lectura del recorrido interno:
+
+la administración interna de tienda requiere User autenticado, Membership vigente, tenant activo y autorización backend efectiva.
+
+SelfServiceShop configura la tienda del tenant.
+
+SelfServiceShopItem publica productos activos en la tienda.
+
+ProductLineItemSelector puede servir como base de selección de productos activos.
+
+SelfServiceShopPublisher::activate($shop) concentra la activación de tienda.
 
 Recorrido de cambio de tienda o cuenta externa:
 
@@ -312,6 +352,14 @@ operation_enabled = false mantiene operación comercial bloqueada aunque la tien
 la navegación pública externa se mantiene accesible sin login externo obligatorio
 
 no debe mezclarse navegación pública externa con navegación principal tenant ni con navegación interna autenticada
+
+self_service_sales.shops.* pertenece al plano interno
+
+self_service_sales.shops.* no debe ser accesible por customer externo
+
+self_service_sales.shops.* no debe autorizarse por sesión externa mínima
+
+SelfServiceShopItem publicado no equivale a operación comercial transaccional
 
 Regla adicional para subcapas contextuales internas:
 

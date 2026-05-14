@@ -82,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 REGLA GENERAL
 
@@ -229,6 +229,7 @@ capacidad satélite comercial
 entidad auxiliar de registro pendiente
 login externo separado
 tienda pública controlada
+administración interna separada de tienda
 contratos propios de validación
 separación frente a memberships
 relación con Parties
@@ -258,11 +259,23 @@ Label visible:
 
 Tienda
 
+Administración interna vigente:
+
+/self-service/shops...
+
+Rutas internas vigentes:
+
+self_service_sales.shops.*
+
 Reglas:
 
 self_service_sales no debe tratarse como CRUD ordinario
 
-self_service_sales no debe tratarse como panel interno del tenant
+self_service_sales no debe tratarse como panel interno completo del tenant
+
+self_service_sales puede tener administración interna limitada para configuración de tienda
+
+la administración interna de tienda no debe mezclarse con el plano externo customer
 
 self_service_sales no debe reemplazar Parties
 
@@ -281,6 +294,8 @@ el cliente externo no debe convertirse en Membership
 el cliente externo no debe recibir roles internos
 
 el cliente externo no debe acceder al panel interno
+
+el cliente externo no debe administrar tienda
 
 la tienda pública no debe habilitar operación interna del tenant
 
@@ -304,127 +319,44 @@ la existencia de una entrada pública externa no autoriza navegación interna.
 
 La resolución del tenant por slug público no debilita el aislamiento multi-tenant.
 
-Regla adicional para universos funcionales o frentes contextuales:
+Regla adicional para administración interna de tienda:
 
-si se crea un universo funcional sobre módulos existentes, debe verificarse:
+si una capa satélite externa incorpora administración interna, debe distinguirse entre:
 
-qué frente representa
+configuración interna del tenant
+publicación comercial
+consumo público externo
+operación transaccional futura
 
-qué módulo conserva ownership de cada recurso operado
+Caso vigente:
 
-qué rutas semánticas son necesarias
+SelfServiceShop representa cabecera/configuración de tienda.
 
-qué permiso habilita acceso al área
+SelfServiceShopItem representa producto publicado.
 
-qué permisos operativos siguen perteneciendo al módulo dueño
+ProductLineItemSelector puede usarse como base para seleccionar productos activos publicables.
 
-qué valores contextuales deben forzarse o validarse desde backend
+SelfServiceShopPublisher::activate($shop) concentra activación.
 
-qué breadcrumbs y trails preservan el contexto
-
-qué redirecciones físicas deben mantenerse dentro del universo
-
-qué partials reutilizables necesitan configuración explícita
-
-qué query params dejan de ser fuente fuerte de contexto
-
-qué validaciones con request manipulado se ejecutaron
-
-qué rollback o limpieza se aplicó en pruebas
+TenantProfileAccess::canManageSelfServiceSales() concentra autorización interna vigente.
 
 Reglas:
 
-no crear ownership indebido
+SelfServiceShop no reemplaza Tenant
 
-no duplicar CRUD
+SelfServiceShopItem no reemplaza Product
 
-no depender solo de query params manipulables
+publicar producto no equivale a mover stock
 
-no considerar bloqueo visual como seguridad
+publicar producto no equivale a vender
 
-no considerar hidden inputs como seguridad
+activar tienda no equivale a habilitar operación comercial completa
 
-no considerar JS como seguridad
+administración interna no debe tocar sesión externa customer
 
-no romper navegación contextual al redirigir al usuario fuera del universo luego de una acción interna
+administración interna no debe autorizarse por SelfServiceExternalSession
 
-Caso validado:
-
-/service usa Orders como módulo dueño.
-
-POST /service/orders fuerza group = service desde backend.
-
-Una orden creada desde /service redirige físicamente al universo /service.
-
-Regla adicional para entradas públicas externas:
-
-si se crea una entrada pública externa por tenant, debe verificarse:
-
-qué tenant representa
-
-cómo se resuelve el tenant
-
-qué datos públicos puede mostrar
-
-qué datos internos no puede mostrar
-
-qué rutas quedan fuera del grupo auth + tenant
-
-qué acciones requieren registro externo
-
-qué acciones requieren login externo futuro
-
-qué acciones no deben acceder al panel interno
-
-qué entidad auxiliar conserva registros pendientes si corresponde
-
-qué validaciones backend protegen el flujo
-
-qué controller propio resuelve el flujo externo
-
-qué request propio valida el flujo externo
-
-qué datos se transfieren a módulos internos al confirmar
-
-qué datos quedan pendientes para identidad operativa posterior
-
-qué condición habilita operación real
-
-qué queda fuera del alcance inicial
-
-Caso validado:
-
-/shop/{tenant:slug} resuelve el tenant por slug público.
-
-El registro externo crea primero self_service_customer_registrations en estado pending.
-
-La confirmación por token crea Party kind = person y PartyRole role = customer.
-
-El flujo validado no crea User.
-
-El flujo validado no crea Membership.
-
-Caso validado adicional:
-
-/tienda funciona como entrada pública general separada del login interno.
-
-Reglas:
-
-no reutilizar InvitationAcceptanceController para alta externa de customer
-
-no reutilizar PartyController como contrato de alta externa
-
-no reutilizar StorePartyRequest como contrato del registro externo
-
-no reutilizar Fortify interno para convertir customers externos en users internos
-
-no usar invitations para registro externo de customers
-
-no crear Party si fallan token, estado, vencimiento o duplicados
-
-no crear nueva Party automáticamente si ya existe una Party en el tenant con mismo email, teléfono o DNI cuando el contrato vigente exija evitar duplicados por esos campos
-
-no habilitar operación real por la sola existencia de confirmación de email
+customer externo no debe operar rutas self_service_sales.shops.*
 
 Regla adicional para registro externo liviano:
 
@@ -562,6 +494,9 @@ identidad global
 pertenencia operativa
 cliente comercial externo
 registro externo pendiente
+configuración interna de tienda
+publicación comercial
+operación transaccional externa
 
 Regla adicional para actividad operativa:
 
@@ -722,55 +657,7 @@ Regla adicional para IA:
 
 si una capacidad produce información relevante para IA futura, debe exponerla mediante contratos claros, datos estructurados, catálogos, surfaces o lecturas autorizadas.
 
-No debe depender de scraping visual, labels dispersos, texto libre inevitable ni inferencia frágil.
-
-La IA no debe ejecutar acciones críticas sin autorización, confirmación humana o regla explícita previamente aprobada.
-
-Regla adicional para estado cerrado:
-
-una orden cerrada no debe quedar operable por interfaces satélite, dashboards, automatizaciones ni IA.
-
-Toda reapertura debe respetar autorización vigente.
-
-Regla adicional para JS frontend:
-
-si una interacción frontend puede ser genérica, no debe nombrarse con entidades concretas de un caso particular.
-
-Caso validado:
-
-app-party-asset-sync fue reemplazado por app-linked-select-sync.
-
-Reglas:
-
-el contrato JS debe nombrar la mecánica reusable
-
-el JS no decide seguridad
-
-el JS no reemplaza validación backend
-
-el JS no debe sostener por sí solo consistencia de datos críticos
-
-Regla adicional para validación runtime:
-
-un frente contextual, universo semántico, entrada pública externa o capa satélite no debe cerrarse solo por migrar, listar rutas o renderizar una pantalla.
-
-Debe validarse runtime real del flujo mínimo.
-
-Casos vigentes:
-
-/service validó rutas, backend force de group = service, redirección física dentro del universo y conservación de contexto.
-
-self_service_sales validó registro pending, confirmación por token, creación de Party person, creación de PartyRole customer y no creación de User ni Membership.
-
-Validación runtime mínima para self_service_sales:
-
-tenant correcto
-no exposición entre tenants
-no creación accidental de User
-no creación accidental de Membership
-no uso de login interno para customers externos
-no habilitación operativa antes de cumplir identidad requerida
-no reutilización de flujo interno cuando el flujo pertenece al plano externo
+No debe depender de scraping visual ni labels dispersos.
 
 <<END SECTION>>
 

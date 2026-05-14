@@ -44,7 +44,7 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ESTRUCTURA GENERAL DE PÁGINA
 
@@ -115,6 +115,35 @@ Regla:
 
 una vista pública externa debe expresar claramente que pertenece al plano público/externo y no al panel interno del tenant.
 
+Base esperada para administración interna de tienda:
+
+la administración interna de self_service_sales debe usar estructura interna estándar del sistema.
+
+Debe respetar:
+
+x-page
+x-breadcrumb
+x-page-header
+cards o bloques equivalentes
+acciones principales visibles
+jerarquía visual clara
+lenguaje interno operativo
+autorización preparada desde backend
+
+Caso vigente:
+
+resources/views/self-service-sales/shops/...
+
+Lectura:
+
+estas vistas pertenecen al plano interno autorizado.
+
+No son tienda pública.
+
+No son vistas customer.
+
+No deben usar experiencia visual pública si administran configuración interna.
+
 Regla adicional para landing pública:
 
 la landing puede ofrecer accesos diferenciados por intención.
@@ -160,7 +189,7 @@ resources/views/landing
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00028
+SECTION_VERSION: 00029
 
 COMPONENTES DISPONIBLES
 
@@ -419,6 +448,24 @@ Caso vigente:
 
 los partials compactos de ProductOperationalSummary no requieren x-dev-component-version porque funcionan como fragmentos internos de summary_items y no como entidad visual independiente mayor.
 
+Caso vigente adicional:
+
+las pantallas internas de administración de tienda de self_service_sales deben evaluar x-dev-component-version cuando sean vistas, cards o bloques con entidad visual propia.
+
+Si son vistas internas principales, deben seguir la estructura visual estándar:
+
+x-page
+x-breadcrumb
+x-page-header
+x-card
+x-dev-component-version cuando corresponda
+
+No deben usar modo público.
+
+No deben depender de componentes públicos externos.
+
+No deben representarse como tienda pública.
+
 Estos componentes pueden ser consumidos por orders y documents cuando la gramática visual sea equivalente.
 
 Su existencia no transfiere ownership funcional entre módulos.
@@ -640,119 +687,17 @@ Vistas compactas vigentes de la subcapa:
 
 resources/views/products/operational-summary/purchases-summary.blade.php
 resources/views/products/operational-summary/sales-summary.blade.php
-resources/views/products/operational-summary/flow-summary.blade.php
+resources/views/products/operational-summary/inventory-flow-summary.blade.php
 
-Reglas:
+Regla final:
 
-no son componentes globales
+los componentes representan payload preparado.
 
-no deben moverse a resources/views/components
+No autorizan.
 
-no deben contener lógica de negocio
+No consultan datos críticos.
 
-no deben contener autorización final
-
-representan información ya resuelta por ProductOperationalSummaryService y publicada por ProductSurfaceService
-
-Criterio visual:
-
-cada summary item debe mostrar información compacta, pero legible.
-
-Cuando existan números, fechas, promedios, proveedores o nombres largos, cada dato debe mostrarse en línea separada para evitar pérdida de lectura.
-
-Regla:
-
-si se necesita salto de línea seguro, usar estructura HTML simple con div.
-
-No asumir utilities CSS no validadas como d-block.
-
-No crear clase CSS nueva si el problema se resuelve con markup HTML simple.
-
-Criterio visual para Servicios y Mantenimiento:
-
-cualquier futura UI de mantenimiento debe respetar la jerarquía visual modular del sistema.
-
-El dashboard operativo, la orden electrónica liviana, el paquete de trabajo, el historial técnico, los cierres y la línea de tiempo operativa deben usar componentes existentes o patrones coherentes antes de crear componentes nuevos.
-
-El dashboard operativo debe ser una vista de planificación clara y no una acumulación de tablas sin jerarquía.
-
-La entrada operativa validada de Servicio y mantenimiento debe leerse como frente especializado, no como CRUD ordinario.
-
-Universo visual vigente:
-
-/service
-
-Vista vigente:
-
-resources/views/service/dashboard.blade.php
-
-Lectura:
-
-/service es dashboard mínimo del universo Servicio y mantenimiento.
-
-No es todavía dashboard operativo avanzado ni CMMS completo.
-
-El dashboard mínimo puede ofrecer:
-
-ver órdenes de servicio
-
-crear nueva orden de servicio
-
-mostrar conteo actual de órdenes de servicio cuando corresponda
-
-Reglas visuales:
-
-no duplicar visualmente información del host
-
-no crear componentes nuevos si los patrones existentes resuelven la necesidad
-
-no convertir mantenimiento en experiencia visual paralela sin justificación
-
-no ocultar vínculos gestionados cuando exista link autorizado
-
-no ocultar referencias textuales propias cuando no exista vínculo gestionado
-
-si una tabla de órdenes de servicio nace desde el universo /service, debe expresar visualmente el contexto de servicio y mantenimiento sin alterar el ownership de Orders
-
-Criterio visual para formularios contextuales de servicio:
-
-el formulario de orden de servicio debe priorizar simpleza y bajo roce.
-
-No debe trasladar al usuario decisiones técnicas internas de carga gestionada o manual.
-
-Reglas:
-
-si Party está disponible como componente gestionado, mostrar selección gestionada de contacto
-
-si Party no está disponible, mostrar campo manual de contraparte según contrato vigente
-
-si Asset está disponible como componente gestionado, mostrar selección gestionada de activo
-
-si Asset no está disponible, mostrar campo manual de activo o referencia equivalente según contrato vigente
-
-no mostrar botones explícitos de alternancia como decisión principal del usuario cuando el sistema puede resolver la disponibilidad
-
-no exponer carga manual como alternativa visible si los componentes gestionados están disponibles y el flujo no requiere excepción
-
-cuando la orden se crea desde /service, el campo Tipo puede mostrarse bloqueado visualmente como Servicio
-
-el bloqueo visual no reemplaza backend
-
-el backend debe forzar o validar el contexto correspondiente
-
-Patrón descartado:
-
-Usar carga manual
-
-Usar contacto vinculado
-
-Usar referencia manual
-
-Usar activo vinculado
-
-Motivo:
-
-sobrecargaba el formulario y trasladaba al usuario una decisión técnica interna.
+No reconstruyen reglas del dominio.
 
 <<END SECTION>>
 

@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 DECISIONES VIGENTES
 
@@ -408,190 +408,225 @@ Activo se resuelve mediante:
 
 Order::displayAssetReference()
 
-La manualidad se resuelve mediante:
+Manualidad se resuelve mediante:
 
 Order::hasManualCounterpartyReference()
 Order::hasManualAssetReference()
 
-Si existe vínculo gestionado autorizado, la tabla puede mostrar link oficial.
-
-Componentes vigentes:
-
-parties.components.linked-party
-assets.components.linked-asset
-
-Si no existe vínculo gestionado, debe mostrar referencia textual propia.
-
-Reglas por host:
-
-orders.index muestra Contraparte y Activo
-
-assets.show aloja Orders mostrando Contraparte y ocultando Activo
-
-parties.show aloja Orders ocultando Contraparte y mostrando Activo
-
 Reglas:
 
-no interpretar record_metadata desde Blade
+si existe Party vinculada y link autorizado, puede representarse con componente linked oficial
+
+si no existe Party vinculada pero existe counterparty_name, se muestra texto propio
+
+si existe Asset vinculado y link autorizado, puede representarse con componente linked oficial
+
+si no existe Asset vinculado pero existe asset_reference, se muestra texto propio
 
 no inventar links
 
-no ocultar referencia propia por ausencia de vínculo gestionado
+no ocultar snapshots
 
-no reintroducir showParty en Orders
+no interpretar record_metadata desde Blade
 
-SURFACESERVICE COMO ADUANA FUNCIONAL Y MECÁNICA TRANSVERSAL REUSABLE
+no reintroducir showParty
+
+Contratos visuales vigentes:
+
+showCounterparty
+showAsset
+
+SHOPPING AUTOSERVICIO COMO CAPA SATÉLITE COMERCIAL AUTOGESTIVA
 
 Decisión vigente:
 
-SurfaceService funciona como aduana funcional del módulo para publicar capacidades hacia distintos hosts.
+Shopping Autoservicio debe leerse como capa satélite comercial autogestiva por tenant.
 
-No deben crearse services separados por tipo de pantalla cuando el SurfaceService puede ofrecer piezas para:
+Key técnica:
 
-show
-form
-print
-pdf
-linked
-embedded
-summary
-detail
-row actions
+self_service_sales
 
-Decisión vigente adicional:
+Lectura vigente:
 
-los SurfaceService deben declarar ofertas, hosts y configuración propia.
+no es CRUD ordinario
+no es panel interno completo
+no reemplaza Parties
+no reemplaza Products
+no reemplaza Inventory
+no reemplaza Documents
+no reemplaza Security
+no reemplaza User
+no reemplaza Membership
 
-La lógica transversal reusable debe vivir en Support/Modules cuando corresponda.
+Rutas públicas vigentes:
 
-Piezas vigentes:
-
-app/Support/Modules/Concerns/BuildsHostPacks.php
-app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
-
-Lectura:
-
-BuildsHostPacks concentra construcción genérica de hostPack.
-
-ResolvesRelatedEmbeddedSurfaces concentra resolución reusable de relacionados embebidos.
-
-OrderSurfaceService conserva:
-
-ofertas propias
-hosts soportados
-configuración contextual
-relaciones propias
-flags visuales propios
-mensajes propios
+/tienda
+/tienda/seleccionar
+/shop/{tenant:slug}
+/tienda/salir
 
 Reglas:
 
-no vaciar SurfaceService por reflejo
+customer externo no es User
 
-extraer solo mecánica reusable
+customer externo no es Membership
 
-mantener la lógica propia del módulo dentro del SurfaceService correspondiente
+customer externo no recibe roles internos
 
-no migrar services de forma masiva sin validación runtime
+customer externo no accede al panel interno
 
-FORMULARIOS HOST CON FRONTERAS EXPLÍCITAS
+customer externo no administra tienda
+
+/shop/{tenant:slug} no habilita panel interno
+
+/tienda no es login interno
+
+/tienda/seleccionar no es tenants/select
+
+/tienda/salir no es logout interno
+
+confirmación de email no habilita operación comercial completa
+
+selección de tienda no habilita operación comercial completa
+
+sesión externa mínima no habilita operación comercial completa
+
+middleware externo pasivo no habilita operación comercial completa
+
+operation_enabled = false bloquea operación comercial
+
+ADMINISTRACIÓN INTERNA INICIAL DE TIENDA EN SELF_SERVICE_SALES
 
 Decisión vigente:
 
-cuando un formulario host tiene campos de su contrato propio y puede consumir módulos oferentes, no debe renderizar un foreach abierto de ofertas externas.
+self_service_sales puede tener administración interna limitada para configurar tienda y publicar productos.
 
-Debe declarar fronteras explícitas.
+Esto no convierte self_service_sales en CRUD ordinario completo ni mezcla el plano externo customer con el plano interno tenant.
 
-Patrón:
+Rutas internas vigentes:
 
-si existe proveedor externo válido
-renderiza componente del proveedor
+/self-service/shops...
 
-si no existe proveedor externo
-renderiza campo manual propio
+Nombres de ruta vigentes:
+
+self_service_sales.shops.*
+
+Entidades vigentes:
+
+SelfServiceShop
+
+SelfServiceShopItem
+
+Servicio vigente:
+
+SelfServiceShopPublisher
+
+Autorización vigente:
+
+TenantProfileAccess::canManageSelfServiceSales()
+
+Lectura vigente:
+
+SelfServiceShop representa cabecera/configuración interna de tienda del tenant.
+
+SelfServiceShopItem representa productos publicados en la tienda.
+
+SelfServiceShop no reemplaza Tenant.
+
+SelfServiceShopItem no reemplaza Product.
+
+ProductLineItemSelector puede servir como base para seleccionar productos activos publicables.
+
+Reglas:
+
+administración interna de tienda pertenece al plano interno
+
+administración interna de tienda requiere User, Membership, tenant activo y autorización backend
+
+customer externo no administra tienda
+
+SelfServiceExternalSession no autoriza self_service_sales.shops.*
+
+ResolveSelfServiceExternalCustomer no autoriza self_service_sales.shops.*
+
+publicar producto no equivale a vender
+
+publicar producto no mueve stock
+
+publicar producto no crea documento
+
+activar tienda no habilita operación comercial completa
+
+tienda pública visible no habilita compra, pago, saldo, fichas, QR ni carrito
+
+RELACIÓN ENTRE PRODUCTS Y PUBLICACIÓN DE TIENDA
+
+Decisión vigente:
+
+Products conserva ownership del catálogo maestro.
+
+self_service_sales puede publicar productos en tienda mediante SelfServiceShopItem, sin absorber ownership de Products.
+
+Lectura vigente:
+
+Product = catálogo maestro.
+
+SelfServiceShopItem = publicación comercial de producto en una tienda.
+
+Reglas:
+
+SelfServiceShopItem no reemplaza Product
+
+self_service_sales no redefine catálogo maestro
+
+publicar producto no modifica stock
+
+publicar producto no equivale a línea de orden
+
+publicar producto no equivale a línea documental
+
+la selección de productos publicables debe usar capacidad oficial de Products cuando exista
 
 Caso vigente:
 
-orders.form
+ProductLineItemSelector puede utilizarse como base para seleccionar productos activos.
 
-Fronteras validadas:
-
-Party disponible → selector de contacto
-
-Party no disponible → campo manual propio de contraparte
-
-Asset disponible → selector de activo
-
-Asset no disponible → campo manual propio o referencia propia equivalente vigente
-
-Ofertas vigentes:
-
-party.order.form-context
-
-asset.order.form-context
-
-Regla:
-
-una carga manual no debe transformarse automáticamente en gestionada sin una acción explícita y trazable.
-
-SERVICIOS Y MANTENIMIENTO COMO FRENTE HABILITABLE NO CRUD
+SEPARACIÓN ENTRE OPERACIÓN COMERCIAL Y PUBLICACIÓN VISUAL DE TIENDA
 
 Decisión vigente:
 
-Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
+mostrar una tienda pública o catálogo publicado no implica operación comercial real.
 
-No se lee como módulo CRUD ordinario por defecto.
+Lectura vigente:
 
-Primer corte operativo validado:
+la tienda pública puede mostrar estado, acceso externo, customer externo activo y artículos publicados.
 
-service_maintenance existe como frente habilitable no CRUD.
+Pero todavía no implementa operación comercial completa.
 
-service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
+No implementado:
 
-Orders sostiene la primera base operativa mediante:
-
-group = service
-
-Lectura:
-
-el acceso al área no autoriza por sí mismo operaciones internas
-
-las acciones reales continúan bajo el contrato del módulo dueño
-
-las órdenes de servicio siguen perteneciendo a Orders
-
-party_id y asset_id funcionan como vínculos opcionales de enriquecimiento
-
-Assets puede ofrecer surface de identidad técnica para órdenes de servicio usando datos reales existentes
-
-No se implementaron todavía:
-
-estados técnicos satélite
-planes de mantenimiento
-órdenes modelo
-checklists
-servicios precargados
-custodia material ampliada
-cierres técnicos
-cierres administrativos ampliados
-cierres finales
-línea de tiempo operativa específica de mantenimiento
+saldo operativo real
+fichas operativas
+QR operativo
+pagos reales
+movimientos comerciales reales
+carrito
+compra
+Mercado Pago real
+facturación/comprobantes reales
+operación comercial completa
 
 Reglas:
 
-service_maintenance no absorbe Orders
+catálogo publicado no habilita compra
 
-service_maintenance no absorbe Assets
+artículo publicado no habilita consumo
 
-service_maintenance no absorbe Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
+operation_enabled = false bloquea operación comercial
 
-no debe confundirse frente habilitable con CRUD ordinario
+la UI no debe prometer acciones no operables
 
-no debe reabrirse Orders por reflejo si la necesidad pertenece a otro módulo o a una pieza satélite propia
-
-Pendiente inmediato asociado:
-
-ajustar la lectura contextual de orders.index?group=service para que el listado se exprese visualmente como Órdenes de servicio.
+las operaciones futuras requieren contrato específico, autorización externa efectiva, validación backend y evidencia runtime
 
 <<END SECTION>>
 

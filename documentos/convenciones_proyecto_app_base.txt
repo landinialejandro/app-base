@@ -88,7 +88,7 @@ Contrato compacto = formato principal.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00035
+SECTION_VERSION: 00036
 
 [PRINCIPIOS]
 Simplicidad.
@@ -134,6 +134,7 @@ Host visual no absorbe ownership.
 Universo semántico no absorbe ownership.
 Capa satélite no absorbe ownership.
 Entrada pública no absorbe plano interno.
+Customer externo no absorbe administración interna.
 
 [INTEGRACIÓN]
 Consumidor solicita.
@@ -160,6 +161,7 @@ No reconstruye permisos.
 No reconstruye bloqueos externos.
 No decide significado de catálogos ajenos.
 No concentra cierre/cancelación/derivación si existe hook o service de frontera.
+No mezcla plano interno y plano externo.
 
 [SEGURIDAD]
 Validación crítica vive en backend, Security, Policy, service o contrato oficial.
@@ -167,6 +169,8 @@ Blade no autoriza.
 Frontend no autoriza.
 JS no autoriza.
 UI solo expresa resultado autorizado.
+Sesión externa mínima no autoriza plano interno.
+Middleware externo pasivo no autoriza operación comercial.
 
 [OWNER / ADMIN]
 Reglas tenant/profile centralizadas en:
@@ -288,6 +292,7 @@ ProductLineItemSelector
 Regla:
 Products ofrece selección/validación.
 Orders/Documents administran sus ítems.
+self_service_sales administra publicaciones propias.
 Consumidores no reconstruyen Product::query(), products.viewAny ni Rule::exists('products') si existe selector oficial.
 
 [SERVICIOS TRANSVERSALES]
@@ -333,6 +338,8 @@ seguimiento
 formalización derivada
 enriquecimiento
 universo de entrada
+configuración interna
+publicación externa
 
 *_id no implica dependencia obligatoria.
 Universo semántico no implica ownership.
@@ -505,6 +512,11 @@ custodia
 prioridad
 origen
 cierre
+plano interno
+plano externo
+configuración interna
+publicación externa
+operación comercial
 
 Caso:
 parties.kind = person/company.
@@ -580,6 +592,50 @@ Shopping Autoservicio = /shop/{tenant:slug} plano externo self_service_sales.
 
 Detalle funcional de capas satélite pertenece a documentos especializados.
 
+[SELF_SERVICE_SALES]
+self_service_sales = capa satélite comercial autogestiva.
+
+Distinguir:
+registro externo
+cuenta externa
+relación customer-tienda
+selección externa
+sesión externa mínima
+middleware externo pasivo
+tienda pública
+administración interna de tienda
+publicación de productos
+operación comercial futura
+
+Reglas:
+customer externo ≠ User
+customer externo ≠ Membership
+SelfServiceCustomerAccount ≠ User
+SelfServiceStoreCustomer ≠ Membership
+SelfServiceShop ≠ Tenant
+SelfServiceShopItem ≠ Product
+SelfServiceExternalSession ≠ sesión interna
+SelfServiceExternalSession ≠ autorización interna
+ResolveSelfServiceExternalCustomer ≠ autorización obligatoria
+
+[ADMINISTRACIÓN INTERNA DE TIENDA]
+Rutas internas self_service_sales.shops.* pertenecen al plano interno.
+Requieren User, Membership, tenant activo y autorización backend.
+
+No autoriza:
+customer externo
+sesión externa mínima
+middleware externo pasivo
+/shop/{tenant:slug}
+/tienda
+
+[PUBLICACIÓN DE PRODUCTOS]
+Publicar producto no equivale a vender.
+Publicar producto no mueve stock.
+Publicar producto no crea documento.
+Publicar producto no habilita carrito.
+Activar tienda no habilita operación comercial completa.
+
 [CSS / COMPONENTES / JS]
 No usar componentes Blade inexistentes.
 No asumir utilities CSS no validadas.
@@ -597,7 +653,7 @@ Convención válida = regla repetible de implementación que evita acoplamiento,
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CAPAS SATÉLITE, UNIVERSOS Y ENTRADAS PÚBLICAS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 [USO]
 Convenciones para capacidades que no deben leerse como CRUD ordinario.
@@ -607,6 +663,7 @@ capas satélite
 universos semánticos
 frentes contextuales
 entradas públicas externas
+administraciones internas de capas satélite
 
 [CAPA SATÉLITE]
 Puede:
@@ -618,6 +675,7 @@ tener entrada pública o contextual
 tener vistas propias
 tener contratos de seguridad propios
 tener entidades auxiliares si el flujo lo justifica
+tener administración interna separada cuando lo requiera el plano tenant
 
 No puede:
 absorber ownership de módulos existentes
@@ -626,6 +684,7 @@ reemplazar Security
 reemplazar permisos del módulo dueño
 mezclar plano interno y externo
 usar controllers internos si el flujo pertenece a otro plano
+usar controllers externos si el flujo pertenece al plano interno
 crear módulos/rutas/tablas por simetría visual
 
 [SERVICIO Y MANTENIMIENTO]
@@ -677,18 +736,50 @@ el host surface interno puede seguir usando orders.show como identificador funci
 Tipo = capa satélite comercial autogestiva.
 Key = self_service_sales.
 Entrada pública = /shop/{tenant:slug}.
+Entrada general = /tienda.
 Visible = Tienda.
-Plano = externo.
+Plano externo = customer.
+Plano interno = administración autorizada de tienda.
 
 Reglas:
 self_service_sales ≠ CRUD ordinario.
-self_service_sales ≠ panel interno.
+self_service_sales ≠ panel interno completo.
 self_service_sales no reemplaza Parties/Products/Inventory/Documents/Security.
 Customer externo confirmado = Party.kind person + PartyRole.role customer.
 Customer externo ≠ User.
 Customer externo ≠ Membership.
 Customer externo ≠ roles internos.
 Customer externo ≠ panel interno.
+Customer externo ≠ administrador de tienda.
+
+[ADMINISTRACIÓN INTERNA SELF_SERVICE_SALES]
+Puede existir administración interna para configurar la tienda del tenant.
+
+Rutas internas vigentes:
+self_service_sales.shops.*
+
+Path interno vigente:
+/self-service/shops...
+
+Entidades vigentes:
+SelfServiceShop
+SelfServiceShopItem
+
+Servicios vigentes:
+SelfServiceShopPublisher
+
+Autorización vigente:
+TenantProfileAccess::canManageSelfServiceSales()
+
+Reglas:
+administración interna ≠ tienda pública
+administración interna ≠ operación customer
+administración interna ≠ operación comercial real
+SelfServiceShop ≠ Tenant
+SelfServiceShopItem ≠ Product
+customer externo no administra tienda
+SelfServiceExternalSession no autoriza self_service_sales.shops.*
+ResolveSelfServiceExternalCustomer no autoriza self_service_sales.shops.*
 
 [ENTRADA PÚBLICA EXTERNA]
 /shop/{tenant:slug}:
@@ -731,86 +822,77 @@ estado
 vencimiento
 duplicados
 datos mínimos
+relación customer-tienda
+operación habilitada cuando corresponda
 
 Duplicados:
 bloquear si existe cualquier Party del tenant con mismo email, teléfono o DNI.
-No limitar a Parties customer.
-No resolver solo en UI.
-No crear Party automáticamente ante duplicado.
+No limitar a customer.
 
-[REGISTRO EXTERNO PENDIENTE]
-Entidad:
-self_service_customer_registrations
+[SESIÓN EXTERNA]
+Namespace:
+self_service_sales.*
 
-Modelo:
-SelfServiceCustomerRegistration
+No usar:
+Auth::login()
+Fortify interno
+session('tenant_id')
+User
+Membership
+roles internos
 
-Estados:
-pending
-confirmed
-expired
-cancelled
+No habilita:
+panel interno
+dashboard
+tenant/profile
+parties.show
+operación comercial completa
+administración interna de tienda
 
-Lectura:
-registro externo pendiente antes de crear Party definitiva.
+[MIDDLEWARE EXTERNO PASIVO]
+ResolveSelfServiceExternalCustomer:
+resuelve contexto externo si existe sesión externa mínima válida.
+No bloquea visitantes.
+No exige login.
+No autoriza operación.
+No convierte tienda pública en ruta privada.
+No reemplaza guard externo definitivo.
 
-Reglas:
-no reemplaza Party
-no reemplaza User
-no reemplaza Membership
-no representa identidad interna
-party_id puede ser null en pending
-party_id se completa al confirmar
+[PUBLICACIÓN DE TIENDA]
+SelfServiceShop configura la tienda.
+SelfServiceShopItem publica productos activos.
+Publicación ≠ venta.
+Publicación ≠ stock.
+Publicación ≠ carrito.
+Publicación ≠ pago.
+Publicación ≠ documento.
+Activación ≠ operación comercial completa.
 
-[invitations]
-No usar para customers externos.
-Pertenece al plano interno de usuarios, owner signup y memberships.
+[PLANOS]
+Plano interno:
+User
+Membership
+tenant activo
+Security
+TenantProfileAccess
+SelfServiceShop
+SelfServiceShopItem
 
-[SNIPPETS PHP EN PROJECT LAB]
-Archivo PHP completo debe comenzar como PHP válido.
-
-Formato:
-
-<?php
-// FILE: ruta/del/archivo.php | Vx
-
-Reglas:
-<?php antes de FILE.
-No invertir orden.
-Project Lab debe rechazar formato ambiguo.
-
-[MIGRACIONES E ÍNDICES]
-Nombres extensos pueden romper límites del motor.
+Plano externo:
+SelfServiceCustomerAccount
+SelfServiceStoreCustomer
+SelfServiceStoreSelectionToken
+SelfServiceExternalSession
+/shop/{tenant:slug}
+/tienda
+customer externo
 
 Regla:
-definir nombres explícitos de índices si tabla/columnas generan identificador demasiado largo.
-
-Caso:
-self_service_customer_registrations.
-
-[ALCANCE INICIAL SELF_SERVICE_SALES]
-Vigente:
-registro externo pendiente
-confirmación por token
-Party customer person
-sin User
-sin Membership
-sin acceso interno
-
-No abrir sin auditoría real:
-saldo
-ficha
-QR
-Mercado Pago
-minimercado
-promociones
-transferencias
-facturación
-login externo completo
+no cruzar planos sin contrato explícito.
 
 [REGLA FINAL]
-Capa satélite crece por contrato, evidencia y runtime.
-No por reflejo visual, reutilización de flujos internos ni mezcla de planos.
+Una capa satélite puede tener rutas, entidades y pantallas.
+Eso no la convierte por defecto en módulo CRUD ordinario ni le transfiere ownership de módulos existentes.
 
 <<END SECTION>>
 
@@ -1990,7 +2072,7 @@ Policy no inventa permisos; consume el contrato central.
 <<END SECTION>>
 
 <<SECTION: REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 [USO]
 La UI no debe mostrar accesos que el usuario no puede usar realmente.
@@ -2001,6 +2083,8 @@ acciones en listados/show/sublistados respetan permisos reales.
 navegación no asume acceso total al tenant.
 navegación principal debe resolverse desde catálogo/acceso cuando exista capa central.
 no hardcodear módulos navegables si el sistema puede resolver catálogo + acceso efectivo.
+entrada pública externa no equivale a navegación interna.
+administración interna de una capa satélite no equivale a consumo público externo.
 
 [LISTADOS]
 view_any controla listado/dataset.
@@ -2028,6 +2112,95 @@ navbar no copia breadcrumb.
 
 [CONTEXTO]
 Si hay navegación contextual, módulo activo puede resolverse por origen funcional, no solo pantalla hoja.
+
+[CAPAS SATÉLITE]
+Una capa satélite puede tener entrada pública, universo funcional o administración interna.
+
+La UI debe distinguir:
+
+entrada pública externa
+frente interno autorizado
+administración interna
+consumo público
+operación futura no disponible
+
+Reglas:
+
+no mostrar administración interna como tienda pública
+
+no mostrar tienda pública como panel interno
+
+no mostrar entrada customer como login interno
+
+no mostrar selector externo como tenants/select
+
+no mostrar salida externa como logout interno
+
+[SELF_SERVICE_SALES]
+La entrada pública Tienda corresponde al plano externo customer.
+
+Las rutas públicas:
+
+/tienda
+/tienda/seleccionar
+/shop/{tenant:slug}
+/tienda/salir
+
+no deben aparecer como navegación interna ordinaria del tenant.
+
+Las rutas internas:
+
+self_service_sales.shops.*
+
+pertenecen al plano interno autorizado.
+
+Reglas:
+
+customer externo no ve rutas internas
+
+SelfServiceExternalSession no habilita accesos internos
+
+ResolveSelfServiceExternalCustomer no habilita accesos internos
+
+/shop/{tenant:slug} no abre administración de tienda
+
+/self-service/shops... no es tienda pública
+
+[CATÁLOGO PUBLICADO]
+La UI puede mostrar catálogo publicado inicial en tienda pública.
+
+Debe comunicarlo como visibilidad comercial, no como operación transaccional.
+
+Reglas:
+
+si no hay compra implementada, no mostrar compra como acción disponible
+
+si no hay pago implementado, no mostrar pago como acción disponible
+
+si no hay saldo operativo, no mostrar saldo como disponible
+
+si no hay QR operativo, no mostrar QR como disponible
+
+si la operación está bloqueada, mostrar estado pendiente o bloqueado
+
+si una acción futura se anticipa visualmente, debe estar deshabilitada y expresarse como no operativa
+
+[GESTIONES COMPLEMENTARIAS]
+Una entrada en dashboard o navbar interno solo corresponde si:
+
+hay usuario interno autenticado
+hay tenant activo
+hay autorización backend efectiva
+la acción pertenece al plano interno
+la UI no promete operación no disponible
+
+Caso vigente previsto:
+
+entrada Tienda en gestiones complementarias o menú interno para administración de self_service_sales.
+
+Regla:
+
+esa entrada debe llevar al frente interno autorizado, no a /tienda ni a /shop/{tenant:slug}, salvo que la intención explícita sea abrir vista pública.
 
 [REGLA FINAL]
 La UI expresa acceso real; no crea acceso.
@@ -2580,7 +2753,7 @@ Navegación contextual no se deduce; se construye y propaga con contrato.
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DOCUMENTAL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 [RECTORES]
 contexto_fijo_proyecto_app_base
@@ -2633,15 +2806,49 @@ Evitar mezclar vigente con futuro.
 Preservar DOC_SLUG.
 Preservar nombres exactos de secciones salvo necesidad real.
 Usar cada documento según función.
+No usar nombres físicos de archivo como referencia narrativa si existe DOC_SLUG.
+No convertir títulos conceptuales en nombres de sección.
+No usar nombres aproximados de secciones.
+No proponer REEMPLAZAR EN sobre secciones inexistentes.
 
-[PRECEDENCIA]
-Rector prevalece en doctrina general.
-Documento especializado prevalece en su materia.
-Memoria operativa no contradice doctrina.
+[ACTUALIZACIÓN DOCUMENTAL AUTOMÁTICA]
+El actualizador documental trabaja por:
 
-[REGLA FINAL]
-Cada regla debe vivir en el documento donde mejor evita deriva futura.
+DOC_SLUG
+nombre exacto de sección
+reemplazo completo de bloque
 
+Reglas:
+
+REEMPLAZAR EN solo se usa si la sección existe exactamente en el documento.
+
+Si la sección no existe, no debe presentarse como reemplazo.
+
+Si el contenido pertenece conceptualmente a una sección existente, debe integrarse allí.
+
+Si una sección nueva fuera realmente necesaria, debe usarse alta controlada y ubicación explícita.
+
+No debe crearse una sección nueva por comodidad, síntesis o estilo.
+
+[ALTA CONTROLADA DE SECCIÓN]
+Una sección nueva solo corresponde cuando:
+
+el contenido no encaja en ninguna sección existente
+la nueva frontera documental evita ambigüedad futura
+el documento necesita esa granularidad
+existe ubicación clara dentro del documento
+
+Formato esperado:
+
+NUEVA SECCIÓN PROPUESTA EN: DOC_SLUG
+
+UBICAR DESPUÉS DE:
+<<SECTION: NOMBRE EXACTO DE SECCIÓN EXISTENTE>>
+
+<<SECTION: NOMBRE NUEVO>>
+SECTION_VERSION: 00001
+
+contenido
 <<END SECTION>>
 
 <<SECTION: VERSIONADO DOCUMENTAL>>

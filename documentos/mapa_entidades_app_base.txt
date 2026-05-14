@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -356,7 +356,7 @@ Aclaración operativa de Products:
 
 Products funciona como catálogo maestro del producto.
 
-Puede ofrecer capacidades de selección y validación de productos para líneas operativas y documentales.
+Puede ofrecer capacidades de selección y validación de productos para líneas operativas, documentales y publicaciones de tienda cuando corresponda.
 
 Caso vigente:
 
@@ -370,7 +370,11 @@ Orders administra sus propios order_items.
 
 Documents administra sus propios document_items.
 
+self_service_sales administra sus propias publicaciones de tienda.
+
 OrderItemController y DocumentItemController no deben reconstruir internamente Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial.
+
+SelfServiceShopItem puede tomar productos activos mediante selector oficial o capacidad equivalente de Products.
 
 Aclaración operativa de numeración:
 
@@ -780,6 +784,16 @@ SelfServiceStoreCustomer
 ↓
 Tenant
 
+Relación de tienda interna:
+
+Tenant
+↓
+SelfServiceShop
+↓
+SelfServiceShopItem
+↓
+Product
+
 Ruta pública tenant-scoped vigente:
 
 /shop/{tenant:slug}
@@ -791,6 +805,14 @@ Entrada pública general vigente:
 Selector externo vigente:
 
 /tienda/seleccionar
+
+Administración interna vigente:
+
+/self-service/shops...
+
+Rutas internas vigentes:
+
+self_service_sales.shops.*
 
 Key técnica:
 
@@ -842,156 +864,71 @@ self_service_customer_registrations.party_id se completa al confirmar.
 
 SelfServiceCustomerRegistration representa una solicitud o registro inicial de ingreso a tienda, no una cuenta externa definitiva.
 
-Contrato funcional vigente de self_service_customer_registrations:
+SelfServiceShop representa la cabecera/configuración interna de una tienda del tenant.
 
-tenant_id
-party_id
-status
-token
-name
-display_name
-email
-phone
-confirmed_at
-expires_at
-accepted_ip
-user_agent
-meta
+SelfServiceShop no reemplaza Tenant.
 
-Reglas vigentes del registro liviano:
+SelfServiceShopItem representa un producto publicado en una tienda.
 
-document_type es nullable
+SelfServiceShopItem no reemplaza Product.
 
-document_number es nullable
+Publicar un producto no implica venta.
 
-display_name es obligatorio
+Publicar un producto no mueve stock.
 
-name se conserva obligatorio por compatibilidad estructural y se completa inicialmente con display_name
+Activar una tienda no habilita operación comercial completa.
 
-Datos usados para crear Party mínima al confirmar:
+La administración interna de tienda pertenece al plano interno autorizado.
 
-kind = person
+La tienda pública pertenece al plano externo controlado.
 
-name = display_name
+Contrato funcional vigente de self_service_sales:
 
-display_name = display_name
+registro externo liviano
+confirmación de email
+creación de Party customer
+cuenta externa customer
+relación customer-tienda
+token temporal de selección
+selección externa de tienda
+sesión externa mínima
+middleware externo pasivo
+tienda pública visible
+administración interna inicial de tienda
+publicación inicial de productos activos
 
-email
+No implementado como operación comercial real:
 
-phone
-
-document_type = null
-
-document_number = null
-
-PartyRole creado al confirmar:
-
-role = customer
-
-Reglas:
-
-SelfServiceCustomerAccount no reemplaza User
-
-SelfServiceStoreCustomer no reemplaza Membership
-
-SelfServiceStoreSelectionToken no reemplaza sesión externa persistente
-
-self_service_customer_registrations no reemplaza Party
-
-self_service_customer_registrations no reemplaza User
-
-self_service_customer_registrations no reemplaza Membership
-
-self_service_customer_registrations no representa identidad interna del sistema
-
-la Party customer generada por Shopping Autoservicio no debe tener memberships asociadas
-
-el cliente externo no debe convertirse en User
-
-el cliente externo no debe convertirse en Membership
-
-el cliente externo no debe usar Fortify interno
-
-el cliente externo no debe usar tenants/select
-
-/shop/{tenant:slug} no habilita acceso interno al tenant
-
-/shop/{tenant:slug} no pertenece al panel interno
-
-/tienda no es login interno
-
-/tienda no habilita panel interno
-
-/tienda/seleccionar no es tenants/select
-
-/tienda/seleccionar no pertenece al panel interno
-
-/tienda/seleccionar no abre navegación tenant interna
-
-Confirmar email no habilita por sí mismo operación comercial completa.
-
-Validar credencial externa propia no habilita por sí mismo operación comercial completa.
-
-Seleccionar tienda no habilita por sí mismo operación comercial completa.
-
-Para operar deberá existir identidad operativa suficiente, operación habilitada y contrato específico de operación externa.
-
-operation_enabled = false sigue bloqueando operación comercial.
-
-Relaciones futuras posibles de Shopping Autoservicio:
-
-self_service_sales → productos publicados en tienda
-
-self_service_sales → saldo comercial del customer
-
-self_service_sales → fichas
-
-self_service_sales → movimientos comerciales
-
-self_service_sales → comprobantes cuando corresponda
-
-self_service_sales → consumo por QR
-
-self_service_sales → integración futura con Mercado Pago
-
-self_service_sales → controlador externo futuro
+saldo operativo real
+fichas operativas
+QR operativo
+pagos reales
+movimientos comerciales reales
+carrito
+compra
+Mercado Pago real
+facturación/comprobantes reales
+operación comercial completa
 
 Reglas:
 
-estas relaciones futuras no forman parte del primer corte implementado salvo que exista código real validado
+SelfServiceCustomerAccount no debe mezclarse con users
 
-Products conserva catálogo maestro
+SelfServiceStoreCustomer no debe mezclarse con memberships
 
-Shopping Autoservicio deberá tener una capa propia de publicación de productos en tienda si se implementa esa etapa
+SelfServiceShop no debe mezclarse con tenant/profile
 
-Inventory conserva stock físico y trazabilidad material para minimercado futuro
+SelfServiceShopItem no debe mezclarse con products como catálogo maestro
 
-Documents conserva formalización documental o comprobantes cuando el cliente los solicite y según configuración fiscal futura
+customer externo no administra SelfServiceShop
 
-app-base no actúa inicialmente como intermediario financiero en Mercado Pago
+customer externo no administra SelfServiceShopItem
 
-cada tenant deberá cobrar con su propia configuración futura si se implementa esa integración
+sesión externa mínima no autoriza self_service_sales.shops.*
 
-Regla:
+/shop/{tenant:slug} no es administración interna
 
-las relaciones del ecosistema deben leerse respetando los planos conceptuales:
-
-identidad global
-pertenencia operativa
-cliente externo comercial
-registro externo pendiente
-operación del negocio
-gobierno interno del tenant
-trazabilidad transversal
-surfaces tenant/transversales no modulares
-fronteras explícitas publicadas por módulos dueños
-capas satélite productivas
-universos semánticos
-entradas públicas externas
-subcapas contextuales internas
-asistencia IA transversal
-
-No deben mezclarse por conveniencia de implementación.
+/self-service/shops... no es tienda pública
 
 <<END SECTION>>
 

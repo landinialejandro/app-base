@@ -340,7 +340,7 @@ demaelos grupo de a uno, sin dejar de varificar
 ok siguiente grupo no dejes de verificar los slug
 -----------------------------
 
-Auditar únicamente los documentos rectores:
+Auditar únicamente los documentos rectores adjuntados:
 
 - contexto_fijo_proyecto_app_base
 - seguridad_acceso_proyecto_app_base

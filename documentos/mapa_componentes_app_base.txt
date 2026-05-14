@@ -295,7 +295,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -318,6 +318,10 @@ si opera sobre un módulo dueño, debe respetar la vista, partial o contrato vis
 si el mismo partial reusable opera en más de un universo, debe recibir configuración explícita
 
 no debe inferir rutas por su cuenta cuando el contexto sea relevante
+
+si la vista pertenece a administración interna de una capa satélite, debe usar gramática interna del sistema
+
+si la vista pertenece a plano público externo, debe expresar claramente que no es panel interno
 
 CASO VIGENTE: SERVICE DASHBOARD
 
@@ -453,155 +457,107 @@ resources/views/self-service-sales/shop.blade.php
 
 Lectura:
 
-estas vistas pertenecen al universo público externo de Shopping Autoservicio.
+estas vistas pertenecen al plano público externo de self_service_sales.
 
-No son componentes Blade globales.
+No son panel interno.
 
-No pertenecen al panel interno del tenant.
+No son administración interna del tenant.
 
-No deben contener navegación interna.
+No deben exponer navegación interna.
 
-No deben exponer dashboard, tenant/profile, parties.show ni rutas internas.
+No deben exponer tenant/profile.
 
-Label visible:
+No deben exponer Parties internas.
 
-Tienda
+No deben prometer operación comercial real cuando operation_enabled = false o cuando la capacidad no está implementada.
 
-Entradas públicas relacionadas:
+Elementos visuales vigentes:
 
-/tienda
+entrada pública externa
 
-/shop/{tenant:slug}
+registro externo liviano
 
-Patrones visuales usados:
+confirmación de registro
 
-@php($publicPage = true)
+tienda pública tenant-scoped
 
-@extends('layouts.app')
+customer externo activo cuando la sesión externa corresponde al tenant público
+
+mensaje de operación pendiente
+
+salida externa
+
+cambio de tienda o cuenta externa
+
+catálogo publicado inicial cuando exista tienda activa y artículos visibles
+
+Reglas:
+
+/shop/{tenant:slug} debe expresar tienda pública, no panel interno
+
+/tienda debe expresar acceso externo, no login interno
+
+/tienda/seleccionar debe expresar selector externo de tiendas, no selector interno de tenants
+
+/tienda/salir debe expresar salida externa, no logout interno
+
+la vista pública no debe asumir operación comercial completa
+
+el catálogo publicado debe mostrarse como información visible no transaccional mientras no exista contrato de compra
+
+CASO VIGENTE: ADMINISTRACIÓN INTERNA DE TIENDA SELF_SERVICE_SALES
+
+Vistas internas vigentes:
+
+resources/views/self-service-sales/shops/...
+
+Lectura:
+
+estas vistas pertenecen al plano interno autorizado de self_service_sales.
+
+No son tienda pública.
+
+No son vistas customer.
+
+No son panel externo.
+
+No deben usar sesión externa mínima como autorización.
+
+No deben resolverse desde ResolveSelfServiceExternalCustomer.
+
+Debe representar datos y permisos ya preparados por backend.
+
+Estructura visual esperada:
 
 x-page
 
-welcome-page
-
-public-panel
+x-breadcrumb
 
 x-page-header
 
-x-card
+cards o bloques equivalentes
 
-form
+acciones internas visibles según autorización preparada
 
-form-group
-
-form-label
-
-form-control
-
-form-actions
-
-btn btn-primary
-
-btn btn-secondary
-
-Regla:
-
-las vistas públicas de self_service_sales pueden reutilizar componentes visuales globales, pero no deben adoptar navegación, acciones o estructuras propias del panel interno si eso confunde el plano externo.
-
-Regla sobre x-dev-component-version:
-
-las vistas públicas nuevas con entidad visual propia deben incorporar x-dev-component-version cuando corresponda.
-
-CASO VIGENTE: TENANT PROFILE Y SELF SERVICE CUSTOMERS
-
-Partial vigente:
-
-resources/views/tenants/partials/profile-self-service-customers-tab.blade.php
-
-Lectura:
-
-profile-self-service-customers-tab es un partial interno de tenant/profile.
-
-No es componente global.
-
-No crea navegación principal tenant.
-
-No convierte self_service_sales en módulo CRUD ordinario.
-
-No convierte customers externos en memberships.
-
-No habilita operación interna del customer externo.
-
-Debe representar datos ya preparados por backend.
-
-Patrón visual validado:
-
-tab interna dentro de tenant/profile
-
-filtro visual por estados mediante toolbar de links
-
-no select clásico
-
-Componentes y clases visuales usadas:
-
-x-tab-toolbar
-
-tabs-nav
-
-tabs-link
-
-table-wrap
-
-table
-
-x-card
-
-x-page-header
+mensajes claros de estado
 
 Reglas:
 
-la tab interna puede servir como lectura administrativa o de control owner/admin cuando la capacidad todavía no amerita navegación principal propia
+SelfServiceShop se presenta como configuración interna de tienda
 
-el filtro por estados debe respetar la gramática visual del perfil de empresa
+SelfServiceShopItem se presenta como publicación de producto
 
-el partial no decide autorización
+Product conserva lectura de catálogo maestro
 
-el partial no debe reconstruir reglas de self_service_sales
+la vista no debe sugerir venta si solo publica
 
-el partial no debe exponer navegación pública externa como si fuera navegación interna
+la vista no debe sugerir stock si solo publica
 
-CASO VIGENTE: LANDING PÚBLICA Y ACCESO A TIENDA
+la vista no debe sugerir operación comercial real si todavía no existe contrato transaccional
 
-Partials intervenidos:
+el botón o acción de activar tienda no debe comunicar habilitación comercial completa
 
-resources/views/landing/partials/header.blade.php
-
-resources/views/landing/partials/hero.blade.php
-
-resources/views/landing/partials/cta.blade.php
-
-Lectura:
-
-la landing pública puede exponer acceso hacia Tienda como entrada externa general.
-
-Esto no convierte la landing en panel interno.
-
-Esto no convierte /tienda en login interno.
-
-Esto no habilita navegación tenant interna.
-
-Reglas:
-
-los enlaces públicos de landing deben mantener separación clara entre acceso externo y login interno
-
-la entrada Tienda debe leerse como acceso público externo de Shopping Autoservicio
-
-no debe mezclarse visualmente con acciones internas del tenant
-
-no debe exponer datos privados del tenant
-
-REGLA FINAL
-
-Las vistas de frentes satélite, universos contextuales, entradas públicas externas y tabs internas especializadas deben expresar contexto de uso sin crear ownership visual indebido, sin duplicar vistas del módulo dueño y sin mezclar plano público externo con panel interno.
+el customer externo no debe tener acceso visual ni funcional a estas vistas
 
 <<END SECTION>>
 

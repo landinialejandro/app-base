@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -69,6 +69,8 @@ token temporal de selección
 
 sesión externa mínima namespaced
 
+middleware externo pasivo
+
 tienda tenant-scoped
 
 entrada pública general /tienda
@@ -81,9 +83,21 @@ registro liviano
 
 confirmación de email
 
-validación posterior de identidad operativa
+finalización de registro externo
+
+identidad operativa completa
+
+creación de contraseña externa
 
 operación habilitada
+
+administración interna de tienda
+
+catálogo publicado inicial
+
+publicación de productos
+
+operación comercial real futura
 
 Relaciones vigentes:
 
@@ -99,6 +113,20 @@ Relaciones vigentes:
 
 /solicitar-empresa = alta o solicitud de acceso de empresas
 
+SelfServiceCustomerAccount = cuenta externa customer
+
+SelfServiceStoreCustomer = relación customer-tienda
+
+SelfServiceStoreSelectionToken = token temporal de selección
+
+SelfServiceExternalSession = sesión externa mínima namespaced
+
+SelfServiceShop = cabecera/configuración de tienda
+
+SelfServiceShopItem = producto publicado en tienda
+
+Product = catálogo maestro
+
 Reglas:
 
 /tienda no es login interno
@@ -109,9 +137,17 @@ Reglas:
 
 /shop/{tenant:slug} no habilita panel interno
 
+/shop/{tenant:slug} no es administración interna
+
+/customer externo no administra tienda
+
 customer externo no es User
 
 customer externo no es Membership
+
+customer externo no recibe roles internos
+
+customer externo no accede al panel interno
 
 SelfServiceCustomerAccount no es User
 
@@ -125,7 +161,29 @@ SelfServiceExternalSession no es guard externo definitivo
 
 SelfServiceExternalSession no es tenant activo interno
 
+SelfServiceExternalSession no autoriza administración interna
+
+ResolveSelfServiceExternalCustomer no es middleware de autorización obligatoria
+
+ResolveSelfServiceExternalCustomer no autoriza administración interna
+
+SelfServiceShop no reemplaza Tenant
+
+SelfServiceShopItem no reemplaza Product
+
+publicar producto no equivale a vender
+
+publicar producto no mueve stock
+
+tienda activa no habilita operación comercial completa
+
+catálogo publicado no habilita operación comercial completa
+
 confirmar email no habilita operación comercial completa
+
+completar identidad operativa no habilita operación comercial completa
+
+crear contraseña externa no habilita operación comercial completa
 
 validar credencial externa no habilita operación comercial completa
 
@@ -158,6 +216,8 @@ no habilita tenant/profile
 no habilita parties.show
 
 no habilita operación comercial real
+
+no habilita administración interna de tienda
 
 La salida externa:
 
@@ -199,6 +259,36 @@ SelfServiceExternalSession implementa sesión externa mínima namespaced
 
 ResolveSelfServiceExternalCustomer implementado como middleware externo pasivo para /shop/{tenant:slug}
 
+finalización de registro externo implementada
+
+creación de contraseña externa implementada
+
+identity_stage operational_identity_completed implementado
+
+access_enabled implementado
+
+operation_enabled false hasta habilitación manual
+
+habilitación manual desde tenant/profile implementada
+
+canOperate true con operation_enabled true
+
+SelfServiceShop implementado
+
+SelfServiceShopItem implementado
+
+SelfServiceShopCatalogReader implementado
+
+SelfServiceShopPublisher implementado
+
+catálogo publicado inicial implementado
+
+self_service_shop_id obligatorio implementado
+
+tienda activa por tenant implementada
+
+/shop/{tenant:slug} muestra catálogo publicado inicial
+
 El middleware externo pasivo:
 
 resuelve contexto customer externo cuando la sesión corresponde al tenant público de la ruta
@@ -239,6 +329,8 @@ cuenta demo multi-tienda disponible para validar selección/cambio de tienda
 
 Estado todavía no implementado en self_service_sales:
 
+administración interna UI de tienda
+
 middleware externo definitivo de autorización obligatoria
 
 guard externo definitivo
@@ -248,10 +340,6 @@ remember token externo
 recuperación real de contraseña
 
 cambio real de contraseña externa
-
-identidad operativa completa
-
-habilitación comercial
 
 saldo operativo real
 
@@ -266,6 +354,10 @@ movimientos comerciales reales
 Mercado Pago real
 
 facturación/comprobantes reales
+
+carrito
+
+compra
 
 operación comercial real
 
@@ -420,12 +512,6 @@ OperationalActivity registra Party.
 Los cambios de party_roles pueden registrarse como metadata operativa de Party.
 
 party_roles no se convierte en módulo propio ni abre navegación propia.
-
-Regla vigente para attachments:
-
-OperationalActivity puede registrar creación y actualización de metadata operativa.
-
-No registra download, preview, vista, print, PDF ni destroy en el estado vigente.
 
 Lectura general vigente de OperationalActivity:
 
@@ -606,258 +692,11 @@ Cada módulo puede declarar opcionalmente su activity_record_set o activity_cont
 
 Regla vigente para surfaces tenant/transversales:
 
-si una capacidad no es módulo funcional ordinario, no debe agregarse a ModuleCatalog solo para publicar UI.
+OperationalActivitySurfaceService publica surface contextual hacia hosts autorizados.
 
-Cuando una capacidad transversal necesite publicar UI reusable, primero debe evaluarse TenantSurfaceRegistry, no ModuleCatalog ni pushes manuales en vistas.
+TenantSurfaceRegistry registra surfaces tenant/transversales no modulares.
 
-Regla visual vigente para actividad:
-
-la tab Actividad puede usar icon = activity declarado por la surface.
-
-El botón Ver cambios usa icono changes y variante visual:
-
-btn btn-secondary btn-icon
-
-No crear clase nueva si la variante existente resuelve la necesidad.
-
-Products / ProductOperationalSummary:
-
-Products incorpora una subcapa contextual interna denominada:
-
-ProductOperationalSummary
-
-Lectura vigente:
-
-no es módulo nuevo
-no tiene CRUD
-no tiene navegación propia
-no tiene ModuleCatalog propio
-no entra al dashboard general
-no tiene rutas propias
-se aloja bajo Products
-se monta por ProductSurfaceService
-entra como summary_items en products.show
-
-Ubicación vigente:
-
-app/Support/Products/OperationalSummary/
-resources/views/products/operational-summary/
-
-Vistas compactas vigentes:
-
-resources/views/products/operational-summary/purchases-summary.blade.php
-resources/views/products/operational-summary/sales-summary.blade.php
-resources/views/products/operational-summary/flow-summary.blade.php
-
-Summary items vigentes:
-
-Compras
-Ventas
-Entradas / salidas
-
-Frontera vigente:
-
-Products presenta el resumen contextual.
-
-Orders aporta compras y ventas reales cuando está habilitado y autorizado.
-
-Inventory aporta entradas, salidas y movimientos.
-
-Parties aporta proveedor o cliente cuando existe relación real.
-
-OperationalActivity conserva trazabilidad, pero no se usa como fuente principal de métricas.
-
-Condiciones vigentes:
-
-ProductOperationalSummary requiere Products + Inventory habilitados.
-
-Si Inventory no está habilitado, la capa no debe mostrarse aunque Products esté disponible.
-
-Orders no es condición base de existencia de la capa.
-
-Si Orders no está habilitado, no deben mostrarse métricas transaccionales de compra/venta.
-
-La visibilidad inicial se centraliza en:
-
-ProductOperationalSummaryAccess
-
-Matriz inicial vigente:
-
-owner: compras, ventas, inventory
-admin: compras, ventas, inventory
-administrator: compras e inventory
-sales: ventas
-operator: sin acceso
-
-Reglas:
-
-no calcular métricas en Blade
-
-no usar OperationalActivity como fuente principal de métricas
-
-no crear módulo nuevo
-
-no crear rutas propias
-
-no publicar esta subcapa si Products o Inventory no están habilitados
-
-no mostrar compras/ventas si Orders no está habilitado
-
-no permitir acceso operator en la primera versión
-
-Orders / Documents / Mantenimiento:
-
-Orders y Documents ya sostienen counterparty_name como snapshot textual propio.
-
-Orders puede operar sin Party cuando conserva contraparte textual.
-
-Documents puede formalizar desde Orders autónomas sin exigir party_id.
-
-Tasks conserva tasks.order_id como relación hacia Orders.
-
-Appointments conserva appointments.order_id como relación hacia Orders.
-
-Orders no conserva task_id ni appointment_id como núcleo persistente.
-
-Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana.
-
-No es CRUD ordinario.
-
-No debe sobrecargar Orders con todo mantenimiento.
-
-No debe usar Orders.status como estado técnico de ejecución.
-
-Universo vigente:
-
-/service
-
-Orders sostiene la primera base operativa mediante:
-
-group = service
-
-Regla vigente:
-
-/service no reemplaza Orders
-
-/service no absorbe ownership
-
-service_maintenance.view_any habilita acceso al área, no permisos operativos sobre Orders
-
-las acciones reales siguen bajo contrato del módulo dueño
-
-Shopping Autoservicio:
-
-self_service_sales se lee como capa satélite comercial autogestiva por tenant.
-
-No es CRUD ordinario.
-
-No es panel interno del tenant.
-
-No reemplaza Parties, Products, Inventory, Documents ni Security.
-
-Universo público vigente:
-
-/shop/{tenant:slug}
-
-Entrada pública general vigente:
-
-/tienda
-
-Selector externo vigente:
-
-/tienda/seleccionar
-
-Salida externa vigente:
-
-/tienda/salir
-
-Customer externo confirmado:
-
-Party.kind = person
-
-PartyRole.role = customer
-
-Arquitectura externa vigente:
-
-SelfServiceCustomerAccount = cuenta externa customer
-
-SelfServiceStoreCustomer = relación customer-tienda
-
-SelfServiceStoreSelectionToken = token temporal de selección
-
-SelfServiceExternalSession = sesión externa mínima namespaced
-
-Corte operativo vigente:
-
-POST /tienda valida credencial externa propia.
-
-GET /tienda/seleccionar muestra tiendas disponibles por token temporal.
-
-POST /tienda/seleccionar ejecuta selección mínima de tienda externa.
-
-La selección válida consume token mediante used_at.
-
-La selección válida inicia sesión externa mínima namespaced.
-
-La sesión externa mínima usa namespace self_service_sales.*.
-
-La selección válida redirige a /shop/{tenant:slug}.
-
-/shop/{tenant:slug} puede mostrar customer externo activo si la sesión externa corresponde al tenant de la ruta.
-
-Cambiar tienda o cuenta externa devuelve al acceso externo /tienda.
-
-POST /tienda/salir limpia solo claves self_service_sales.*.
-
-Si operation_enabled = false, la tienda mantiene operación comercial bloqueada y puede mostrar operación pendiente.
-
-Reglas:
-
-customer externo ≠ User
-
-customer externo ≠ Membership
-
-customer externo ≠ roles internos
-
-customer externo ≠ panel interno
-
-SelfServiceCustomerAccount ≠ User
-
-SelfServiceStoreCustomer ≠ Membership
-
-SelfServiceStoreSelectionToken ≠ sesión interna
-
-SelfServiceExternalSession ≠ sesión interna
-
-SelfServiceExternalSession ≠ guard externo definitivo
-
-SelfServiceExternalSession ≠ tenant activo interno
-
-registro externo no usa invitations
-
-registro externo no usa PartyController
-
-registro externo no usa InvitationAcceptanceController
-
-registro externo no usa Fortify interno
-
-/tienda/seleccionar no usa tenants/select
-
-/tienda/salir no es logout interno
-
-confirmar email no habilita operación comercial completa
-
-validar credencial externa no habilita operación comercial completa
-
-seleccionar tienda no habilita operación comercial completa
-
-iniciar sesión externa mínima no habilita operación comercial completa
-
-redirigir a /shop/{tenant:slug} no habilita operación comercial completa
-
-operation_enabled = false bloquea operación comercial
-
-Antes de operar deberá existir validación posterior de identidad operativa y contrato específico.
+ModuleSurfaceRegistry combina surfaces modulares y tenant/transversales.
 
 <<END SECTION>>
 

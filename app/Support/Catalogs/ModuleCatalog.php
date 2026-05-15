@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/ModuleCatalog.php | V9
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V10
 
 namespace App\Support\Catalogs;
 
@@ -22,6 +22,8 @@ class ModuleCatalog
     public const DASHBOARD = 'dashboard';
 
     public const SERVICE_MAINTENANCE = 'service_maintenance';
+
+    public const PRODUCTION = 'production';
 
     public const PROJECTS = 'projects';
 
@@ -53,7 +55,12 @@ class ModuleCatalog
 
         self::SERVICE_MAINTENANCE => [
             'label' => 'Servicio y mantenimiento',
-            'icon' => 'orders',
+            'icon' => 'wrench',
+        ],
+
+        self::PRODUCTION => [
+            'label' => 'Producción',
+            'icon' => 'factory',
         ],
 
         self::PROJECTS => [
@@ -119,7 +126,7 @@ class ModuleCatalog
 
         self::SHOPS => [
             'label' => 'Tiendas',
-            'icon' => 'box',
+            'icon' => 'store',
             'nav' => [
                 'group' => 'management',
                 'route' => 'shops.index',
@@ -231,33 +238,12 @@ class ModuleCatalog
                 return [
                     'module' => $module,
                     'label' => $definition['label'],
-                    'route' => $definition['nav']['route'],
-                    'active' => $definition['nav']['active'],
-                    'group' => $definition['nav']['group'],
-                    'order' => $definition['nav']['order'] ?? 999,
                     'icon' => $definition['icon'] ?? 'box',
+                    ...$definition['nav'],
                 ];
             })
             ->sortBy('order')
             ->values()
             ->all();
-    }
-
-    public static function navDefinitionsByGroup(string $group): array
-    {
-        return collect(static::navDefinitions())
-            ->where('group', $group)
-            ->values()
-            ->all();
-    }
-
-    public static function activityRecordSetService(string $module): ?string
-    {
-        return static::$definitions[$module]['activity_record_set'] ?? null;
-    }
-
-    public static function activityContextService(string $module): ?string
-    {
-        return static::$definitions[$module]['activity_context'] ?? null;
     }
 }

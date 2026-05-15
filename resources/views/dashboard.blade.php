@@ -63,7 +63,7 @@
 
     $productionCards = collect([
         [
-            'module' => ModuleCatalog::ORDERS,
+            'module' => ModuleCatalog::PRODUCTION,
             'can' => $canViewProductionOrders ?? false,
             'route' => route('production.index'),
             'title' => 'Órdenes de producción',
@@ -71,7 +71,7 @@
             'meta' => ($productionOrdersCount ?? 0) . ' órdenes de producción',
         ],
         [
-            'module' => ModuleCatalog::ORDERS,
+            'module' => ModuleCatalog::PRODUCTION,
             'can' => $canCreateProductionOrders ?? false,
             'route' => route('production.orders.create'),
             'title' => 'Nueva orden de producción',

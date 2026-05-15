@@ -282,117 +282,122 @@ private function resolveEmbeddedForOrder(array $hostPack): array
     ];
 }
 
-    private function materialBalancePayloadForOrder(Order $order, array $trailQuery): array
-    {
-        $balance = app(InventoryMaterialBalanceService::class)->forOrder($order);
-        $canOperateOrder = OrderCatalog::isOperableStatus($order->status)
-            && auth()->user()?->can('update', $order) === true;
+private function materialBalancePayloadForOrder(Order $order, array $trailQuery): array
+{
+    $balance = app(InventoryMaterialBalanceService::class)->forOrder($order);
+    $canOperateOrder = OrderCatalog::isOperableStatus($order->status)
+        && auth()->user()?->can('update', $order) === true;
 
-        $items = collect($balance['items'] ?? [])
-            ->map(function (array $itemBalance) use ($order, $trailQuery, $canOperateOrder) {
-                $orderItem = $order->items->firstWhere('id', (int) ($itemBalance['order_item_id'] ?? 0));
-                $lineIsOperable = $orderItem
-                    && OrderItemCatalog::isOperable($orderItem->status ?: OrderItemCatalog::STATUS_PENDING);
+    $items = collect($balance['items'] ?? [])
+        ->map(function (array $itemBalance) use ($order, $trailQuery, $canOperateOrder) {
+            $orderItem = $order->items->firstWhere('id', (int) ($itemBalance['order_item_id'] ?? 0));
+            $lineIsOperable = $orderItem
+                && OrderItemCatalog::isOperable($orderItem->status ?: OrderItemCatalog::STATUS_PENDING);
 
-                $materials = collect($itemBalance['materials'] ?? [])
-                    ->map(fn (array $material) => $this->materialBalanceRowPayload(
-                        order: $order,
-                        itemBalance: $itemBalance,
-                        material: $material,
-                        canOperate: $canOperateOrder && $lineIsOperable,
-                        trailQuery: $trailQuery,
-                    ))
-                    ->values()
-                    ->all();
+            $materials = collect($itemBalance['materials'] ?? [])
+                ->map(fn (array $material) => $this->materialBalanceRowPayload(
+                    order: $order,
+                    itemBalance: $itemBalance,
+                    material: $material,
+                    canOperateOrder: $canOperateOrder,
+                    lineIsOperable: (bool) $lineIsOperable,
+                    trailQuery: $trailQuery,
+                ))
+                ->values()
+                ->all();
 
-                return [
-                    'order_item_id' => $itemBalance['order_item_id'] ?? null,
-                    'is_reliable' => $itemBalance['is_reliable'] ?? false,
-                    'has_ambiguous_balances' => $itemBalance['has_ambiguous_balances'] ?? false,
-                    'has_double_consumption_risk' => $itemBalance['has_double_consumption_risk'] ?? false,
-                    'materials' => $materials,
-                ];
-            })
-            ->values()
-            ->all();
+            return [
+                'order_item_id' => $itemBalance['order_item_id'] ?? null,
+                'is_reliable' => $itemBalance['is_reliable'] ?? false,
+                'has_ambiguous_balances' => $itemBalance['has_ambiguous_balances'] ?? false,
+                'has_double_consumption_risk' => $itemBalance['has_double_consumption_risk'] ?? false,
+                'materials' => $materials,
+            ];
+        })
+        ->values()
+        ->all();
 
-        return [
-            'order_id' => $balance['order_id'] ?? $order->id,
-            'is_reliable' => $balance['is_reliable'] ?? false,
-            'has_ambiguous_balances' => $balance['has_ambiguous_balances'] ?? false,
-            'has_double_consumption_risk' => $balance['has_double_consumption_risk'] ?? false,
-            'items' => $items,
-        ];
-    }
+    return [
+        'order_id' => $balance['order_id'] ?? $order->id,
+        'is_reliable' => $balance['is_reliable'] ?? false,
+        'has_ambiguous_balances' => $balance['has_ambiguous_balances'] ?? false,
+        'has_double_consumption_risk' => $balance['has_double_consumption_risk'] ?? false,
+        'items' => $items,
+    ];
+}
 
-    private function materialBalanceRowPayload(
-        Order $order,
-        array $itemBalance,
-        array $material,
-        bool $canOperate,
-        array $trailQuery,
-    ): array {
-        $available = (float) ($material['available'] ?? 0);
-        $missing = (float) ($material['missing'] ?? 0);
-        $status = (string) ($material['consistency_status'] ?? InventoryMaterialBalanceService::CONSISTENCY_NO_MOVEMENTS);
-        $isFormalReliable = $status === InventoryMaterialBalanceService::CONSISTENCY_FORMAL
-            && ($material['is_reliable'] ?? false) === true;
+private function materialBalanceRowPayload(
+    Order $order,
+    array $itemBalance,
+    array $material,
+    bool $canOperateOrder,
+    bool $lineIsOperable,
+    array $trailQuery,
+): array {
+    $available = (float) ($material['available'] ?? 0);
+    $missing = (float) ($material['missing'] ?? 0);
+    $status = (string) ($material['consistency_status'] ?? InventoryMaterialBalanceService::CONSISTENCY_NO_MOVEMENTS);
+    $isFormalReliable = $status === InventoryMaterialBalanceService::CONSISTENCY_FORMAL
+        && ($material['is_reliable'] ?? false) === true;
 
-        $row = $material;
-        $row['required_display'] = $this->formatQuantity($material['required'] ?? 0);
-        $row['delivered_display'] = $this->formatQuantity($material['delivered'] ?? 0);
-        $row['applied_display'] = $this->formatQuantity($material['applied'] ?? 0);
-        $row['returned_display'] = $this->formatQuantity($material['returned'] ?? 0);
-        $row['available_display'] = $this->formatQuantity($available);
-        $row['missing_display'] = $this->formatQuantity($missing);
-        $row['consistency_label'] = $this->materialConsistencyLabel($status);
-        $row['consistency_badge'] = $this->materialConsistencyBadge($status, (bool) ($material['is_ambiguous'] ?? false));
-        $row['warning_label'] = $this->materialWarningLabel($material['warnings'] ?? []);
+    $canOperateLine = $canOperateOrder && $lineIsOperable;
+    $canRegularizeReturnedMaterial = $canOperateOrder && $isFormalReliable && $available > 0;
 
-        $row['actions'] = [
-            'deliver' => $this->materialActionPayload(
-                order: $order,
-                itemBalance: $itemBalance,
-                material: $row,
-                actionKey: 'formal_deliver',
-                label: 'Entregar',
-                title: 'Entregar material formal',
-                routeName: 'inventory.order-items.materials.deliver',
-                canOperate: $canOperate,
-                defaultQuantity: max($missing, 0.01),
-                maxQuantity: null,
-                trailQuery: $trailQuery,
-            ),
-            'apply' => $this->materialActionPayload(
-                order: $order,
-                itemBalance: $itemBalance,
-                material: $row,
-                actionKey: 'formal_apply',
-                label: 'Aplicar',
-                title: 'Aplicar material formal',
-                routeName: 'inventory.order-items.materials.apply',
-                canOperate: $canOperate && $isFormalReliable && $available > 0,
-                defaultQuantity: $available,
-                maxQuantity: $available,
-                trailQuery: $trailQuery,
-            ),
-            'return' => $this->materialActionPayload(
-                order: $order,
-                itemBalance: $itemBalance,
-                material: $row,
-                actionKey: 'formal_return',
-                label: 'Devolver',
-                title: 'Devolver material formal',
-                routeName: 'inventory.order-items.materials.return',
-                canOperate: $canOperate && $isFormalReliable && $available > 0,
-                defaultQuantity: $available,
-                maxQuantity: $available,
-                trailQuery: $trailQuery,
-            ),
-        ];
+    $row = $material;
+    $row['required_display'] = $this->formatQuantity($material['required'] ?? 0);
+    $row['delivered_display'] = $this->formatQuantity($material['delivered'] ?? 0);
+    $row['applied_display'] = $this->formatQuantity($material['applied'] ?? 0);
+    $row['returned_display'] = $this->formatQuantity($material['returned'] ?? 0);
+    $row['available_display'] = $this->formatQuantity($available);
+    $row['missing_display'] = $this->formatQuantity($missing);
+    $row['consistency_label'] = $this->materialConsistencyLabel($status);
+    $row['consistency_badge'] = $this->materialConsistencyBadge($status, (bool) ($material['is_ambiguous'] ?? false));
+    $row['warning_label'] = $this->materialWarningLabel($material['warnings'] ?? []);
 
-        return $row;
-    }
+    $row['actions'] = [
+        'deliver' => $this->materialActionPayload(
+            order: $order,
+            itemBalance: $itemBalance,
+            material: $row,
+            actionKey: 'formal_deliver',
+            label: 'Entregar',
+            title: 'Entregar material formal',
+            routeName: 'inventory.order-items.materials.deliver',
+            canOperate: $canOperateLine,
+            defaultQuantity: max($missing, 0.01),
+            maxQuantity: null,
+            trailQuery: $trailQuery,
+        ),
+        'apply' => $this->materialActionPayload(
+            order: $order,
+            itemBalance: $itemBalance,
+            material: $row,
+            actionKey: 'formal_apply',
+            label: 'Aplicar',
+            title: 'Aplicar material formal',
+            routeName: 'inventory.order-items.materials.apply',
+            canOperate: $canOperateLine && $isFormalReliable && $available > 0,
+            defaultQuantity: $available,
+            maxQuantity: $available,
+            trailQuery: $trailQuery,
+        ),
+        'return' => $this->materialActionPayload(
+            order: $order,
+            itemBalance: $itemBalance,
+            material: $row,
+            actionKey: 'formal_return',
+            label: 'Devolver',
+            title: 'Devolver material formal',
+            routeName: 'inventory.order-items.materials.return',
+            canOperate: $canRegularizeReturnedMaterial,
+            defaultQuantity: $available,
+            maxQuantity: $available,
+            trailQuery: $trailQuery,
+        ),
+    ];
+
+    return $row;
+}
 
     private function materialActionPayload(
         Order $order,

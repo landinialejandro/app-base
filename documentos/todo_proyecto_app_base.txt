@@ -2063,7 +2063,7 @@ Fase 1 no debe reintroducir acoplamientos activos en Orders.
 <<END SECTION>>
 
 <<SECTION: PENDIENTE — CONTRATO MATERIAL POR ENTREGAS Y CIERRES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PENDIENTE — CONTRATO MATERIAL POR ENTREGAS Y CIERRES
 
@@ -2071,7 +2071,8 @@ Estado vigente:
 
 Fase 1 cerrada.
 Fase 2 mínima cerrada.
-Fase 3 pendiente.
+Fase 3 operativa mínima cerrada.
+Producción formal por etapas cerrada en corte funcional inicial.
 
 FASE 1 CERRADA
 
@@ -2090,21 +2091,9 @@ InventoryMaterialBalanceService funciona como lectura consolidada inicial de mat
 
 ProductionOrderInventoryOperationService consulta esa lectura antes de ejecutar producción instantánea cuando existe riesgo de doble consumo por entregas previas ambiguas de componentes físicos.
 
-La producción instantánea sigue siendo válida cuando no existen entregas previas ambiguas.
+La producción instantánea sigue siendo válida cuando no existen entregas formales pendientes de componentes físicos contra la misma orden/línea.
 
-Si existen entregas previas ambiguas de componentes físicos contra la misma orden/línea, la producción instantánea debe bloquearse antes de crear movimientos.
-
-Validación runtime consolidada:
-
-producción instantánea sin entregas previas
-
-bloqueo con entrega previa ambigua
-
-ausencia de movimientos parciales ante bloqueo
-
-orden closed bloqueada
-
-compatibilidad con órdenes simples, documentos, movimientos manuales y surfaces vigentes
+Si existen entregas formales pendientes de componentes físicos contra la misma orden/línea, la producción instantánea debe bloquearse antes de crear movimientos para evitar doble consumo.
 
 FASE 2 MÍNIMA CERRADA
 
@@ -2145,9 +2134,17 @@ Reglas vigentes:
 
 la entrega formal registra material entregado a un destino operativo.
 
+la entrega formal puede crear movimiento físico de salida y flow formal_delivery.
+
 la aplicación formal registra material aplicado o consumido contra una entrega formal disponible.
 
+la aplicación formal crea flow formal_application y no crea InventoryMovement.
+
+la aplicación formal no descuenta stock físico dos veces.
+
 la devolución formal registra material devuelto desde una entrega formal disponible.
+
+la devolución formal puede crear movimiento físico de ingreso y flow formal_return.
 
 no aplicar más de lo entregado disponible.
 
@@ -2163,11 +2160,105 @@ no mover ownership material a Orders.
 
 no resolver por parche en Orders.
 
-PENDIENTE FASE 3
+FASE 3 OPERATIVA MÍNIMA CERRADA
 
-Implementar acciones internas o UI mínima para operación formal por etapas.
+Se implementó UI mínima y acciones internas para operación formal por etapas dentro de la superficie Inventory embebida en orders.show.
 
-Debe resolver:
+Alcance cerrado:
+
+bloque compacto de Material formal
+
+lectura de saldos formales preparados por backend
+
+acciones Entregar, Aplicar y Devolver
+
+modales específicos para material formal
+
+validaciones backend de tenant, orden, línea, producto y saldo
+
+acciones formales sin elección manual de kind desde la vista
+
+payload preparado desde InventorySurfaceService
+
+Reglas vigentes:
+
+la vista no calcula saldos materiales.
+
+la vista no decide disponibilidad.
+
+la vista no decide reglas críticas.
+
+la vista renderiza payload preparado por backend.
+
+InventorySurfaceService prepara acciones y saldos.
+
+InventoryMaterialFlowService valida y ejecuta flows formales.
+
+La acción Devolver debe permanecer disponible aunque la línea esté completed si la orden sigue operable y existe saldo formal disponible.
+
+PRODUCCIÓN FORMAL POR ETAPAS CERRADA EN CORTE FUNCIONAL INICIAL
+
+Producción mantiene dos modos vigentes:
+
+Producción instantánea:
+
+sin entregas formales pendientes.
+
+ingresa producto terminado.
+
+consume físicamente componentes desde depósito.
+
+Producción formal por etapas:
+
+con componentes entregados formalmente a la orden.
+
+ingresa producto terminado.
+
+aplica formalmente componentes entregados.
+
+no descuenta físicamente componentes ya entregados.
+
+La cantidad producible en producción formal por etapas se limita por el componente físico entregado disponible más restrictivo.
+
+Los componentes service no participan en consumo ni aplicación material física.
+
+Caso validado:
+
+si se entregan 50 franelas y 40 siliconas, producir 50 bloquea por silicona.
+
+producir 40 ingresa producto terminado, aplica 40 componentes y deja 10 franelas disponibles.
+
+CIERRE MATERIAL CERRADO EN CORTE FUNCIONAL INICIAL
+
+El cierre de orden consulta blockers materiales del módulo dueño.
+
+El cierre debe bloquearse si existe saldo material formal pendiente de regularización.
+
+Reglas vigentes:
+
+no cerrar una orden con saldo formal pendiente no regularizado.
+
+no cerrar si quedan materiales entregados sin aplicar ni devolver.
+
+el cierre consulta frontera oficial de Inventory.
+
+Orders no calcula saldos materiales.
+
+Orders no reconstruye lógica de stock.
+
+Orders conserva ownership de orden, líneas y lifecycle.
+
+Inventory conserva ownership material.
+
+VALIDACIÓN FUNCIONAL CONSOLIDADA
+
+Validado:
+
+producción instantánea sin flows formales pendientes
+
+bloqueo de producción instantánea ante entregas formales pendientes
+
+ausencia de movimientos parciales ante bloqueo
 
 entrega formal
 
@@ -2175,43 +2266,67 @@ aplicación formal
 
 devolución formal
 
-lectura de saldo formal entregado
+producción formal por etapas
 
-validación de cierre material
+bloqueo por componente físico entregado limitante
 
-integración controlada con OrdersHooks
+bloqueo de cierre por saldo formal pendiente
 
-integración controlada con InventoryOrderItemHooks
+corrección de acción Devolver en línea completed con saldo formal disponible
 
-impacto en producción formal por etapas
+cierre de orden luego de regularizar sobrante
 
-impacto en servicio y mantenimiento
+compatibilidad con órdenes simples, documentos, movimientos manuales y surfaces vigentes
 
-impacto en documentos si corresponde
+Caso real validado:
 
-PENDIENTE POSTERIOR
+OPR-0001-00000002
 
-Producción formal por etapas.
+Lectura:
 
-Debe resolver:
+se produjo formalmente.
 
-componentes entregados a orden de producción
+quedó sobrante.
 
-cantidad producible limitada por componente entregado disponible
+la acción Devolver debía permanecer disponible aunque la línea estuviera completed.
 
-aplicación formal de componentes contra producción real
+se corrigió el payload de acciones.
 
-ingreso de producto terminado sin doble descuento desde depósito
+se devolvió sobrante.
 
-regularización de sobrantes y faltantes
+se pudo cerrar la orden.
+
+PENDIENTES POSTERIORES
+
+No quedan como pendientes:
+
+definir si usar metadata, operation_type o entidad satélite para contrato material formal mínimo
+
+crear ledger material formal mínimo
+
+implementar acciones internas mínimas de entrega, aplicación y devolución formal
+
+implementar producción formal por etapas en corte funcional inicial
+
+bloquear cierre por saldo material formal pendiente
+
+Pendientes reales posteriores:
+
+mejorar mensajes detallados de cierre material
+
+ampliar producción formal si se requiere una acción explícita más especializada
+
+integrar contrato material formal con Servicio y mantenimiento completo cuando exista flujo real
+
+documentar o especializar flujos materiales por rubro si aparece necesidad validada
+
+auditar permisos específicos solo si se crean capacidades materiales nuevas
 
 Regla final:
 
-Fase 1 cerró el guard defensivo.
+el contrato material formal mínimo ya no debe tratarse como pendiente de diseño.
 
-Fase 2 cerró el ledger formal mínimo.
-
-Fase 3 debe construir operación formal usable sin romper ownership de Inventory.
+El estado vigente es implementación funcional mínima validada, con evolución posterior acotada a mejoras, especialización de flujos y ampliaciones futuras.
 
 <<END SECTION>>
 

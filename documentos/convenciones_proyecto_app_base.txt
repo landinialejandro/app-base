@@ -88,7 +88,7 @@ Contrato compacto = formato principal.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00037
+SECTION_VERSION: 00038
 
 [PRINCIPIOS]
 Simplicidad.
@@ -163,6 +163,8 @@ No reconstruye bloqueos externos.
 No decide significado de catálogos ajenos.
 No concentra cierre/cancelación/derivación si existe hook o service de frontera.
 No mezcla plano interno y plano externo.
+No calcula saldos materiales si el ownership pertenece a Inventory.
+No administra ledger material formal si pertenece a Inventory.
 
 [SEGURIDAD]
 Validación crítica vive en backend, Security, Policy, service o contrato oficial.
@@ -520,6 +522,12 @@ plano externo
 configuración interna
 publicación externa
 operación comercial
+stock físico
+ledger material formal
+entrega formal
+aplicación formal
+devolución formal
+saldo material formal
 
 Caso:
 parties.kind = person/company.
@@ -529,6 +537,10 @@ Caso:
 shops = configuración interna de tienda.
 self_service_sales = consumo externo customer.
 
+Caso:
+InventoryMovement = stock físico.
+InventoryMaterialFlow = subcontrato material formal.
+
 [CONSTRAINTS]
 Constraint opera sobre dimensión real del dominio.
 No sostener compatibilidad legacy si la dimensión cambió.
@@ -537,6 +549,35 @@ Casos:
 orders → allowed_kinds.
 parties → allowed_party_roles.
 allowed_kinds no aplica a parties.
+
+[CONTRATO MATERIAL INVENTORY]
+Inventory conserva ownership material.
+
+InventoryMovement = libro físico de stock.
+
+InventoryMaterialFlow = ledger formal de entrega, aplicación y devolución.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+Tipos formales vigentes:
+formal_delivery
+formal_application
+formal_return
+
+Reglas:
+no mover saldos materiales a Orders
+no calcular saldos materiales en Blade
+no usar InventoryMovement.kind como sustituto de subcontrato material formal
+no resolver contrato material formal solo con metadata
+no aplicar más de lo entregado disponible
+no devolver más de lo entregado disponible
+no crear movimientos parciales si un guard material bloquea la operación
+no elegir kind desde Blade
+la aplicación formal no crea InventoryMovement
+la devolución formal puede crear movimiento físico de ingreso
+la producción formal por etapas no descuenta físicamente componentes ya entregados
 
 [OPERATIONAL ACTIVITY]
 Emitir eventos operativos livianos después de autorizar, validar y ejecutar.

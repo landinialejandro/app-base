@@ -1048,13 +1048,13 @@ sesión externa mínima no autoriza shops.*
 <<END SECTION>>
 
 <<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONTRATO MATERIAL ENTRE ORDERS E INVENTORY
 
 Orders puede funcionar como destino operativo de materiales cuando una orden requiere ejecución material, producción, servicio, mantenimiento o entrega interna.
 
-Inventory conserva ownership de stock, movimientos, saldos, trazabilidad material, entregas, devoluciones, consumos y validaciones físicas.
+Inventory conserva ownership de stock, movimientos, saldos, trazabilidad material, entregas, devoluciones, consumos, aplicaciones y validaciones físicas.
 
 Orders conserva ownership de la orden, sus líneas, su lifecycle administrativo y sus cierres.
 
@@ -1084,7 +1084,7 @@ InventoryOperation
 ↓
 InventoryMovement
 ↓
-InventoryMaterialFlow cuando existe subcontrato material formal
+InventoryMaterialFlow cuando existe subcontrato material formal asociado a movimiento físico
 
 Relación operativa vigente:
 
@@ -1110,29 +1110,39 @@ formal_application
 
 formal_return
 
-ENTREGA
+ENTREGA FORMAL
 
-La salida física de materiales desde depósito hacia una orden, persona, técnico, frente operativo, producción o servicio se registra como entrega cuando el flujo material lo requiera.
+La salida física de materiales desde depósito hacia una orden, persona, técnico, frente operativo, producción o servicio se registra como entrega formal cuando el flujo material lo requiera.
 
-La entrega reduce stock disponible de depósito cuando se apoya en un movimiento físico de salida.
+La entrega formal puede crear movimiento físico de salida y flow formal_delivery.
 
-La entrega no implica consumo definitivo.
+La entrega formal reduce stock disponible de depósito cuando se apoya en un movimiento físico de salida.
 
-La entrega abre un saldo material formal pendiente de aplicación o devolución contra el destino operativo.
+La entrega formal no implica consumo definitivo.
 
-CONSUMO / APLICACIÓN
+La entrega formal abre un saldo material formal pendiente de aplicación o devolución contra el destino operativo.
 
-El consumo o aplicación representa aplicación definitiva del material entregado.
+APLICACIÓN FORMAL
 
-El consumo no debe imputarse directamente contra depósito cuando el flujo exige entrega previa.
+La aplicación formal representa aplicación definitiva del material entregado.
 
-El consumo debe cerrar total o parcialmente materiales previamente entregados al destino operativo.
+La aplicación formal se registra mediante flow formal_application.
 
-DEVOLUCIÓN
+La aplicación formal no crea InventoryMovement.
 
-La devolución reintegra al depósito materiales entregados y no aplicados cuando corresponda.
+La aplicación formal no descuenta stock físico nuevamente.
 
-La devolución reduce el saldo formal pendiente entregado al destino operativo.
+La aplicación formal no debe imputarse directamente contra depósito cuando el flujo exige entrega previa.
+
+La aplicación formal debe cerrar total o parcialmente materiales previamente entregados al destino operativo.
+
+DEVOLUCIÓN FORMAL
+
+La devolución formal reintegra al depósito materiales entregados y no aplicados cuando corresponda.
+
+La devolución formal puede crear movimiento físico de ingreso y flow formal_return.
+
+La devolución formal reduce el saldo formal pendiente entregado al destino operativo.
 
 CIERRE MATERIAL
 
@@ -1145,27 +1155,55 @@ material devuelto
 material pendiente
 material faltante
 
+Ninguna orden debe cerrar como materialmente cumplida si existen saldos formales pendientes no regularizados.
+
 Ninguna orden debe cerrar como materialmente cumplida si declara consumos o aplicaciones superiores a los materiales entregados disponibles para esa orden, salvo excepción explícita, autorizada y trazable.
 
 PRODUCCIÓN
 
-En producción formal por etapas, la orden de producción funciona como destino operativo de componentes.
+Producción mantiene dos modos vigentes.
 
-Los componentes se entregan a la orden.
+Producción instantánea:
 
-El producto terminado se ingresa según avance real.
+opera cuando no existen entregas formales pendientes de componentes físicos contra la misma orden/línea.
 
-La cantidad producible se limita por el componente entregado disponible más restrictivo.
+ingresa producto terminado.
+
+consume físicamente componentes desde depósito.
+
+Producción formal por etapas:
+
+opera sobre componentes entregados formalmente a la orden.
+
+ingresa producto terminado.
+
+aplica formalmente componentes entregados.
+
+no vuelve a descontar físicamente componentes ya entregados.
+
+La cantidad producible se limita por el componente físico entregado disponible más restrictivo.
 
 El ingreso de producto terminado aplica componentes previamente entregados.
 
 No debe descontar nuevamente esos componentes desde depósito.
+
+Los componentes de tipo service no participan en consumo ni aplicación material física.
+
+Caso validado:
+
+si se entregan 50 franelas y 40 siliconas, producir 50 bloquea por silicona.
+
+producir 40 ingresa producto terminado, aplica 40 componentes y deja 10 franelas disponibles.
 
 SERVICIO / MANTENIMIENTO
 
 En servicio o mantenimiento, repuestos, insumos y consumibles deben entregarse a la orden o responsable operativo antes de su aplicación definitiva cuando el flujo material lo requiera.
 
 El cierre técnico debe validar que lo aplicado no exceda lo entregado disponible.
+
+La existencia de InventoryMaterialFlow no implementa por sí sola el flujo completo de Servicio y mantenimiento.
+
+Servicio y mantenimiento deberá consumir la frontera material oficial de Inventory cuando implemente entrega, aplicación, devolución o cierre técnico material.
 
 MODO SIMPLE
 
@@ -1177,7 +1215,7 @@ No debe confundirse con producción o servicio formal por etapas.
 
 Reglas:
 
-entregar, consumir, devolver e ingresar no son solo tipos de movimiento.
+entregar, consumir, aplicar, devolver e ingresar no son solo tipos de movimiento.
 
 son etapas materiales distintas dentro del contrato operativo entre Inventory y Orders.
 
@@ -1186,6 +1224,12 @@ no comprimir stock físico y subcontrato material formal en el mismo registro si
 no usar InventoryMovement.kind como sustituto de InventoryMaterialFlow cuando se requiere contrato formal por etapas.
 
 no resolver contrato formal únicamente con metadata si se requiere saldo material trazable.
+
+no calcular saldos materiales desde Orders.
+
+no calcular saldos materiales desde Blade.
+
+no crear movimientos parciales si un guard material bloquea la operación.
 
 Inventory conserva ownership material.
 

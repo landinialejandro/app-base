@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -195,9 +195,9 @@ Reglas:
 
 /shop/{tenant:slug} no es administración interna
 
-/customer externo no administra tienda
+customer externo no administra tienda
 
-/customer externo no administra shops
+customer externo no administra shops
 
 customer externo no es User
 
@@ -493,11 +493,15 @@ InventoryMaterialFlow no mueve stock por sí mismo.
 
 InventoryMaterialFlowService crea y valida flows formales.
 
-InventoryMaterialBalanceService usa flows formales cuando existen y conserva lectura ambigua para movimientos anteriores o no formalizados.
+InventoryMaterialBalanceService lee saldos formales y conserva lectura ambigua para movimientos anteriores o no formalizados.
 
-ProductionOrderInventoryOperationService consulta la lectura consolidada de Inventory antes de producción instantánea.
+InventorySurfaceService publica payload de Material formal para surfaces embebidas.
 
-Producción instantánea sigue vigente sin flows formales pendientes.
+InventoryOrderItemHooks bloquea cierre si queda saldo material formal pendiente.
+
+ProductionOrderInventoryOperationService soporta producción instantánea y producción formal por etapas.
+
+Producción instantánea sigue vigente cuando no existen flows formales pendientes.
 
 Producción instantánea debe bloquearse si existen entregas formales pendientes de componentes físicos contra la misma orden/línea.
 
@@ -513,11 +517,25 @@ Aplicación y devolución no pueden superar saldo entregado disponible.
 
 Inventory conserva ownership material.
 
+Orders conserva ownership de orden, líneas y lifecycle.
+
 Orders no calcula saldos materiales.
 
 Orders no administra ledger material formal.
 
+Orders no reconstruye lógica de stock.
+
+Orders no decide consumos ni aplicaciones materiales.
+
 No usar InventoryMovement.kind ni metadata como sustituto del subcontrato material formal cuando se requiere saldo trazable.
+
+Modelo mental validado:
+
+el depósito entrega.
+
+la orden consume o aplica.
+
+el cierre regulariza.
 
 Fase 1 cerrada:
 
@@ -527,13 +545,53 @@ Fase 2 cerrada:
 
 ledger material formal InventoryMaterialFlow + InventoryMaterialFlowService.
 
-Pendiente:
+Fase 3 operativa mínima cerrada:
 
-Fase 3 debe exponer acciones internas o UI mínima para entrega, aplicación y devolución formal.
+acciones internas y UI mínima de entrega, aplicación y devolución formal.
 
-Pendiente posterior:
+Producción formal por etapas cerrada en corte funcional inicial:
 
-producción formal por etapas usando InventoryMaterialFlowService como frontera material.
+con entregas formales, ingresa producto terminado y aplica componentes previamente entregados.
+
+No crea consumo físico doble de componentes ya entregados.
+
+Los componentes service no participan en consumo ni aplicación material física.
+
+La cantidad producible se limita por el componente físico entregado disponible más restrictivo.
+
+Caso validado:
+
+si se entregan 50 franelas y 40 siliconas, producir 50 bloquea por silicona.
+
+producir 40 ingresa terminado, aplica 40 componentes y deja 10 franelas disponibles.
+
+Cierre material vigente:
+
+el cierre de orden consulta blockers materiales de Inventory.
+
+si queda saldo formal pendiente, el cierre se bloquea.
+
+la acción Devolver debe permanecer disponible aunque la línea esté completed si la orden está operable y existe saldo formal disponible.
+
+Caso funcional validado:
+
+OPR-0001-00000002
+
+se produjo formalmente
+
+quedó sobrante
+
+se corrigió payload para mostrar Devolver en línea completed
+
+se devolvió sobrante
+
+se pudo cerrar la orden
+
+Advertencia para futuros chats:
+
+no reabrir debate sobre metadata vs operation_type vs entidad satélite para el contrato formal mínimo.
+
+La decisión vigente es InventoryMaterialFlow.
 
 La convergencia reusable de line items quedó avanzada y validada en múltiples capas.
 

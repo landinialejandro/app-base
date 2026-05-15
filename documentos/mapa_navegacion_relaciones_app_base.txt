@@ -1115,7 +1115,7 @@ Esa tab no convierte self_service_sales en navegación principal tenant.
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -1139,10 +1139,29 @@ detail_items para bloques breves informativos
 tabs o paneles amplios para relaciones fuertes
 row actions oficiales para operaciones dentro de tablas anfitrionas
 linked helpers para referencias compactas hacia registros de otro módulo
+subzonas operativas cuando una surface invitada necesita exponer acciones específicas sin abrir navegación nueva
 
 Caso vigente en orders.show:
 
 inventory puede operar por línea dentro del host sin perder identidad modular
+
+inventory puede exponer bloque de Material formal dentro del tab existente sin crear navegación nueva
+
+Material formal muestra saldos preparados por backend
+
+Material formal puede exponer acciones Entregar, Aplicar y Devolver
+
+las acciones formales pertenecen a Inventory
+
+orders.show conserva identidad de host
+
+Orders no calcula saldos materiales
+
+Orders no decide consumos ni aplicaciones
+
+InventorySurfaceService prepara payload, saldos y acciones
+
+InventoryMaterialFlowService ejecuta y valida operaciones formales
 
 documents y attachments pueden consumirse como capacidades invitadas
 
@@ -1162,6 +1181,12 @@ La dirección funcional de seguimiento es Task -> Order.
 
 Si se muestra información relacionada con Tasks, debe cuidarse que no implique que Orders gobierna Tasks desde su núcleo.
 
+Regla específica de Material formal:
+
+Devolver debe permanecer visible en una línea completed si la orden está operable y existe saldo formal disponible.
+
+La línea completed no equivale a material formal completamente regularizado.
+
 Caso vigente en documents.show:
 
 inventory puede operar por línea documental dentro del host sin perder identidad modular
@@ -1178,106 +1203,13 @@ las tablas embebidas de Documents deben mostrar Contraparte cuando representan e
 
 showCounterparty es el contrato visual vigente para habilitar esa columna
 
-documents.show puede consumir Orders como link asociado mediante orders.associated.linked cuando Documents entregue su Order asociada.
+Regla final:
 
-Caso vigente en parties.show:
+una relación embebida operativa no transfiere ownership.
 
-parties puede hospedar relaciones embebidas o compactas publicadas por otros módulos mediante surfaces oficiales.
+El host aloja.
 
-La lectura de parties.show debe respetar la nueva semántica de parties:
-
-tipo de contacto
-relación con la empresa
-
-La definición de qué relaciones embebidas resultan coherentes en parties.show debe analizarse desde party_roles.role y no desde parties.kind.
-
-Criterio vigente para ese análisis:
-
-customer
-supplier
-employee
-other
-
-Reglas para parties.show:
-
-no decidir embebidos por parties.kind
-no inventar relaciones
-no agregar embebidos manuales
-consumir surfaces oficiales de los módulos oferentes
-detectar brechas cuando una relación necesaria no tenga surface oficial publicada
-mantener el ownership funcional en el módulo oferente
-
-No se abre navegación nueva para party_roles.
-
-Caso vigente:
-
-parties.show puede alojar orders.related.embedded ofrecido por OrderSurfaceService.
-
-Caso vigente en assets.show:
-
-assets.show puede alojar orders.related.embedded ofrecido por OrderSurfaceService.
-
-Regla:
-
-OrderSurfaceService debe resolver el payload de Orders mediante configuración contextual y filtro correspondiente, sin duplicar offers por host.
-
-Caso vigente en products.show:
-
-ProductOperationalSummary se integra como summary_items dentro del show-summary del producto.
-
-No crea tab propia.
-
-No crea card local aislada.
-
-No crea navegación nueva.
-
-Las tabs existentes como Movimientos, Actividad y Adjuntos conservan su identidad.
-
-Caso vigente en appointments.show:
-
-appointments.show puede consumir relaciones compactas publicadas por otros módulos, como assets, orders y parties.
-
-Estas relaciones deben leerse como resumen contextual del turno o planificación.
-
-No deben degradarse a pestañas pesadas por defecto si la relación es puntual.
-
-Appointments puede originar creación contextual de Orders aunque no posea party_id.
-
-La ausencia de contacto gestionado no debe bloquear la intención de crear Order si Orders permite completar counterparty_name.
-
-El link hacia Orders debe resolverse mediante OrderLinked::forOrder() cuando exista Order|null, no mediante método específico por Appointment.
-
-Caso vigente en tasks.show:
-
-tasks.show puede vincularse con orders mediante tasks.order_id.
-
-Si una Task origina o acompaña una Order, el recorrido debe preservar contexto sin convertir Tasks en dueño de Orders.
-
-Tasks puede originar creación contextual de Orders aunque no posea party_id.
-
-La ausencia de contacto gestionado no debe bloquear la intención de crear Order si Orders permite completar counterparty_name.
-
-El link hacia Orders debe resolverse mediante OrderLinked::forOrder() cuando exista Order|null, no mediante método específico por Task.
-
-Regla:
-
-una show page puede actuar como host visual, pero no debe ocultar qué módulo conserva ownership de cada relación.
-
-Aclaración vigente para PartyLinked:
-
-PartyLinked debe representar solo el vínculo gestionado con Party cuando exista party_id.
-
-No debe ser la fuente principal del texto visible de contraparte en tablas o embebidos de Orders/Documents si el módulo dueño ofrece helper oficial.
-
-Aclaración vigente para Contacto y Contraparte:
-
-Contacto debe reservarse para filtros, selectores o vínculos explícitos hacia Party.
-
-Contraparte debe utilizarse para el dato operativo visible propio del registro cuando Orders o Documents representan su contraparte.
-
-Regla:
-
-las relaciones embebidas deben mostrar el dato que el usuario necesita leer operativamente, sin forzar la existencia de un contacto gestionado cuando el contrato del módulo permite snapshot propio.
+El invitado conserva reglas, rutas, payload, validaciones y acciones.
 
 <<END SECTION>>
 
@@ -1514,7 +1446,7 @@ Estas lecturas no equivalen a navegación principal salvo decisión futura valid
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 INVENTORY
 
@@ -1549,6 +1481,22 @@ la apertura de historial filtrado puede usar surface oficial de inventory conser
 
 return_tab puede conservar el panel host correspondiente cuando la operación nació dentro de una tab principal
 
+la superficie Inventory puede exponer una subzona operativa de Material formal dentro del tab existente
+
+la subzona de Material formal no crea navegación nueva
+
+la subzona de Material formal no crea tab nueva
+
+la subzona de Material formal no cambia el host funcional orders.show
+
+las acciones Entregar, Aplicar y Devolver deben ejecutarse mediante rutas y contratos formales de Inventory
+
+la UI no debe permitir elegir kind para acciones formales
+
+la UI no debe reconstruir disponibilidad ni saldos materiales
+
+la disponibilidad debe venir preparada por backend
+
 Cuando inventory opere dentro de documents.show:
 
 la navegación no debe romper continuidad del host documental salvo intención explícita del usuario
@@ -1563,6 +1511,12 @@ Regla adicional por estado superior:
 
 si la order anfitriona está closed o cancelled, inventory no debe exponer desde ese host acciones operativas incompatibles con dicho estado.
 
+Regla adicional para material formal:
+
+si la order anfitriona está operable y existe saldo formal disponible, la acción Devolver puede permanecer disponible aunque la línea esté completed.
+
+completed no debe ocultar devolución de sobrantes cuando el contrato material formal todavía requiere regularización.
+
 Aclaración adicional vigente:
 
 la incorporación de inventory_operations no crea por sí misma una navegación principal nueva ni una pantalla obligatoria separada.
@@ -1574,6 +1528,20 @@ El flujo visible del usuario puede seguir centrado en acciones como surtir, devo
 Internamente, Inventory puede resolver o reutilizar una agrupación operativa contextual y luego registrar uno o múltiples movimientos unitarios de stock.
 
 Cuando un movimiento tenga operación asociada, inventory.movements.show puede exponer esa información como lectura contextual adicional sin desplazar la navegación principal hacia la operación.
+
+Aclaración adicional sobre contrato material formal:
+
+InventoryMaterialFlow no crea por sí mismo navegación principal nueva.
+
+InventoryMaterialFlow se consume desde superficies, acciones formales y lecturas preparadas por Inventory.
+
+Lectura:
+
+InventoryMovement conserva libro físico de stock.
+
+InventoryMaterialFlow conserva ledger formal material.
+
+La navegación visible debe preservar la continuidad del host y no convertir el ledger formal en recorrido CRUD ordinario por mera existencia técnica.
 
 <<END SECTION>>
 

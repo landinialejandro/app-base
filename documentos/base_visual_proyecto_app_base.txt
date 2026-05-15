@@ -216,7 +216,7 @@ resources/views/landing
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00030
+SECTION_VERSION: 00031
 
 COMPONENTES DISPONIBLES
 
@@ -596,6 +596,30 @@ Caso vigente adicional:
 
 modal de edición de funciones de una membership dentro de tenant/profile.
 
+Caso vigente adicional:
+
+modales de Material formal dentro de Inventory embebido en orders.show.
+
+Lectura:
+
+los modales de Material formal representan acciones preparadas por Inventory.
+
+No deciden saldo.
+
+No eligen kind.
+
+No autorizan operación.
+
+No reemplazan validación backend.
+
+Acciones formales vigentes:
+
+Entregar
+
+Aplicar
+
+Devolver
+
 Aclaración adicional para métricas embebidas:
 
 x-tabs-embedded puede mostrar valor principal y valor secundario contextual mediante subvalue cuando el bloque requiera lectura económica o métrica dual.
@@ -628,60 +652,17 @@ Caso validado:
 
 key = activity
 
-La tab Actividad puede recibir ícono propio desde la metadata de la surface.
+La tab Actividad puede recibir ícono propio desde la surface.
 
-Caso vigente:
+Regla final:
 
-OperationalActivitySurfaceService declara icon = activity.
+los componentes representan payload preparado.
 
-No reemplaza x-tabs-embedded.
+No calculan reglas críticas.
 
-x-tabs-embedded continúa correspondiendo a segmentaciones internas de bloques embebidos o capacidades invitadas.
+No reemplazan autorización.
 
-Partial visual reusable vigente para actividad operativa:
-
-resources/views/tenants/partials/operational-activity-table.blade.php
-
-Responsabilidad:
-
-representar filas de actividad operativa ya resueltas por la capa correspondiente.
-
-Columnas vigentes:
-
-Fecha
-Módulo
-Actividad
-Registro
-Actor
-Sujeto
-
-La columna Actividad puede mostrar una síntesis compacta de cambios cuando el payload recibido incluya change_summary.
-
-El detalle de cambios puede abrirse bajo demanda mediante botón Ver cambios y modal global x-modal.
-
-El botón Ver cambios debe mantener bajo protagonismo visual.
-
-Variante visual validada:
-
-btn btn-secondary btn-icon
-
-Regla:
-
-no crear una clase nueva si la variante existente resuelve la necesidad visual.
-
-Reglas:
-
-el partial no decide autorización
-
-el partial no resuelve permisos
-
-el partial no consulta actividad
-
-el partial no reconstruye historia operativa
-
-el partial no interpreta metadata.changes directamente
-
-el partial representa datos ya resueltos por la lectura general o contextual correspondiente
+No reconstruyen ownership del módulo oferente.
 
 <<END SECTION>>
 
@@ -2116,7 +2097,7 @@ las acciones contextuales de tabs deben permanecer fijas a la derecha y los tabs
 <<END SECTION>>
 
 <<SECTION: EMBEDDED TABS EN SHOW RELACIONADOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 EMBEDDED TABS EN SHOW RELACIONADOS
 
@@ -2126,6 +2107,7 @@ tab-toolbar reutilizable
 tabs internos con posibilidad de overflow horizontal reusable
 acción contextual fija a la derecha
 tabla o listado debajo en card independiente
+subzona operativa compacta cuando una relación embebida requiere acciones formales propias
 
 Cuando un embedded-tabs tenga riesgo razonable de desborde en pantallas chicas o por crecimiento futuro de etiquetas, conviene aplicar desde el inicio el wrapper reusable de scroll horizontal.
 
@@ -2135,5 +2117,46 @@ Attachments se considera el caso estándar actual de embebido tabulado por kind 
 
 Regla adicional:
 
-si otros módulos publican tablas embebidas, bloques summary o acciones contextuales reutilizables, deben priorizar esta misma familia visual antes de introducir layouts paralelos incompatibles
+si otros módulos publican tablas embebidas, bloques summary o acciones contextuales reutilizables, deben priorizar esta misma familia visual antes de introducir layouts paralelos incompatibles.
+
+Regla adicional para Material formal embebido:
+
+cuando Inventory publique una subzona operativa de Material formal dentro de orders.show, debe mantenerse dentro del tab/surface existente.
+
+No debe crear tab principal nueva por sí misma.
+
+No debe crear card duplicada si el bloque embebido ya aporta jerarquía suficiente.
+
+Debe representar datos y acciones preparados por backend.
+
+Debe diferenciar visualmente el flujo formal de Material formal de los flujos físicos simples.
+
+Labels vigentes para acciones formales:
+
+Entregar
+
+Aplicar
+
+Devolver
+
+Reglas:
+
+no usar labels que confundan acción formal con movimiento físico simple cuando el contrato material requiere distinción.
+
+no mostrar selector de kind en la vista.
+
+no calcular saldos en Blade.
+
+no calcular disponibilidad en Blade.
+
+no decidir reglas críticas en Blade.
+
+la vista solo renderiza payload preparado por InventorySurfaceService.
+
+Caso validado:
+
+Devolver debe mostrarse incluso en línea completed si existe saldo formal disponible y la orden sigue operable.
+
+La UI debe permitir regularizar sobrantes cuando el backend habilita la acción.
+
 <<END SECTION>>

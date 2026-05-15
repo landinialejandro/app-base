@@ -437,7 +437,7 @@ todo módulo estándar debe alinear permisos, matriz de roles y scopes compatibl
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LECCIONES VIGENTES — CONTRATO MATERIAL INVENTORY
 
@@ -512,5 +512,81 @@ modo formal por etapas = entrega previa, aplicación formal, devolución posible
 Regla:
 
 si existe material formalmente entregado pendiente, la operación instantánea no debe ignorarlo ni descontar componentes nuevamente desde depósito.
+
+UI VISIBLE NO ES REGULARIZACIÓN MATERIAL
+
+Un botón visible u oculto no define si existe saldo formal disponible ni si una orden puede cerrarse.
+
+Caso vigente:
+
+en OPR-0001-00000002, la línea estaba completed, pero quedaba sobrante formal disponible.
+
+La acción Devolver no aparecía inicialmente.
+
+Al corregir el payload de acciones, se pudo devolver el sobrante y luego cerrar la orden.
+
+Lección:
+
+completed no equivale automáticamente a material formal regularizado.
+
+Reglas:
+
+la acción Devolver debe seguir disponible si la orden está operable y existe saldo formal disponible.
+
+la vista debe renderizar payload preparado por backend.
+
+la vista no debe calcular saldo formal.
+
+la vista no debe decidir disponibilidad.
+
+la vista no debe impedir regularización material por estado visual de línea si backend habilita la acción.
+
+CIERRE DE ORDEN NO DEBE IGNORAR SALDOS FORMALES
+
+Cerrar una orden no puede depender solo del estado de líneas o del lifecycle administrativo si existe contrato material formal pendiente.
+
+Caso vigente:
+
+InventoryOrderItemHooks puede bloquear cierre si queda saldo formal pendiente.
+
+Lección:
+
+el cierre debe consultar blockers del módulo dueño del saldo material.
+
+Reglas:
+
+Orders conserva lifecycle.
+
+Inventory conserva saldo material.
+
+Orders no reconstruye lógica de Inventory.
+
+si queda material entregado sin aplicar ni devolver, el cierre debe bloquear.
+
+PRUEBAS RUNTIME MATERIAL NO SON SOLO CONTEOS GLOBALES
+
+En operaciones tenant-scoped, un delta aparente puede ser falso si los conteos se miden con scopes distintos.
+
+Caso detectado:
+
+al validar rollback o ausencia de efectos colaterales, los conteos deben medirse con el mismo contexto tenant antes y después.
+
+Lección:
+
+una validación material debe probar efectos esperados y ausencia de efectos indebidos dentro del mismo contexto de tenant.
+
+Reglas:
+
+medir antes/después con el mismo tenant.
+
+no comparar conteos globales contra conteos tenant-scoped.
+
+validar ausencia de movimientos parciales ante bloqueo.
+
+validar stock físico.
+
+validar saldos formales.
+
+validar posibilidad de cierre solo después de regularización material.
 
 <<END SECTION>>

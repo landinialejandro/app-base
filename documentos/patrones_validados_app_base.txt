@@ -653,7 +653,7 @@ conservar legibilidad del contenido principal
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PATRONES VIGENTES — CONTRATO MATERIAL INVENTORY
 
@@ -691,6 +691,76 @@ no aplicar más de lo entregado disponible.
 
 no devolver más de lo entregado disponible.
 
+no elegir kind desde la vista para acciones formales.
+
+BACKEND PREPARA PAYLOAD MATERIAL, BLADE REPRESENTA
+
+Patrón validado:
+
+las superficies visuales de Material formal deben recibir saldos, disponibilidad y acciones preparadas por backend.
+
+Caso vigente:
+
+InventorySurfaceService prepara payload de Material formal para Inventory embebido en orders.show.
+
+La vista renderiza:
+
+saldo requerido
+
+entregado
+
+aplicado
+
+devuelto
+
+disponible
+
+faltante
+
+acciones Entregar, Aplicar y Devolver
+
+Reglas:
+
+Blade no calcula saldo formal.
+
+Blade no decide disponibilidad.
+
+Blade no decide reglas críticas.
+
+Blade no reconstruye InventoryMaterialFlow.
+
+Blade no elige kind.
+
+La UI representa acciones ya preparadas por Inventory.
+
+ACCIONES FORMALES DIFERENCIADAS DE MOVIMIENTOS FÍSICOS SIMPLES
+
+Patrón validado:
+
+cuando existe contrato material formal, las acciones deben diferenciarse visual y funcionalmente de movimientos físicos simples.
+
+Caso vigente:
+
+acciones formales:
+
+Entregar
+
+Aplicar
+
+Devolver
+
+Lectura:
+
+Entregar puede mover stock físico de salida y crear formal_delivery.
+
+Aplicar crea formal_application y no mueve stock físico.
+
+Devolver puede mover stock físico de ingreso y crear formal_return.
+
+Regla:
+
+no usar labels simples como Surtir/Revertir cuando puedan confundir flujo físico directo con contrato formal.
+
 GUARD DEFENSIVO MATERIAL ANTES DE OPERACIÓN IRREVERSIBLE
 
 Patrón validado:
@@ -701,7 +771,7 @@ Caso vigente:
 
 ProductionOrderInventoryOperationService consulta InventoryMaterialBalanceService antes de ejecutar producción instantánea.
 
-Si existen entregas previas ambiguas de componentes físicos contra la misma orden/línea, bloquea antes de crear movimientos.
+Si existen entregas formales pendientes de componentes físicos contra la misma orden/línea, bloquea antes de crear movimientos.
 
 Reglas:
 
@@ -713,9 +783,81 @@ el bloqueo ocurre antes de persistencia parcial.
 
 la producción instantánea se preserva si no hay riesgo material detectado.
 
-lectura consolidada inicial ≠ estado material persistente completo.
+PRODUCCIÓN CON DOBLE MODO MATERIAL
 
-guard defensivo ≠ contrato material formal completo.
+Patrón validado:
+
+producción puede operar en modo instantáneo o en modo formal por etapas según existencia de entregas formales pendientes.
+
+Producción instantánea:
+
+ingresa producto terminado.
+
+consume físicamente componentes desde depósito.
+
+requiere ausencia de entregas formales pendientes de componentes físicos para esa orden/línea.
+
+Producción formal por etapas:
+
+ingresa producto terminado.
+
+aplica formalmente componentes entregados.
+
+no descuenta físicamente componentes ya entregados.
+
+Reglas:
+
+la cantidad producible se limita por el componente físico entregado disponible más restrictivo.
+
+componentes service no participan en consumo ni aplicación material física.
+
+si hay material formal entregado pendiente, no se debe ignorar ni descontar de nuevo desde depósito.
+
+CIERRE MATERIAL CON BLOCKERS DEL MÓDULO DUEÑO
+
+Patrón validado:
+
+el cierre de orden debe consultar condiciones materiales del módulo dueño cuando existe contrato material formal.
+
+Caso vigente:
+
+InventoryOrderItemHooks bloquea cierre si queda saldo formal pendiente.
+
+Reglas:
+
+Orders conserva lifecycle.
+
+Inventory conserva saldo material.
+
+Orders no calcula saldo material.
+
+el cierre consulta frontera de Inventory.
+
+si queda material entregado sin aplicar ni devolver, el cierre debe bloquear.
+
+DEVOLUCIÓN DISPONIBLE EN LÍNEA COMPLETED SI HAY SALDO FORMAL
+
+Patrón validado:
+
+una línea completed puede requerir devolución de sobrante si la orden sigue operable y existe saldo formal disponible.
+
+Caso validado:
+
+OPR-0001-00000002
+
+Lectura:
+
+la línea estaba completed.
+
+quedó saldo formal disponible.
+
+la acción Devolver debía mostrarse.
+
+la devolución permitió regularizar sobrante y cerrar la orden.
+
+Regla:
+
+completed no debe ocultar Devolver cuando la operación material formal todavía requiere regularización de sobrantes.
 
 FASES VALIDADAS
 
@@ -727,10 +869,20 @@ Fase 2:
 
 ledger material formal InventoryMaterialFlow + InventoryMaterialFlowService.
 
-Pendiente:
+Fase 3:
 
-Fase 3 = acciones internas o UI mínima para entrega, aplicación y devolución formal.
+UI mínima y acciones internas de entrega, aplicación y devolución formal.
 
-Producción formal por etapas = pendiente posterior.
+Producción formal por etapas:
+
+implementada y validada en corte funcional inicial.
+
+Pendientes posteriores:
+
+mejora de mensajes detallados de cierre.
+
+especializaciones futuras de flujo material.
+
+integración con Servicio y mantenimiento completo cuando exista flujo real.
 
 <<END SECTION>>

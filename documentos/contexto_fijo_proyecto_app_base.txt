@@ -752,7 +752,7 @@ No soluciones locales dispersas.
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 [ORDERS]
 Núcleo operativo autónomo.
@@ -761,6 +761,7 @@ Puede vincular.
 Puede derivar.
 Puede consumir capacidades externas por frontera.
 No absorbe módulos.
+Conserva ownership de orden, líneas y lifecycle.
 
 [DOCUMENTS]
 Formaliza operaciones.
@@ -780,8 +781,11 @@ No representa operación comercial externa.
 No reemplaza Products, Inventory, Documents ni self_service_sales.
 
 [INVENTORY]
-Stock, ejecución material y trazabilidad material.
+Stock, ejecución material, trazabilidad material y contrato material formal.
+InventoryMovement = libro físico de stock.
+InventoryMaterialFlow = ledger formal del contrato material.
 Interviene mediante fronteras explícitas.
+Conserva ownership material.
 
 [ASSETS]
 Recursos operativos.
@@ -801,6 +805,9 @@ self_service_sales consume publicación de shops y no administra shops.
 
 [PROHIBICIONES]
 Orders no absorbe Assets/Inventory/Documents/Tasks/Appointments.
+Orders no calcula saldos materiales.
+Orders no reconstruye lógica de stock.
+Orders no decide consumos ni aplicaciones materiales.
 Servicio y mantenimiento no absorbe módulos participantes.
 Shopping Autoservicio no absorbe Shops/Parties/Products/Inventory/Documents/Security.
 OperationalActivity no se vuelve timeline específico.
@@ -813,7 +820,7 @@ Ownership se conserva aunque haya integración.
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00030
 
 [RELACIONES BASE]
 users → memberships → tenants
@@ -822,15 +829,17 @@ projects → tasks
 orders → order_items
 documents → document_items
 inventory_operations → inventory_movements
+inventory_movements → inventory_material_flows cuando existe contrato material formal asociado
 shops → shop_items
 
 [RELACIONES FUNCIONALES]
 tasks → orders desde Tasks.
 appointments → orders desde Appointments.
 orders → documents como derivación.
+orders → inventory mediante hooks, líneas, surfaces y capacidades oficiales.
 products → líneas operativas/documentales.
 shops → products mediante shop_items.
-inventory → stock/trazabilidad.
+inventory → stock/trazabilidad/contrato material formal.
 attachments → múltiples recursos.
 módulos → OperationalActivity si corresponde.
 
@@ -843,6 +852,22 @@ group = service
 
 Lectura:
 Orders conserva ownership.
+
+[CONTRATO MATERIAL]
+Orders / OrderItem
+↓
+frontera Inventory
+↓
+InventoryMaterialFlow
+↓
+InventoryMovement cuando existe movimiento físico asociado
+
+Lectura:
+
+InventoryMovement = stock físico.
+InventoryMaterialFlow = ledger formal material.
+Orders conserva orden, líneas y lifecycle.
+Inventory conserva ownership material.
 
 [SHOPPING AUTOSERVICIO]
 shops
@@ -868,6 +893,10 @@ Catálogo publicado ≠ operación comercial real.
 Módulo interno estándar puede configurar datos consumidos por capa satélite externa.
 
 La capa satélite externa consume, no administra internamente.
+
+Módulo consumidor puede consultar fronteras del módulo dueño.
+
+No reconstruye ownership ajeno.
 
 <<END SECTION>>
 

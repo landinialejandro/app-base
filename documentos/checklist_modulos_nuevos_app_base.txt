@@ -82,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 REGLA GENERAL
 
@@ -99,6 +99,7 @@ definir superficie de integración
 definir si participa en trazabilidad operativa transversal
 definir si consume lectura contextual de actividad operativa, directa, agregada o contextual especial cuando corresponda
 definir si la necesidad corresponde a módulo funcional ordinario, capacidad transversal, pieza satélite, entidad hija, subcapa interna de módulo existente, surface tenant/transversal, frente operativo especializado, universo semántico o entrada pública externa
+definir si una necesidad material corresponde a stock físico, ledger formal, cierre operativo, contrato de entrega/aplicación/devolución, producción formal por etapas o modo simple instantáneo
 implementar
 auditar
 ajustar documentación afectada
@@ -364,6 +365,129 @@ administración interna no debe autorizarse por SelfServiceExternalSession
 
 customer externo no debe operar rutas shops.*
 
+Regla adicional para contrato material Inventory/Orders:
+
+si una capacidad mueve, entrega, aplica, consume, devuelve o regulariza materiales, debe distinguirse entre:
+
+stock físico
+movimiento físico
+entrega formal
+aplicación formal
+devolución formal
+saldo formal entregado
+cierre material
+modo simple instantáneo
+producción formal por etapas
+modo formal por etapas
+
+Casos vigentes:
+
+InventoryMovement = libro físico de stock.
+
+InventoryMaterialFlow = ledger formal del subcontrato material.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+Tipos formales vigentes:
+
+formal_delivery
+formal_application
+formal_return
+
+Reglas:
+
+Inventory conserva ownership material
+
+Orders conserva ownership de la orden, líneas y lifecycle
+
+Orders no calcula saldos materiales
+
+Orders no administra el ledger material formal
+
+Orders no reconstruye lógica de stock
+
+Orders no decide consumos ni aplicaciones materiales
+
+si una operación implica stock físico, debe pasar por Inventory
+
+si una operación implica regularización material formal, debe pasar por InventoryMaterialFlow o frontera oficial de Inventory
+
+no usar InventoryMovement.kind como sustituto del contrato formal por etapas cuando se requiere saldo trazable
+
+no resolver entrega/aplicación/devolución formal solo con metadata
+
+no aplicar más de lo entregado disponible
+
+no devolver más de lo entregado disponible
+
+no crear movimientos parciales si un guard material bloquea la operación
+
+no cerrar contrato material formal con movimientos manuales sueltos
+
+la aplicación formal no crea InventoryMovement
+
+la devolución formal puede crear movimiento físico de ingreso
+
+la UI no debe elegir kind ni reconstruir disponibilidad
+
+Blade debe renderizar payload preparado por backend
+
+Regla adicional para producción:
+
+si producción funciona en modo simple, puede consumir componentes e ingresar producto terminado en una única acción validada.
+
+Si producción funciona en modo formal por etapas, debe aplicar componentes previamente entregados y no descontarlos nuevamente desde depósito.
+
+Debe validarse la cantidad producible contra el componente físico entregado disponible más restrictivo.
+
+Los componentes service no participan en consumo ni aplicación material física.
+
+Regla adicional para cierres:
+
+si el cierre depende de condiciones de otro módulo, debe consultar blockers o fronteras oficiales del módulo dueño.
+
+Caso vigente:
+
+el cierre de orden consulta blockers materiales de Inventory.
+
+Si existe saldo formal pendiente, el cierre debe bloquearse.
+
+Regla:
+
+la UI no puede ser la única barrera operativa.
+
+Un botón oculto o deshabilitado no reemplaza validación backend.
+
+Regla adicional para pruebas runtime:
+
+cuando una operación tiene efectos materiales, no alcanza con validar creación de registros.
+
+Debe validarse también:
+
+ausencia de efectos colaterales no deseados
+
+ausencia de movimientos parciales ante bloqueo
+
+rollback limpio cuando corresponda
+
+estado final de saldos formales
+
+estado final de stock físico
+
+bloqueo de cierre cuando corresponde
+
+posibilidad de cierre cuando el material queda regularizado
+
+conteos antes/después medidos bajo el mismo contexto tenant
+
+Regla:
+
+en proyectos tenant-scoped, los conteos de validación deben medirse con el mismo contexto de tenant antes y después.
+
+No comparar conteos globales contra conteos tenant-scoped ni mezclar scopes en pruebas de delta.
+
 Regla adicional para registro externo liviano:
 
 si el flujo externo inicial usa registro liviano, debe distinguirse entre:
@@ -503,6 +627,13 @@ registro externo pendiente
 configuración interna de tienda
 publicación comercial
 operación transaccional externa
+stock físico
+entrega formal
+aplicación formal
+devolución formal
+saldo material formal
+modo simple instantáneo
+producción formal por etapas
 
 Regla adicional para actividad operativa:
 

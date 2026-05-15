@@ -142,7 +142,7 @@ Detalle técnico puede evolucionar sin alterar doctrina.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00036
+SECTION_VERSION: 00037
 
 [AUTORIDAD CENTRAL]
 Decisión final = backend / capa central de seguridad.
@@ -198,6 +198,8 @@ Configuración interna ≠ operación externa.
 * tienda pública
 * catálogo publicado
 * customer externo habilitado visualmente
+* saldo mostrado en Blade
+* acción visible en superficie embebida
 
 [MÍNIMO ACOPLE]
 Consumidor no reinterpreta seguridad de otro módulo.
@@ -266,6 +268,21 @@ shops pertenece al plano interno.
 
 self_service_sales consume publicación de shops.
 
+[MATERIAL FORMAL]
+Stock físico, entrega formal, aplicación formal, devolución formal y cierre material pertenecen a Inventory.
+
+Orders no calcula saldos materiales.
+
+Orders no reconstruye lógica de stock.
+
+Orders no decide consumos ni aplicaciones.
+
+La UI no es autoridad de saldo material.
+
+La UI no es barrera de cierre.
+
+Las reglas críticas de entrega, aplicación, devolución, producción formal y cierre material viven en backend.
+
 [ACCIONES CRÍTICAS]
 Requieren autorización efectiva + validación backend + confirmación humana o regla explícita cuando corresponda.
 
@@ -281,6 +298,11 @@ customers externos
 operación comercial externa
 publicación interna consumida externamente
 pagos o comprobantes futuros
+entrega formal
+aplicación formal
+devolución formal
+producción formal
+cierre material
 
 [ESTADOS TERMINALES]
 Order closed/cancelled no permite operación ordinaria.
@@ -289,8 +311,12 @@ Reapertura = acción restringida.
 
 Estado satélite no puede saltar lifecycle base.
 
+Un cierre de orden puede bloquearse por condiciones materiales formales pendientes del módulo Inventory.
+
 [REGLA SÍNTESIS]
 Todo plano auxiliar debe volver a autorización backend efectiva.
+
+Todo cierre crítico debe consultar blockers del módulo dueño cuando exista dependencia externa formal.
 
 <<END SECTION>>
 
@@ -1091,7 +1117,7 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza operaci�
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00040
+SECTION_VERSION: 00041
 
 [USO]
 Solo restricciones de seguridad de alto impacto.
@@ -1133,6 +1159,47 @@ Estados satélite no saltan Orders.status.
 Bloqueos externos vía fronteras.
 
 OrderController no reconstruye Inventory.
+
+Orders no calcula saldos materiales.
+
+Orders no decide consumos ni aplicaciones materiales.
+
+Cierre de Order puede bloquearse por saldo material formal pendiente informado por Inventory.
+
+[ORDERS / INVENTORY MATERIAL]
+Las acciones de material formal dependen de:
+
+orden operable
+autorización efectiva sobre la operación correspondiente
+tenant correcto
+línea válida
+producto válido
+saldo formal disponible
+validaciones backend de Inventory
+
+Reglas:
+
+entrega formal debe pasar por backend Inventory.
+
+aplicación formal debe pasar por backend Inventory.
+
+devolución formal debe pasar por backend Inventory.
+
+producción formal debe pasar por backend Inventory.
+
+cierre material debe consultar frontera Inventory.
+
+la UI no autoriza entrega, aplicación, devolución, producción ni cierre.
+
+la UI no calcula disponibilidad.
+
+la UI no reemplaza validación de saldo.
+
+no aplicar más de lo entregado disponible.
+
+no devolver más de lo entregado disponible.
+
+no operar ordinariamente sobre orden closed/cancelled.
 
 [/SERVICE]
 Universo semántico.
@@ -1188,13 +1255,27 @@ counterparty_name dato propio.
 order_id contexto derivación, no bypass.
 
 [INVENTORY]
-Owner de stock/movimientos/trazabilidad.
+Owner de stock, movimientos, trazabilidad y contrato material formal.
 
 Orders/Documents consumen capacidades oficiales.
 
 Inventory puede bloquear por frontera.
 
 Falla crítica = bloqueo.
+
+InventoryMovement = libro físico de stock.
+
+InventoryMaterialFlow = ledger formal material.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+La aplicación formal no crea InventoryMovement.
+
+La devolución formal puede crear movimiento físico de ingreso.
+
+InventorySurfaceService puede preparar payload visual, pero no delega autoridad en Blade.
 
 [PARTIES]
 kind = person/company.
@@ -1293,6 +1374,8 @@ No usar Orders.status como estado técnico.
 No operar closed sin reapertura.
 
 No reintroducir lógica externa en OrderController.
+
+Cuando Servicio y mantenimiento incorpore entrega, aplicación, devolución o cierre material, debe consumir fronteras oficiales de Inventory.
 
 [IA / AUTOMATIZACIONES]
 Consumidores sujetos a seguridad.

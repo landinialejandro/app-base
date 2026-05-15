@@ -631,7 +631,7 @@ las operaciones futuras requieren contrato específico, autorización externa ef
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY
 
@@ -661,6 +661,10 @@ InventoryMaterialFlowService
 
 InventoryMaterialBalanceService
 
+InventorySurfaceService
+
+InventoryOrderItemHooks
+
 ProductionOrderInventoryOperationService
 
 Tipos formales vigentes:
@@ -687,11 +691,21 @@ Reglas:
 
 Inventory conserva ownership material.
 
+Orders conserva ownership de orden, líneas y lifecycle.
+
 Orders no calcula saldos materiales.
+
+Orders no reconstruye lógica de stock.
 
 Orders no administra el ledger material formal.
 
+Orders consulta blockers de Inventory mediante frontera explícita para cierres críticos.
+
 ProductionOrderInventoryOperationService puede consumir lectura oficial de Inventory para evitar doble consumo.
+
+InventoryOrderItemHooks puede bloquear cierre si queda saldo formal pendiente.
+
+InventorySurfaceService publica payload preparado para la UI de Material formal.
 
 No crear movimientos parciales si el guard defensivo bloquea la operación.
 
@@ -703,23 +717,87 @@ No usar metadata como contrato formal suficiente si se requiere saldo trazable.
 
 No usar InventoryMovement.kind para absorber subestados formales si representan otra dimensión.
 
+No elegir kind desde Blade para acciones formales.
+
+La vista no calcula saldo formal.
+
+La vista no decide disponibilidad.
+
 Estado vigente:
 
 Fase 1 defensiva cerrada.
 
 Fase 2 mínima formal cerrada.
 
-Fase 3 operativa pendiente.
+Fase 3 operativa mínima cerrada.
 
-Pendiente:
+Producción formal por etapas cerrada en corte funcional inicial.
 
-acciones internas o UI mínima para entrega, aplicación y devolución formal.
+Producción vigente:
 
-validación de cierre material.
+producción instantánea sin entregas formales pendientes
 
-producción formal por etapas.
+producción formal por etapas con componentes previamente entregados
 
-integración material formal con servicio y mantenimiento cuando corresponda.
+Reglas de producción formal:
+
+si existen entregas formales pendientes de componentes físicos contra la misma orden/línea, la producción instantánea debe bloquearse.
+
+la producción formal por etapas ingresa producto terminado y aplica componentes entregados.
+
+la producción formal por etapas no genera consumo físico doble de componentes ya entregados.
+
+los componentes service no participan en consumo ni aplicación material física.
+
+la cantidad producible se limita por el componente físico entregado disponible más restrictivo.
+
+Caso validado:
+
+50 franelas y 40 siliconas entregadas permiten producir 40.
+
+producir 50 bloquea por componente limitante.
+
+producir 40 ingresa producto terminado, aplica 40 y deja 10 franelas disponibles.
+
+Cierre vigente:
+
+el cierre de orden debe consultar saldo material formal pendiente.
+
+si queda saldo formal pendiente, el cierre se bloquea.
+
+la acción Devolver debe permanecer disponible aunque la línea esté completed si la orden sigue operable y existe saldo formal disponible.
+
+Caso funcional validado:
+
+OPR-0001-00000002
+
+Lectura:
+
+se produjo formalmente.
+
+quedó sobrante.
+
+se corrigió payload para mostrar Devolver en línea completed.
+
+se devolvió sobrante.
+
+se pudo cerrar la orden.
+
+Decisión ya cerrada:
+
+no reabrir debate sobre metadata vs operation_type vs entidad satélite para el contrato material formal mínimo.
+
+La decisión vigente es InventoryMaterialFlow.
+
+Pendientes reales posteriores:
+
+mejora de mensajes detallados de cierre.
+
+ampliaciones futuras del flujo material por rubro.
+
+integración completa con Servicio y mantenimiento cuando exista flujo real.
+
+permisos materiales específicos solo si se crean capacidades diferenciadas.
 
 <<END SECTION>>
 

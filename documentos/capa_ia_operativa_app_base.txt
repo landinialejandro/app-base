@@ -206,7 +206,7 @@ El usuario debe conservar control, decisión y visibilidad.
 <<END SECTION>>
 
 <<SECTION: IA Y BASE OPERATIVA DEL SISTEMA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 IA Y BASE OPERATIVA DEL SISTEMA
 
@@ -235,6 +235,7 @@ fronteras claras entre módulos, piezas satélite, subcapas contextuales interna
 fronteras funcionales explícitas entre módulos consumidores y oferentes
 clasificación de relaciones externas como estructurales, pasivas, transversales, activas o residuales
 separación entre stock físico y contrato material formal cuando corresponda
+separación entre modo simple instantáneo y modo formal por etapas cuando corresponda
 
 Regla:
 
@@ -329,6 +330,12 @@ InventoryMovement = stock físico.
 
 InventoryMaterialFlow = subcontrato material formal.
 
+InventoryMaterialFlowService = frontera backend para entrega, aplicación y devolución formal.
+
+InventoryMaterialBalanceService = lectura consolidada de saldos materiales.
+
+InventorySurfaceService = payload visual preparado para Material formal.
+
 Esta base mejora una futura lectura IA porque separa:
 
 movimiento físico
@@ -338,12 +345,23 @@ devolución formal
 saldo formal entregado
 modo simple instantáneo
 modo formal por etapas
+producción instantánea
+producción formal por etapas
+cierre material
 
 Regla IA:
 
 una futura IA no debe inferir consumo, saldo disponible, material pendiente, faltante o devolución solo desde movimientos físicos cuando exista contrato formal material.
 
 Debe consumir lecturas oficiales de Inventory.
+
+No debe inferir producción formal desde stock físico solamente.
+
+No debe proponer aplicar más de lo entregado disponible.
+
+No debe proponer devolver más de lo entregado disponible.
+
+No debe confundir línea completed con contrato material regularizado si existe saldo formal disponible.
 
 Regla final:
 
@@ -1231,7 +1249,7 @@ La IA asiste, pero no reemplaza el contrato documental.
 <<END SECTION>>
 
 <<SECTION: IA E INVENTORY>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 IA E INVENTORY
 
@@ -1253,6 +1271,9 @@ resumir aplicaciones formales
 resumir devoluciones formales
 advertir saldos formales pendientes
 advertir posibles inconsistencias entre stock físico y ledger formal
+explicar diferencia entre producción instantánea y producción formal por etapas
+identificar sobrantes formales pendientes de devolución
+advertir cierres bloqueados por saldo material pendiente
 
 Lectura vigente:
 
@@ -1263,6 +1284,12 @@ InventoryMaterialFlow conserva el ledger formal de entrega, aplicación y devolu
 InventoryMaterialFlow no reemplaza InventoryMovement.
 
 InventoryMaterialFlow no mueve stock por sí mismo.
+
+InventoryMaterialFlowService opera entrega, aplicación y devolución formal.
+
+InventoryMaterialBalanceService lee saldos formales.
+
+InventorySurfaceService publica payload visual preparado para Material formal.
 
 Tipos formales vigentes:
 
@@ -1286,11 +1313,29 @@ La IA no debe sugerir aplicar más de lo entregado disponible.
 
 La IA no debe sugerir devolver más de lo entregado disponible.
 
+La IA no debe proponer que Orders calcule saldos materiales.
+
+La IA no debe interpretar la UI como autoridad de saldo.
+
+La IA no debe inferir disponibilidad material desde un botón visible u oculto.
+
+La IA no debe confundir línea completed con ausencia de sobrante formal.
+
+La IA no debe proponer cerrar una orden con saldo formal pendiente.
+
+Producción vigente:
+
+producción instantánea puede consumir físicamente componentes cuando no existen entregas formales pendientes.
+
+producción formal por etapas aplica componentes previamente entregados y no descuenta stock físico dos veces.
+
 Regla final:
 
 Inventory conserva ownership material.
 
 La IA puede asistir lectura, análisis y preparación.
+
+La ejecución final debe pasar por contratos oficiales de Inventory.
 
 <<END SECTION>>
 

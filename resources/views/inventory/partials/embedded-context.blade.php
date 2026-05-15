@@ -60,6 +60,7 @@
         $modalNamespace = 'inventory-embedded';
         $displayStatusLabel = $inventoryContext['display_status_label'] ?? null;
         $displayStatusBadge = $inventoryContext['display_status_badge'] ?? 'status-badge--neutral';
+        $materialBalance = $inventoryContext['material_balance'] ?? [];
     @endphp
 
     @if ($displayStatusLabel)
@@ -191,6 +192,10 @@
             <p class="mb-0">No hay líneas operativas disponibles para esta orden.</p>
         </x-card>
     @endif
+
+    @include('inventory.partials.material-balance', [
+        'materialBalance' => $materialBalance,
+    ])
 
     <x-card>
         <div class="summary-line">

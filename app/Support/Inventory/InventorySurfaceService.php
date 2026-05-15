@@ -11,6 +11,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Catalogs\DocumentCatalog;
+use App\Support\Catalogs\OrderCatalog;
+use App\Support\Catalogs\OrderItemCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
@@ -253,6 +255,10 @@ private function resolveEmbeddedForOrder(array $hostPack): array
     }
 
     $inventoryContext = app(InventoryOrderContextResolver::class)->forOrder($record);
+    $inventoryContext['material_balance'] = $this->materialBalancePayloadForOrder(
+        order: $record,
+        trailQuery: $trailQuery,
+    );
 
     $movementRows = $this->movementRowsForOrigin(
         originType: InventoryOriginCatalog::TYPE_ORDER,
@@ -275,6 +281,162 @@ private function resolveEmbeddedForOrder(array $hostPack): array
         ],
     ];
 }
+
+    private function materialBalancePayloadForOrder(Order $order, array $trailQuery): array
+    {
+        $balance = app(InventoryMaterialBalanceService::class)->forOrder($order);
+        $canOperateOrder = OrderCatalog::isOperableStatus($order->status)
+            && auth()->user()?->can('update', $order) === true;
+
+        $items = collect($balance['items'] ?? [])
+            ->map(function (array $itemBalance) use ($order, $trailQuery, $canOperateOrder) {
+                $orderItem = $order->items->firstWhere('id', (int) ($itemBalance['order_item_id'] ?? 0));
+                $lineIsOperable = $orderItem
+                    && OrderItemCatalog::isOperable($orderItem->status ?: OrderItemCatalog::STATUS_PENDING);
+
+                $materials = collect($itemBalance['materials'] ?? [])
+                    ->map(fn (array $material) => $this->materialBalanceRowPayload(
+                        order: $order,
+                        itemBalance: $itemBalance,
+                        material: $material,
+                        canOperate: $canOperateOrder && $lineIsOperable,
+                        trailQuery: $trailQuery,
+                    ))
+                    ->values()
+                    ->all();
+
+                return [
+                    'order_item_id' => $itemBalance['order_item_id'] ?? null,
+                    'is_reliable' => $itemBalance['is_reliable'] ?? false,
+                    'has_ambiguous_balances' => $itemBalance['has_ambiguous_balances'] ?? false,
+                    'has_double_consumption_risk' => $itemBalance['has_double_consumption_risk'] ?? false,
+                    'materials' => $materials,
+                ];
+            })
+            ->values()
+            ->all();
+
+        return [
+            'order_id' => $balance['order_id'] ?? $order->id,
+            'is_reliable' => $balance['is_reliable'] ?? false,
+            'has_ambiguous_balances' => $balance['has_ambiguous_balances'] ?? false,
+            'has_double_consumption_risk' => $balance['has_double_consumption_risk'] ?? false,
+            'items' => $items,
+        ];
+    }
+
+    private function materialBalanceRowPayload(
+        Order $order,
+        array $itemBalance,
+        array $material,
+        bool $canOperate,
+        array $trailQuery,
+    ): array {
+        $available = (float) ($material['available'] ?? 0);
+        $missing = (float) ($material['missing'] ?? 0);
+        $status = (string) ($material['consistency_status'] ?? InventoryMaterialBalanceService::CONSISTENCY_NO_MOVEMENTS);
+        $isFormalReliable = $status === InventoryMaterialBalanceService::CONSISTENCY_FORMAL
+            && ($material['is_reliable'] ?? false) === true;
+
+        $row = $material;
+        $row['required_display'] = $this->formatQuantity($material['required'] ?? 0);
+        $row['delivered_display'] = $this->formatQuantity($material['delivered'] ?? 0);
+        $row['applied_display'] = $this->formatQuantity($material['applied'] ?? 0);
+        $row['returned_display'] = $this->formatQuantity($material['returned'] ?? 0);
+        $row['available_display'] = $this->formatQuantity($available);
+        $row['missing_display'] = $this->formatQuantity($missing);
+        $row['consistency_label'] = $this->materialConsistencyLabel($status);
+        $row['consistency_badge'] = $this->materialConsistencyBadge($status, (bool) ($material['is_ambiguous'] ?? false));
+        $row['warning_label'] = $this->materialWarningLabel($material['warnings'] ?? []);
+
+        $row['actions'] = [
+            'deliver' => $this->materialActionPayload(
+                order: $order,
+                itemBalance: $itemBalance,
+                material: $row,
+                actionKey: 'formal_deliver',
+                label: 'Entregar',
+                title: 'Entregar material formal',
+                routeName: 'inventory.order-items.materials.deliver',
+                canOperate: $canOperate,
+                defaultQuantity: max($missing, 0.01),
+                maxQuantity: null,
+                trailQuery: $trailQuery,
+            ),
+            'apply' => $this->materialActionPayload(
+                order: $order,
+                itemBalance: $itemBalance,
+                material: $row,
+                actionKey: 'formal_apply',
+                label: 'Aplicar',
+                title: 'Aplicar material formal',
+                routeName: 'inventory.order-items.materials.apply',
+                canOperate: $canOperate && $isFormalReliable && $available > 0,
+                defaultQuantity: $available,
+                maxQuantity: $available,
+                trailQuery: $trailQuery,
+            ),
+            'return' => $this->materialActionPayload(
+                order: $order,
+                itemBalance: $itemBalance,
+                material: $row,
+                actionKey: 'formal_return',
+                label: 'Devolver',
+                title: 'Devolver material formal',
+                routeName: 'inventory.order-items.materials.return',
+                canOperate: $canOperate && $isFormalReliable && $available > 0,
+                defaultQuantity: $available,
+                maxQuantity: $available,
+                trailQuery: $trailQuery,
+            ),
+        ];
+
+        return $row;
+    }
+
+    private function materialActionPayload(
+        Order $order,
+        array $itemBalance,
+        array $material,
+        string $actionKey,
+        string $label,
+        string $title,
+        string $routeName,
+        bool $canOperate,
+        float $defaultQuantity,
+        ?float $maxQuantity,
+        array $trailQuery,
+    ): array {
+        $orderItemId = (int) ($itemBalance['order_item_id'] ?? 0);
+
+        return [
+            'is_available' => $canOperate && $orderItemId > 0 && ! empty($material['product_id']),
+            'type' => 'modal',
+            'action_key' => $actionKey,
+            'label' => $label,
+            'title' => $title,
+            'icon' => match ($actionKey) {
+                'formal_apply' => 'check',
+                'formal_return' => 'rotate-ccw',
+                default => 'truck',
+            },
+            'modal_view' => 'inventory.partials.material-flow-modal',
+            'modal_id' => 'inventory-material-'.$actionKey.'-'.$orderItemId.'-'.$material['product_id'],
+            'action' => route($routeName, [
+                'order' => $order,
+                'item' => $orderItemId,
+            ] + $trailQuery),
+            'hiddenFields' => [
+                'product_id' => $material['product_id'] ?? null,
+                'return_context' => 'orders.show',
+                'return_tab' => 'inventory.embedded',
+            ],
+            'material' => $material,
+            'quantity_default' => $this->formatInputQuantity($defaultQuantity),
+            'quantity_max' => $maxQuantity !== null ? $this->formatInputQuantity($maxQuantity) : null,
+            'trailQuery' => $trailQuery,
+        ];
+    }
 
     private function resolveManualAdjustmentAction(array $hostPack): array
     {
@@ -759,4 +921,60 @@ private function resolveDocumentItemRowActions(array $hostPack): array
         ],
     ];
 }
+
+    private function materialConsistencyLabel(string $status): string
+    {
+        return match ($status) {
+            InventoryMaterialBalanceService::CONSISTENCY_FORMAL => 'formal',
+            InventoryMaterialBalanceService::CONSISTENCY_AMBIGUOUS => 'ambiguo',
+            InventoryMaterialBalanceService::CONSISTENCY_NOT_FORMALIZABLE => 'no formalizable',
+            default => 'sin flujo formal',
+        };
+    }
+
+    private function materialConsistencyBadge(string $status, bool $isAmbiguous): string
+    {
+        if ($isAmbiguous) {
+            return 'status-badge--warning';
+        }
+
+        return match ($status) {
+            InventoryMaterialBalanceService::CONSISTENCY_FORMAL => 'status-badge--done',
+            InventoryMaterialBalanceService::CONSISTENCY_AMBIGUOUS,
+            InventoryMaterialBalanceService::CONSISTENCY_NOT_FORMALIZABLE => 'status-badge--warning',
+            default => 'status-badge--neutral',
+        };
+    }
+
+    private function materialWarningLabel(array $warnings): ?string
+    {
+        if (empty($warnings)) {
+            return null;
+        }
+
+        $labels = [
+            'entrega_no_clasificada' => 'Entrega no clasificada',
+            'aplicacion_no_trazable' => 'Aplicación no trazable',
+            'devolucion_no_trazable' => 'Devolución no trazable',
+            'saldo_no_formalizable' => 'Saldo no formalizable',
+            'riesgo_doble_consumo' => 'Riesgo de doble consumo',
+            'movimiento_no_clasificado' => 'Movimiento no clasificado',
+            'saldo_entregado_pendiente' => 'Saldo entregado pendiente',
+        ];
+
+        return collect($warnings)
+            ->map(fn ($warning) => $labels[$warning] ?? (string) $warning)
+            ->unique()
+            ->implode(' · ');
+    }
+
+    private function formatQuantity(float|int|string|null $quantity): string
+    {
+        return number_format((float) ($quantity ?? 0), 2, ',', '.');
+    }
+
+    private function formatInputQuantity(float|int|string|null $quantity): string
+    {
+        return number_format(max(0.01, (float) ($quantity ?? 0)), 2, '.', '');
+    }
 }

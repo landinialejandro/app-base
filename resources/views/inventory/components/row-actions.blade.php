@@ -9,8 +9,8 @@
 
     $resolveVariant = function (string $actionKey, string $type) {
         return match ($actionKey) {
-            'execute' => 'primary',
-            'return' => 'danger',
+            'execute', 'formal_deliver', 'formal_apply' => 'primary',
+            'return', 'formal_return' => 'danger',
             'view_movements' => 'secondary',
             default => in_array($type, ['modal', 'submit'], true) ? 'primary' : 'secondary',
         };
@@ -43,6 +43,9 @@
             'order' => $action['order'] ?? null,
             'document' => $action['document'] ?? null,
             'row' => $action['row'] ?? [],
+            'material' => $action['material'] ?? [],
+            'quantityDefault' => $action['quantity_default'] ?? null,
+            'quantityMax' => $action['quantity_max'] ?? null,
             'trailQuery' => $action['trailQuery'] ?? [],
             'modalId' => $modalId,
         ])

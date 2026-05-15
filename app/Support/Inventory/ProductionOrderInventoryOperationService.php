@@ -46,6 +46,13 @@ class ProductionOrderInventoryOperationService
             throw new InvalidArgumentException('La cantidad supera el pendiente de la línea.');
         }
 
+        $this->assertNoDoubleConsumptionRisk(
+            order: $order,
+            item: $item,
+            product: $product,
+            quantity: $normalizedQuantity,
+        );
+
         return $this->runProductionMovement(
             order: $order,
             item: $item,
@@ -218,6 +225,37 @@ class ProductionOrderInventoryOperationService
             ->filter(fn ($component) => $component->componentProduct !== null)
             ->filter(fn ($component) => $component->componentProduct->kind === ProductCatalog::KIND_PRODUCT)
             ->values();
+    }
+
+    protected function assertNoDoubleConsumptionRisk(
+        Order $order,
+        OrderItem $item,
+        Product $product,
+        float $quantity,
+    ): void {
+        $risk = app(InventoryMaterialBalanceService::class)->doubleConsumptionRiskForProduction(
+            order: $order,
+            item: $item,
+            producedProduct: $product,
+            quantity: $quantity,
+        );
+
+        if (($risk['has_risk'] ?? false) !== true) {
+            return;
+        }
+
+        $materials = collect($risk['materials'] ?? [])
+            ->map(fn (array $row) => $row['product_name'] ?? ('Producto #'.($row['product_id'] ?? '')))
+            ->filter()
+            ->unique()
+            ->values()
+            ->implode(', ');
+
+        throw new InvalidArgumentException(
+            'No se puede ejecutar producción instantánea porque existen entregas previas o saldos entregados pendientes de componentes'
+            .($materials !== '' ? ': '.$materials : '.')
+            .'. La orden requiere flujo formal por etapas o regularización material antes de volver a consumir desde depósito.'
+        );
     }
 
     protected function validateProductionOrder(Order $order): void

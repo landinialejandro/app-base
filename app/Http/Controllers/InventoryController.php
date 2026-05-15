@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
+use App\Support\Inventory\InventoryMaterialFlowService;
 use App\Support\Inventory\InventoryMovementService;
 use App\Support\Inventory\InventoryOriginCatalog;
 use App\Support\Inventory\InventorySurfaceService;
@@ -375,6 +376,112 @@ public function returnOrderItemQuantity(Request $request, Order $order, OrderIte
     return $redirect;
 }
 
+public function deliverOrderItemMaterial(Request $request, Order $order, OrderItem $item): RedirectResponse
+{
+    return $this->storeFormalOrderItemMaterialFlow(
+        request: $request,
+        order: $order,
+        item: $item,
+        action: 'deliver',
+    );
+}
+
+public function applyOrderItemMaterial(Request $request, Order $order, OrderItem $item): RedirectResponse
+{
+    return $this->storeFormalOrderItemMaterialFlow(
+        request: $request,
+        order: $order,
+        item: $item,
+        action: 'apply',
+    );
+}
+
+public function returnOrderItemMaterial(Request $request, Order $order, OrderItem $item): RedirectResponse
+{
+    return $this->storeFormalOrderItemMaterialFlow(
+        request: $request,
+        order: $order,
+        item: $item,
+        action: 'return',
+    );
+}
+
+protected function storeFormalOrderItemMaterialFlow(
+    Request $request,
+    Order $order,
+    OrderItem $item,
+    string $action,
+): RedirectResponse {
+    abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+    $data = $request->validate([
+        'product_id' => ['required', 'integer'],
+        'quantity' => ['required', 'numeric', 'gt:0'],
+        'notes' => ['nullable', 'string'],
+        'return_context' => ['nullable', 'string', Rule::in([
+            'orders.show',
+        ])],
+        'return_tab' => ['nullable', 'string'],
+    ]);
+
+    $this->authorize('update', $order);
+    $this->validateOrderOperable($order);
+
+    $product = $this->resolveFormalMaterialProduct($order, (int) $data['product_id']);
+    $materialFlowService = app(InventoryMaterialFlowService::class);
+
+    $result = match ($action) {
+        'deliver' => $materialFlowService->deliverToOrderItem(
+            order: $order,
+            item: $item,
+            product: $product,
+            quantity: $data['quantity'],
+            notes: $data['notes'] ?? null,
+            createdBy: auth()->id(),
+        ),
+        'apply' => $materialFlowService->applyToOrderItem(
+            order: $order,
+            item: $item,
+            product: $product,
+            quantity: $data['quantity'],
+            notes: $data['notes'] ?? null,
+            createdBy: auth()->id(),
+        ),
+        'return' => $materialFlowService->returnFromOrderItem(
+            order: $order,
+            item: $item,
+            product: $product,
+            quantity: $data['quantity'],
+            notes: $data['notes'] ?? null,
+            createdBy: auth()->id(),
+        ),
+        default => abort(404),
+    };
+
+    $messages = [
+        'deliver' => 'Entrega formal registrada correctamente.',
+        'apply' => 'Aplicación formal registrada correctamente.',
+        'return' => 'Devolución formal registrada correctamente.',
+    ];
+
+    $redirect = $this->redirectAfterMovement(
+        request: $request,
+        product: $product,
+        order: $order,
+        returnContext: $data['return_context'] ?? 'orders.show',
+        returnTab: $data['return_tab'] ?? null,
+    )->with('success', $messages[$action]);
+
+    if (($result['movement_result']['negative_stock'] ?? false) === true) {
+        $redirect->with(
+            'warning',
+            'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+        );
+    }
+
+    return $redirect;
+}
+
 protected function storeOrderLineMovement(
     Order $order,
     OrderItem $orderItem,
@@ -629,6 +736,17 @@ protected function storeManualMovement(
             ->firstOrFail();
 
         return $product;
+    }
+
+    protected function resolveFormalMaterialProduct(Order $order, int $productId): Product
+    {
+        return app(Security::class)
+            ->scope(auth()->user(), 'products.viewAny', Product::query())
+            ->where('tenant_id', $order->tenant_id)
+            ->where('kind', ProductCatalog::KIND_PRODUCT)
+            ->whereNull('deleted_at')
+            ->whereKey($productId)
+            ->firstOrFail();
     }
 
 protected function redirectAfterMovement(

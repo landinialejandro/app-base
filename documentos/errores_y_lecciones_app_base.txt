@@ -435,3 +435,82 @@ Regla:
 todo módulo estándar debe alinear permisos, matriz de roles y scopes compatibles con Security antes de considerarse integrado.
 
 <<END SECTION>>
+
+<<SECTION: LECCIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
+SECTION_VERSION: 00001
+
+LECCIONES VIGENTES — CONTRATO MATERIAL INVENTORY
+
+NO COMPRIMIR STOCK FÍSICO Y CONTRATO MATERIAL FORMAL
+
+Una salida física de stock, una entrega formal, una aplicación definitiva y una devolución no representan la misma dimensión operativa.
+
+Caso vigente:
+
+InventoryMovement conserva el libro físico de stock.
+
+InventoryMaterialFlow conserva el ledger formal de entrega, aplicación y devolución.
+
+Lección:
+
+cuando se requiere saldo material trazable por orden, línea o destino operativo, no alcanza con agregar estados sobre movimientos físicos ni con metadata dispersa.
+
+Reglas:
+
+InventoryMovement responde por stock físico.
+
+InventoryMaterialFlow responde por imputación formal del material.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+No usar InventoryMovement.kind como sustituto del contrato formal cuando hay etapas materiales distintas.
+
+No usar metadata como contrato formal suficiente si se requiere saldo trazable.
+
+NO CONSUMIR DOS VECES COMPONENTES YA ENTREGADOS
+
+Una producción o servicio puede descontar stock indebidamente si no distingue material entregado previamente de material consumido directamente desde depósito.
+
+Caso vigente:
+
+ProductionOrderInventoryOperationService consulta InventoryMaterialBalanceService antes de producción instantánea.
+
+Si existen entregas formales pendientes de componentes físicos contra la misma orden/línea, la producción instantánea se bloquea antes de crear movimientos.
+
+Lección:
+
+ante riesgo de doble consumo, el escenario seguro es bloquear antes de persistir movimientos parciales.
+
+Reglas:
+
+no aplicar más de lo entregado disponible.
+
+no devolver más de lo entregado disponible.
+
+no crear movimientos parciales si el guard material bloquea.
+
+no calcular saldos materiales en Orders.
+
+no calcular saldos materiales en Blade.
+
+no mover ownership material fuera de Inventory.
+
+MODO SIMPLE NO ES CONTRATO FORMAL POR ETAPAS
+
+La producción instantánea puede seguir vigente como simplificación explícita.
+
+Pero no debe confundirse con producción formal por etapas.
+
+Lectura:
+
+modo simple instantáneo = consumo e ingreso en una única operación validada.
+
+modo formal por etapas = entrega previa, aplicación formal, devolución posible y saldo formal.
+
+Regla:
+
+si existe material formalmente entregado pendiente, la operación instantánea no debe ignorarlo ni descontar componentes nuevamente desde depósito.
+
+<<END SECTION>>

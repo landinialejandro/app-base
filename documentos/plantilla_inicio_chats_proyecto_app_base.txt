@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -472,6 +472,68 @@ Inventory cuenta con inventory_operations como capa interna de agrupación opera
 InventoryOperation representa la acción operativa agrupada.
 
 InventoryMovement conserva la trazabilidad fina y atómica de stock.
+
+Estado base reciente de contrato material Inventory:
+
+Inventory incorpora contrato material formal mínimo mediante InventoryMaterialFlow.
+
+InventoryMovement conserva el libro físico de stock.
+
+InventoryMaterialFlow clasifica el subcontrato material formal.
+
+Tipos formales vigentes:
+
+formal_delivery
+formal_application
+formal_return
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+InventoryMaterialFlowService crea y valida flows formales.
+
+InventoryMaterialBalanceService usa flows formales cuando existen y conserva lectura ambigua para movimientos anteriores o no formalizados.
+
+ProductionOrderInventoryOperationService consulta la lectura consolidada de Inventory antes de producción instantánea.
+
+Producción instantánea sigue vigente sin flows formales pendientes.
+
+Producción instantánea debe bloquearse si existen entregas formales pendientes de componentes físicos contra la misma orden/línea.
+
+La entrega formal puede crear movimiento físico de salida y flow formal_delivery.
+
+La aplicación formal crea flow formal_application y no crea InventoryMovement.
+
+La aplicación formal no descuenta stock físico dos veces.
+
+La devolución formal puede crear movimiento físico de ingreso y flow formal_return.
+
+Aplicación y devolución no pueden superar saldo entregado disponible.
+
+Inventory conserva ownership material.
+
+Orders no calcula saldos materiales.
+
+Orders no administra ledger material formal.
+
+No usar InventoryMovement.kind ni metadata como sustituto del subcontrato material formal cuando se requiere saldo trazable.
+
+Fase 1 cerrada:
+
+lectura consolidada inicial + guard defensivo contra doble consumo.
+
+Fase 2 cerrada:
+
+ledger material formal InventoryMaterialFlow + InventoryMaterialFlowService.
+
+Pendiente:
+
+Fase 3 debe exponer acciones internas o UI mínima para entrega, aplicación y devolución formal.
+
+Pendiente posterior:
+
+producción formal por etapas usando InventoryMaterialFlowService como frontera material.
 
 La convergencia reusable de line items quedó avanzada y validada en múltiples capas.
 

@@ -206,7 +206,7 @@ El usuario debe conservar control, decisión y visibilidad.
 <<END SECTION>>
 
 <<SECTION: IA Y BASE OPERATIVA DEL SISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 IA Y BASE OPERATIVA DEL SISTEMA
 
@@ -234,6 +234,7 @@ separación entre texto libre y datos explotables
 fronteras claras entre módulos, piezas satélite, subcapas contextuales internas y capacidades transversales
 fronteras funcionales explícitas entre módulos consumidores y oferentes
 clasificación de relaciones externas como estructurales, pasivas, transversales, activas o residuales
+separación entre stock físico y contrato material formal cuando corresponda
 
 Regla:
 
@@ -258,6 +259,8 @@ lenguaje por rubro permite comunicación humana adecuada.
 documentación vigente evita reconstruir doctrina desde conversaciones dispersas.
 
 aduanas funcionales explícitas evitan que la IA proponga acoplamientos indebidos.
+
+contratos materiales explícitos evitan que la IA confunda entrega, aplicación, devolución y stock físico.
 
 Regla adicional:
 
@@ -315,6 +318,32 @@ catálogos como dueños de significado
 Regla:
 
 una futura IA no debe interpretar una relación pasiva como permiso, dependencia obligatoria ni ownership funcional.
+
+Caso vigente adicional:
+
+Inventory incorpora una separación entre libro físico de stock y ledger material formal.
+
+Lectura vigente:
+
+InventoryMovement = stock físico.
+
+InventoryMaterialFlow = subcontrato material formal.
+
+Esta base mejora una futura lectura IA porque separa:
+
+movimiento físico
+entrega formal
+aplicación formal
+devolución formal
+saldo formal entregado
+modo simple instantáneo
+modo formal por etapas
+
+Regla IA:
+
+una futura IA no debe inferir consumo, saldo disponible, material pendiente, faltante o devolución solo desde movimientos físicos cuando exista contrato formal material.
+
+Debe consumir lecturas oficiales de Inventory.
 
 Regla final:
 
@@ -758,7 +787,7 @@ el lenguaje por rubro es una condición para que la IA reduzca fricción real y 
 <<END SECTION>>
 
 <<SECTION: IA Y DATOS ESTRUCTURADOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 IA Y DATOS ESTRUCTURADOS
 
@@ -778,7 +807,12 @@ estado operativo
 pendientes
 checklists
 materiales previstos
+materiales entregados
+materiales aplicados
 materiales usados
+materiales devueltos
+materiales faltantes
+saldo material formal
 consumos
 certificaciones
 vencimientos
@@ -807,6 +841,22 @@ Regla:
 cuando una información tenga valor operativo futuro, debe evaluarse si corresponde estructura, catálogo, relación, entidad hija, metadata controlada o pieza satélite.
 
 No debe resolverse todo como notas.
+
+Regla adicional para materiales:
+
+si una información material distingue stock físico, entrega formal, aplicación formal, devolución formal o saldo formal entregado, debe evaluarse estructura propia.
+
+No debe resolverse solo con notas, labels visuales o metadata si se requiere saldo trazable.
+
+Caso vigente:
+
+InventoryMovement conserva stock físico.
+
+InventoryMaterialFlow conserva ledger material formal.
+
+Regla IA:
+
+la IA no debe reconstruir contrato material desde texto libre si existe lectura estructurada oficial.
 
 <<END SECTION>>
 
@@ -1181,11 +1231,11 @@ La IA asiste, pero no reemplaza el contrato documental.
 <<END SECTION>>
 
 <<SECTION: IA E INVENTORY>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 IA E INVENTORY
 
-La IA puede asistir sobre Inventory sin reemplazar su lógica de stock.
+La IA puede asistir sobre Inventory sin reemplazar su lógica de stock ni su contrato material.
 
 Puede ayudar a:
 
@@ -1198,6 +1248,27 @@ comparar consumo estimado y real
 preparar explicación de movimientos
 relacionar consumos con órdenes o assets
 sugerir compras futuras cuando exista información suficiente
+resumir entregas formales
+resumir aplicaciones formales
+resumir devoluciones formales
+advertir saldos formales pendientes
+advertir posibles inconsistencias entre stock físico y ledger formal
+
+Lectura vigente:
+
+InventoryMovement conserva el libro físico de stock.
+
+InventoryMaterialFlow conserva el ledger formal de entrega, aplicación y devolución.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+Tipos formales vigentes:
+
+formal_delivery
+formal_application
+formal_return
 
 Regla:
 
@@ -1206,6 +1277,14 @@ la IA no debe modificar stock directamente sin pasar por operaciones oficiales d
 La IA no debe inventar stock disponible.
 
 La IA no debe sugerir consumos si no existe contrato claro para ejecutarlos.
+
+La IA no debe calcular saldos materiales por su cuenta si existe lectura oficial de Inventory.
+
+La IA no debe confundir salida física, entrega formal, aplicación definitiva y devolución.
+
+La IA no debe sugerir aplicar más de lo entregado disponible.
+
+La IA no debe sugerir devolver más de lo entregado disponible.
 
 Regla final:
 

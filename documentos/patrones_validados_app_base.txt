@@ -651,3 +651,86 @@ mantener bajo protagonismo visual
 conservar legibilidad del contenido principal
 
 <<END SECTION>>
+
+<<SECTION: PATRONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
+SECTION_VERSION: 00002
+
+PATRONES VIGENTES — CONTRATO MATERIAL INVENTORY
+
+LEDGER MATERIAL FORMAL SEPARADO DEL STOCK FÍSICO
+
+Patrón validado:
+
+cuando una operación material requiere distinguir salida física, entrega formal, aplicación definitiva y devolución, no debe comprimirse todo en movimientos físicos de stock.
+
+Caso vigente:
+
+InventoryMovement conserva el libro físico de stock.
+
+InventoryMaterialFlow funciona como ledger formal de entrega, aplicación y devolución.
+
+Lectura:
+
+InventoryMovement responde por stock físico.
+
+InventoryMaterialFlow responde por imputación formal del material frente a orden, línea o destino operativo.
+
+Reglas:
+
+no usar InventoryMovement.kind como único contenedor de etapas materiales formales.
+
+no usar metadata como reemplazo del ledger formal cuando se requiere saldo trazable.
+
+no mover el contrato material a Orders.
+
+no calcular saldos materiales en Blade.
+
+no crear movimientos parciales si un guard material bloquea la operación.
+
+no aplicar más de lo entregado disponible.
+
+no devolver más de lo entregado disponible.
+
+GUARD DEFENSIVO MATERIAL ANTES DE OPERACIÓN IRREVERSIBLE
+
+Patrón validado:
+
+cuando una operación material puede generar doble consumo, debe consultar una lectura consolidada del módulo dueño antes de crear movimientos.
+
+Caso vigente:
+
+ProductionOrderInventoryOperationService consulta InventoryMaterialBalanceService antes de ejecutar producción instantánea.
+
+Si existen entregas previas ambiguas de componentes físicos contra la misma orden/línea, bloquea antes de crear movimientos.
+
+Reglas:
+
+el guard vive en Inventory o consume frontera oficial de Inventory.
+
+Orders no reconstruye saldos materiales.
+
+el bloqueo ocurre antes de persistencia parcial.
+
+la producción instantánea se preserva si no hay riesgo material detectado.
+
+lectura consolidada inicial ≠ estado material persistente completo.
+
+guard defensivo ≠ contrato material formal completo.
+
+FASES VALIDADAS
+
+Fase 1:
+
+lectura consolidada inicial + guard defensivo contra doble consumo.
+
+Fase 2:
+
+ledger material formal InventoryMaterialFlow + InventoryMaterialFlowService.
+
+Pendiente:
+
+Fase 3 = acciones internas o UI mínima para entrega, aplicación y devolución formal.
+
+Producción formal por etapas = pendiente posterior.
+
+<<END SECTION>>

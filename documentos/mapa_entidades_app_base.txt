@@ -1048,7 +1048,7 @@ sesión externa mínima no autoriza shops.*
 <<END SECTION>>
 
 <<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CONTRATO MATERIAL ENTRE ORDERS E INVENTORY
 
@@ -1066,19 +1066,63 @@ la orden consume o aplica.
 
 el cierre regulariza.
 
+ENTIDADES VIGENTES DEL CONTRATO MATERIAL
+
+InventoryMovement conserva el libro físico de stock.
+
+InventoryMaterialFlow funciona como ledger formal del subcontrato material.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+InventoryMaterialFlow clasifica y vincula etapas formales de entrega, aplicación y devolución contra movimientos físicos cuando corresponde.
+
+Relación conceptual vigente:
+
+InventoryOperation
+↓
+InventoryMovement
+↓
+InventoryMaterialFlow cuando existe subcontrato material formal
+
+Relación operativa vigente:
+
+Order / OrderItem
+↓
+InventoryMaterialFlow
+↓
+entrega formal
+↓
+aplicación formal o devolución formal
+
+Lectura:
+
+InventoryMovement responde qué pasó físicamente con el stock.
+
+InventoryMaterialFlow responde cómo se imputó formalmente ese material frente a una orden, línea o destino operativo.
+
+TIPOS FORMALES VIGENTES
+
+formal_delivery
+
+formal_application
+
+formal_return
+
 ENTREGA
 
-La salida física de materiales desde depósito hacia una orden, persona, técnico, frente operativo, producción o servicio se registra como entrega.
+La salida física de materiales desde depósito hacia una orden, persona, técnico, frente operativo, producción o servicio se registra como entrega cuando el flujo material lo requiera.
 
-La entrega reduce stock disponible de depósito.
+La entrega reduce stock disponible de depósito cuando se apoya en un movimiento físico de salida.
 
 La entrega no implica consumo definitivo.
 
-La entrega abre un saldo material pendiente de regularización contra el destino operativo.
+La entrega abre un saldo material formal pendiente de aplicación o devolución contra el destino operativo.
 
 CONSUMO / APLICACIÓN
 
-El consumo representa aplicación definitiva del material entregado.
+El consumo o aplicación representa aplicación definitiva del material entregado.
 
 El consumo no debe imputarse directamente contra depósito cuando el flujo exige entrega previa.
 
@@ -1086,9 +1130,9 @@ El consumo debe cerrar total o parcialmente materiales previamente entregados al
 
 DEVOLUCIÓN
 
-La devolución reintegra al depósito materiales entregados y no aplicados.
+La devolución reintegra al depósito materiales entregados y no aplicados cuando corresponda.
 
-La devolución reduce el saldo pendiente entregado al destino operativo.
+La devolución reduce el saldo formal pendiente entregado al destino operativo.
 
 CIERRE MATERIAL
 
@@ -1131,11 +1175,22 @@ Ese modo debe leerse como simplificación explícita.
 
 No debe confundirse con producción o servicio formal por etapas.
 
-Regla final:
+Reglas:
 
 entregar, consumir, devolver e ingresar no son solo tipos de movimiento.
 
-Son etapas materiales distintas dentro del contrato operativo entre Inventory y Orders.
+son etapas materiales distintas dentro del contrato operativo entre Inventory y Orders.
+
+no comprimir stock físico y subcontrato material formal en el mismo registro si representan dimensiones distintas.
+
+no usar InventoryMovement.kind como sustituto de InventoryMaterialFlow cuando se requiere contrato formal por etapas.
+
+no resolver contrato formal únicamente con metadata si se requiere saldo material trazable.
+
+Inventory conserva ownership material.
+
+Orders conserva ownership operativo de la orden.
+
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL SISTEMA>>

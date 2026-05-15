@@ -630,6 +630,99 @@ las operaciones futuras requieren contrato específico, autorización externa ef
 
 <<END SECTION>>
 
+<<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
+SECTION_VERSION: 00002
+
+DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY
+
+CONTRATO MATERIAL FORMAL EN INVENTORY
+
+Decisión vigente:
+
+Inventory incorpora InventoryMaterialFlow como ledger material formal separado de InventoryMovement.
+
+Lectura vigente:
+
+InventoryMovement conserva el libro físico de stock.
+
+InventoryMaterialFlow clasifica el subcontrato material formal.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+InventoryMaterialFlow vincula entrega, aplicación y devolución formal contra movimientos físicos cuando corresponde.
+
+Piezas vigentes:
+
+InventoryMaterialFlow
+
+InventoryMaterialFlowService
+
+InventoryMaterialBalanceService
+
+ProductionOrderInventoryOperationService
+
+Tipos formales vigentes:
+
+formal_delivery
+
+formal_application
+
+formal_return
+
+Decisión arquitectónica:
+
+no comprimir salida física de stock, entrega formal, aplicación definitiva y devolución en un único campo o tipo de movimiento.
+
+Motivo:
+
+representan dimensiones distintas.
+
+InventoryMovement responde por stock físico.
+
+InventoryMaterialFlow responde por imputación formal del material frente a orden, línea o destino operativo.
+
+Reglas:
+
+Inventory conserva ownership material.
+
+Orders no calcula saldos materiales.
+
+Orders no administra el ledger material formal.
+
+ProductionOrderInventoryOperationService puede consumir lectura oficial de Inventory para evitar doble consumo.
+
+No crear movimientos parciales si el guard defensivo bloquea la operación.
+
+No aplicar más de lo entregado disponible.
+
+No devolver más de lo entregado disponible.
+
+No usar metadata como contrato formal suficiente si se requiere saldo trazable.
+
+No usar InventoryMovement.kind para absorber subestados formales si representan otra dimensión.
+
+Estado vigente:
+
+Fase 1 defensiva cerrada.
+
+Fase 2 mínima formal cerrada.
+
+Fase 3 operativa pendiente.
+
+Pendiente:
+
+acciones internas o UI mínima para entrega, aplicación y devolución formal.
+
+validación de cierre material.
+
+producción formal por etapas.
+
+integración material formal con servicio y mantenimiento cuando corresponda.
+
+<<END SECTION>>
+
 <<SECTION: DECISIONES VIGENTES — CAPAS SATÉLITE>>
 SECTION_VERSION: 00001
 

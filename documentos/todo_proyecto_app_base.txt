@@ -2063,62 +2063,155 @@ Fase 1 no debe reintroducir acoplamientos activos en Orders.
 <<END SECTION>>
 
 <<SECTION: PENDIENTE — CONTRATO MATERIAL POR ENTREGAS Y CIERRES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PENDIENTE — CONTRATO MATERIAL POR ENTREGAS Y CIERRES
 
-Diseñar e implementar, después de auditoría específica, el contrato formal de materiales entregados a órdenes.
+Estado vigente:
 
-Objetivo:
+Fase 1 cerrada.
+Fase 2 mínima cerrada.
+Fase 3 pendiente.
 
-separar salida física de depósito, aplicación material real, devolución y cierre.
+FASE 1 CERRADA
 
-Regla funcional aprobada:
+Lectura consolidada inicial y guard defensivo contra doble consumo.
 
-todo material que sale de depósito se entrega.
+Piezas vigentes:
 
-el consumo o aplicación se realiza contra entregas previas.
+InventoryMaterialBalanceService
+ProductionOrderInventoryOperationService
 
-el cierre regulariza consumos, devoluciones, pendientes y faltantes.
+Reglas validadas:
 
-Casos alcanzados:
+Inventory conserva ownership material.
 
-órdenes de producción
-órdenes de servicio
-mantenimiento
-consumibles entregados a técnicos
-ropa de trabajo
-materiales entregados a empleados o frentes operativos
+InventoryMaterialBalanceService funciona como lectura consolidada inicial de materiales por orden, línea y producto.
 
-Controles requeridos:
+ProductionOrderInventoryOperationService consulta esa lectura antes de ejecutar producción instantánea cuando existe riesgo de doble consumo por entregas previas ambiguas de componentes físicos.
 
-no consumir más de lo entregado disponible
+La producción instantánea sigue siendo válida cuando no existen entregas previas ambiguas.
 
-no producir más de lo permitido por el componente entregado limitante
+Si existen entregas previas ambiguas de componentes físicos contra la misma orden/línea, la producción instantánea debe bloquearse antes de crear movimientos.
 
-no cerrar orden como materialmente cumplida si existen faltantes no resueltos
+Validación runtime consolidada:
 
-permitir devolución de sobrantes
+producción instantánea sin entregas previas
 
-distinguir modo simple instantáneo de modo formal por etapas
+bloqueo con entrega previa ambigua
 
-Pendiente de auditoría técnica:
+ausencia de movimientos parciales ante bloqueo
 
-evaluar si alcanza con InventoryMovement e InventoryOperation
+orden closed bloqueada
 
-evaluar si se requiere lectura consolidada de saldo entregado por orden
+compatibilidad con órdenes simples, documentos, movimientos manuales y surfaces vigentes
 
-evaluar si hace falta metadata, tipo de operación, estado material o entidad satélite mínima
+FASE 2 MÍNIMA CERRADA
 
-evaluar cómo se integran OrdersHooks, InventoryOrderItemHooks y cierre de orden
+Contrato material formal mínimo dentro de Inventory.
 
-evaluar impacto en producción, servicio y documentos
+Piezas vigentes:
 
-No implementar como movimiento manual suelto.
+InventoryMaterialFlow
+InventoryMaterialFlowService
 
-No resolver por parche en Orders.
+Lectura vigente:
 
-Inventory debe conservar ownership material.
+InventoryMovement conserva el libro físico de stock.
+
+InventoryMaterialFlow funciona como ledger formal del subcontrato material.
+
+InventoryMaterialFlow no reemplaza InventoryMovement.
+
+InventoryMaterialFlow no mueve stock por sí mismo.
+
+InventoryMaterialFlow clasifica y vincula etapas formales de entrega, aplicación y devolución contra movimientos físicos cuando corresponde.
+
+Contrato vigente:
+
+InventoryMovement = stock físico.
+
+InventoryMaterialFlow = subcontrato material formal.
+
+Tipos formales vigentes:
+
+formal_delivery
+
+formal_application
+
+formal_return
+
+Reglas vigentes:
+
+la entrega formal registra material entregado a un destino operativo.
+
+la aplicación formal registra material aplicado o consumido contra una entrega formal disponible.
+
+la devolución formal registra material devuelto desde una entrega formal disponible.
+
+no aplicar más de lo entregado disponible.
+
+no devolver más de lo entregado disponible.
+
+no crear flujos formales huérfanos si el contrato exige vínculo con movimiento físico.
+
+no usar InventoryMovement.kind para absorber estados formales si representan otra dimensión.
+
+no resolver contrato material formal solo con metadata.
+
+no mover ownership material a Orders.
+
+no resolver por parche en Orders.
+
+PENDIENTE FASE 3
+
+Implementar acciones internas o UI mínima para operación formal por etapas.
+
+Debe resolver:
+
+entrega formal
+
+aplicación formal
+
+devolución formal
+
+lectura de saldo formal entregado
+
+validación de cierre material
+
+integración controlada con OrdersHooks
+
+integración controlada con InventoryOrderItemHooks
+
+impacto en producción formal por etapas
+
+impacto en servicio y mantenimiento
+
+impacto en documentos si corresponde
+
+PENDIENTE POSTERIOR
+
+Producción formal por etapas.
+
+Debe resolver:
+
+componentes entregados a orden de producción
+
+cantidad producible limitada por componente entregado disponible
+
+aplicación formal de componentes contra producción real
+
+ingreso de producto terminado sin doble descuento desde depósito
+
+regularización de sobrantes y faltantes
+
+Regla final:
+
+Fase 1 cerró el guard defensivo.
+
+Fase 2 cerró el ledger formal mínimo.
+
+Fase 3 debe construir operación formal usable sin romper ownership de Inventory.
 
 <<END SECTION>>
 

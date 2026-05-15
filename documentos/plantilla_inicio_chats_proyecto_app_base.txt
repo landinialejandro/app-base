@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -50,6 +50,50 @@ memberships resuelve pertenencia operativa al tenant.
 party puede funcionar como ficha ampliada tenant-scoped solo cuando exista vínculo explícito.
 
 No debe asumirse creación automática ni edición libre de datos identitarios.
+
+Regla específica para shops y self_service_sales:
+
+distinguir siempre:
+
+shops = módulo interno estándar del tenant
+
+self_service_sales = capa satélite comercial externa/customer
+
+shops configura catálogo interno publicable.
+
+self_service_sales consume catálogo publicado por shops.
+
+No crear administración interna bajo:
+
+self_service_sales.shops.*
+
+No usar como administración interna vigente:
+
+/self-service/shops
+
+Usar:
+
+/shops
+shops.*
+
+Modelos vigentes para administración interna:
+
+Shop
+ShopItem
+
+No usar como lectura vigente de administración interna:
+
+SelfServiceShop
+SelfServiceShopItem
+
+Tablas vigentes:
+
+self_service_shops
+self_service_shop_items
+
+Regla:
+
+el nombre físico de tabla no define ownership conceptual.
 
 Regla específica para self_service_sales:
 
@@ -91,15 +135,19 @@ creación de contraseña externa
 
 operación habilitada
 
-administración interna de tienda
-
 catálogo publicado inicial
+
+consumo externo de shops
 
 publicación de productos
 
 operación comercial real futura
 
 Relaciones vigentes:
+
+/shops = administración interna estándar de tiendas
+
+/shops/{shop}/preview = vista previa interna autorizada
 
 /shop/{tenant:slug} = tienda pública tenant-scoped
 
@@ -113,6 +161,10 @@ Relaciones vigentes:
 
 /solicitar-empresa = alta o solicitud de acceso de empresas
 
+Shop = cabecera/configuración interna de tienda
+
+ShopItem = producto publicado en tienda
+
 SelfServiceCustomerAccount = cuenta externa customer
 
 SelfServiceStoreCustomer = relación customer-tienda
@@ -121,13 +173,17 @@ SelfServiceStoreSelectionToken = token temporal de selección
 
 SelfServiceExternalSession = sesión externa mínima namespaced
 
-SelfServiceShop = cabecera/configuración de tienda
-
-SelfServiceShopItem = producto publicado en tienda
-
 Product = catálogo maestro
 
 Reglas:
+
+/shops no es tienda pública
+
+/shops/{shop}/preview no es tienda pública
+
+/shops/{shop}/preview no debe requerir sesión externa customer
+
+/shop/{tenant:slug} no es vista previa interna
 
 /tienda no es login interno
 
@@ -140,6 +196,8 @@ Reglas:
 /shop/{tenant:slug} no es administración interna
 
 /customer externo no administra tienda
+
+/customer externo no administra shops
 
 customer externo no es User
 
@@ -167,9 +225,9 @@ ResolveSelfServiceExternalCustomer no es middleware de autorización obligatoria
 
 ResolveSelfServiceExternalCustomer no autoriza administración interna
 
-SelfServiceShop no reemplaza Tenant
+Shop no reemplaza Tenant
 
-SelfServiceShopItem no reemplaza Product
+ShopItem no reemplaza Product
 
 publicar producto no equivale a vender
 
@@ -218,6 +276,8 @@ no habilita parties.show
 no habilita operación comercial real
 
 no habilita administración interna de tienda
+
+no habilita /shops
 
 La salida externa:
 
@@ -273,19 +333,17 @@ habilitación manual desde tenant/profile implementada
 
 canOperate true con operation_enabled true
 
-SelfServiceShop implementado
+shops implementado como módulo interno estándar
 
-SelfServiceShopItem implementado
+Shop implementado
 
-SelfServiceShopCatalogReader implementado
+ShopItem implementado
 
-SelfServiceShopPublisher implementado
+catálogo publicado inicial consumido desde shops
 
-catálogo publicado inicial implementado
+/shops implementado como administración interna estándar
 
-self_service_shop_id obligatorio implementado
-
-tienda activa por tenant implementada
+/shops/{shop}/preview implementado como vista previa interna
 
 /shop/{tenant:slug} muestra catálogo publicado inicial
 
@@ -329,8 +387,6 @@ cuenta demo multi-tienda disponible para validar selección/cambio de tienda
 
 Estado todavía no implementado en self_service_sales:
 
-administración interna UI de tienda
-
 middleware externo definitivo de autorización obligatoria
 
 guard externo definitivo
@@ -360,6 +416,30 @@ carrito
 compra
 
 operación comercial real
+
+Ante problemas para ver tienda o catálogo, distinguir:
+
+preview interna de Shop
+
+visibilidad pública efectiva del item
+
+Shop activa
+
+ShopItem publicado
+
+ShopItem visible
+
+producto activo
+
+producto del mismo tenant
+
+sesión/customer externo
+
+operation_enabled
+
+plano interno vs plano externo
+
+No asumir automáticamente problema de permisos.
 
 Antes de modificar landing pública:
 
@@ -585,118 +665,7 @@ Attachment
 
 Lectura contextual heredada vigente de OperationalActivity:
 
-si el usuario puede ver el registro host,
-puede ver la actividad asociada a ese registro.
-
-Esta lectura no equivale a lectura general del log del tenant.
-
-No utiliza:
-
-operational_activity.view_any
-
-No habilita acceso general al log.
-
-No habilita acceso a otros registros.
-
-No convierte OperationalActivity en módulo funcional ordinario.
-
-Infraestructura vigente:
-
-OperationalActivityContextReader
-TenantSurfaceRegistry
-OperationalActivitySurfaceService
-resources/views/tenants/partials/operational-activity-table.blade.php
-
-Hosts validados:
-
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
-tenant/profile
-
-La tab contextual se publica como surface tenant/transversal mediante TenantSurfaceRegistry y entra al host por ModuleSurfaceRegistry.
-
-Debe usar:
-
-key = activity
-
-para compatibilidad con return_tab.
-
-No debe usarse:
-
-operational_activity.contextual
-
-Evolución vigente de lectura contextual:
-
-OperationalActivityContextReader puede leer actividad por record host directo, por record set explícito o por contexto especial declarado por el módulo dueño.
-
-ModuleCatalog puede declarar activity_record_set mediante servicio compatible.
-
-ModuleCatalog puede declarar activity_context mediante servicio compatible.
-
-Piezas vigentes para lectura agregada:
-
-ActivityRecordSetProvider
-ModuleCatalog::activityRecordSetService()
-OperationalActivityContextReader::forRecordSet()
-ProjectActivityRecordSet
-
-Piezas vigentes para lectura contextual especial:
-
-ActivityContextProvider
-ModuleCatalog::activityContextService()
-OperationalActivitySurfaceService::activityContextPayloadFor()
-OperationalActivityContextReader::forRecordAndUsers()
-PartyEmployeeActivityContext
-
-Pieza vigente de presentación:
-
-OperationalActivityChangePresenter
-
-Caso vigente de lectura agregada:
-
-projects.show usa lectura agregada Project + Tasks.
-
-Caso vigente de lectura contextual especial:
-
-parties.show mantiene lectura directa de actividad por defecto.
-
-Excepción:
-
-si la Party tiene relación employee y membership activa vinculada, usa activity_context para mostrar actividad directa de Party más actividad del user vinculado como actor o sujeto.
-
-Lectura vigente:
-
-activity_record_set
-→ records relacionados explícitos
-
-activity_context
-→ criterio contextual especial definido por módulo dueño
-
-Los demás hosts usan lectura directa salvo que el módulo declare activity_record_set o activity_context.
-
-La tabla reusable de actividad puede mostrar resumen compacto de cambios y modal Ver cambios.
-
-profile-activity-tab reutiliza operational-activity-table.
-
-Regla vigente:
-
-OperationalActivity no decide la frontera funcional de actividad agregada ni contextual especial.
-
-Cada módulo puede declarar opcionalmente su activity_record_set o activity_context.
-
-Regla vigente para surfaces tenant/transversales:
-
-OperationalActivitySurfaceService publica surface contextual hacia hosts autorizados.
-
-TenantSurfaceRegistry registra surfaces tenant/transversales no modulares.
-
-ModuleSurfaceRegistry combina surfaces modulares y tenant/transversales.
+si el usuario puede ver el registro host, puede ver actividad contextual autorizada del registro host según contrato vigente.
 
 <<END SECTION>>
 

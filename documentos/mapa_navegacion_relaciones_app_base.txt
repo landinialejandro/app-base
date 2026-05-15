@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 REGLA GENERAL
 
@@ -88,6 +88,12 @@ catálogo publicado no equivale a operación comercial habilitada
 administración interna de tienda no equivale a tienda pública customer
 
 customer externo no equivale a administrador interno de tienda
+
+administración interna de shops pertenece al plano interno
+
+shops no pertenece al plano externo customer
+
+self_service_sales no administra internamente shops
 
 el trail preserva contexto entre pantallas relacionadas
 
@@ -177,7 +183,7 @@ un universo semántico debe conservar coherencia de trail, breadcrumbs y redirec
 
 Regla adicional para capas satélite comerciales autogestivas:
 
-una capa satélite comercial autogestiva puede tener entrada pública externa, selector externo, sesión externa mínima namespaced, middleware externo pasivo, tienda tenant-scoped, salida externa y administración interna separada sin convertirse automáticamente en navegación interna ordinaria del tenant ni en CRUD externo customer.
+una capa satélite comercial autogestiva puede tener entrada pública externa, selector externo, sesión externa mínima namespaced, middleware externo pasivo, tienda tenant-scoped, salida externa y consumo de catálogo publicado sin convertirse automáticamente en navegación interna ordinaria del tenant ni en CRUD externo customer.
 
 Caso vigente:
 
@@ -197,13 +203,17 @@ Entradas públicas vigentes:
 
 /tienda/salir
 
+Consumo externo vigente:
+
+self_service_sales consume catálogo publicado por shops
+
 Administración interna vigente:
 
-/self-service/shops...
+/shops
 
 Rutas internas vigentes:
 
-self_service_sales.shops.*
+shops.*
 
 Middleware externo pasivo vigente:
 
@@ -223,9 +233,7 @@ Lectura:
 
 /tienda/salir representa la salida externa del acceso customer
 
-/self-service/shops... representa administración interna de tienda por usuario interno autorizado
-
-ResolveSelfServiceExternalCustomer representa resolución contextual pasiva para la tienda pública
+/shops representa administración interna estándar de tiendas del tenant
 
 Recorrido externo vigente:
 
@@ -265,29 +273,27 @@ POST /tienda/salir limpia la sesión externa self_service_sales.*.
 
 POST /tienda/salir devuelve al acceso externo sin cerrar sesión interna.
 
-Recorrido interno vigente de administración de tienda:
+Recorrido interno vigente de administración de Shops:
 
 dashboard interno o sección interna autorizada
 
-→ self_service_sales.shops.*
+→ shops.*
 
 → configuración de tienda
 
 → publicación de artículos
 
-→ activación mediante publisher
+→ activación interna
 
 Lectura del recorrido interno:
 
-la administración interna de tienda requiere User autenticado, Membership vigente, tenant activo y autorización backend efectiva.
+la administración interna de shops requiere User autenticado, Membership vigente, tenant activo y autorización backend efectiva.
 
-SelfServiceShop configura la tienda del tenant.
+Shop configura la tienda del tenant.
 
-SelfServiceShopItem publica productos activos en la tienda.
+ShopItem publica productos activos en la tienda.
 
-ProductLineItemSelector puede servir como base de selección de productos activos.
-
-SelfServiceShopPublisher::activate($shop) concentra la activación de tienda.
+ProductLineItemSelector o capacidad equivalente de Products puede servir como base de selección de productos activos.
 
 Recorrido de cambio de tienda o cuenta externa:
 
@@ -312,6 +318,8 @@ Reglas:
 /shop/{tenant:slug} no es navegación principal interna
 
 /tienda/salir no es logout interno
+
+/shops no es tienda pública
 
 /tienda, /tienda/seleccionar, /shop/{tenant:slug} y /tienda/salir no pertenecen al panel interno auth + tenant
 
@@ -353,13 +361,13 @@ la navegación pública externa se mantiene accesible sin login externo obligato
 
 no debe mezclarse navegación pública externa con navegación principal tenant ni con navegación interna autenticada
 
-self_service_sales.shops.* pertenece al plano interno
+shops.* pertenece al plano interno
 
-self_service_sales.shops.* no debe ser accesible por customer externo
+shops.* no debe ser accesible por customer externo
 
-self_service_sales.shops.* no debe autorizarse por sesión externa mínima
+shops.* no debe autorizarse por sesión externa mínima
 
-SelfServiceShopItem publicado no equivale a operación comercial transaccional
+ShopItem publicado no equivale a operación comercial transaccional
 
 Regla adicional para subcapas contextuales internas:
 
@@ -452,7 +460,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -481,6 +489,8 @@ orders
 documents
 
 inventory
+
+shops
 
 Frentes operativos especializados vigentes:
 
@@ -528,11 +538,76 @@ la navegación principal puede incorporar iconografía por módulo o frente para
 
 Esa iconografía debe provenir de metadata modular o definición del frente y no definirse localmente de forma dispersa en la vista.
 
+Antes de asignar un ícono de módulo debe verificarse que exista el componente correspondiente en:
+
+resources/views/components/icons
+
+Regla:
+
+no usar íconos inexistentes en ModuleCatalog.
+
+Un ícono inexistente puede romper dashboard/navbar cuando se renderiza mediante x-dynamic-component.
+
 Aclaración vigente para parties:
 
 parties mantiene su lugar como módulo visible de contactos.
 
 El alta de contacto puede resolverse mediante experiencia progresiva dentro de la misma pantalla, sin crear una navegación nueva.
+
+Aclaración vigente para shops:
+
+shops es módulo interno estándar del tenant.
+
+Ruta base vigente:
+
+/shops
+
+Route names vigentes:
+
+shops.index
+shops.create
+shops.store
+shops.show
+shops.edit
+shops.update
+shops.destroy
+shops.activate
+shops.preview
+shops.items.create
+shops.items.store
+shops.items.edit
+shops.items.update
+shops.items.destroy
+
+Lectura:
+
+/shops pertenece a navegación interna autenticada.
+
+/shops administra configuración interna de tiendas y publicación de artículos.
+
+shops.* reemplaza la administración interna legacy self_service_sales.shops.*.
+
+El botón del show de Shop debe usar la vista previa interna.
+
+Ruta vigente de vista previa interna:
+
+/shops/{shop}/preview
+
+Route name vigente:
+
+shops.preview
+
+Reglas:
+
+/shops no es tienda pública
+
+/shops/{shop}/preview no es /shop/{tenant:slug}
+
+/shops/{shop}/preview no requiere sesión externa customer
+
+/shops/{shop}/preview no convierte usuario interno en customer externo
+
+/shop/{tenant:slug} no debe usarse como vista interna de administración
 
 Aclaración vigente para OperationalActivity:
 
@@ -540,15 +615,11 @@ OperationalActivity no se agrega como entrada de navegación principal tenant po
 
 Su lectura vigente es capacidad transversal de trazabilidad operativa.
 
-La integración de OperationalActivity con appointments, tasks, orders, documents, projects, assets, products, attachments, parties e inventory no crea navegación principal propia.
+La integración de OperationalActivity con appointments, tasks, orders, documents, projects, assets, products, attachments, parties e inventory no habilita entrada de menú propia.
 
-La lectura general inicial desde tenant/profile mediante tab Actividad tampoco crea navegación principal nueva.
+La lectura general vigente se aloja en tenant/profile mediante tab Actividad.
 
-La lectura contextual desde show pages autorizadas mediante tab Actividad tampoco crea navegación principal nueva.
-
-La lectura agregada mediante activity_record_set tampoco crea navegación principal nueva de OperationalActivity.
-
-La navegación principal no debe abrir un menú propio de actividad salvo decisión futura validada, autorizada y documentada.
+La lectura contextual vigente se aloja en show pages autorizadas mediante surface tenant/transversal.
 
 Aclaración vigente para Servicios y Mantenimiento:
 
@@ -682,35 +753,29 @@ si no hay sesión externa, /shop/{tenant:slug} se muestra como visitante
 
 si la sesión externa corresponde a otro tenant, /shop/{tenant:slug} se muestra como visitante
 
-la redirección a /shop/{tenant:slug} no habilita operación comercial
+mostrar customer externo activo no habilita operación comercial real
 
-la tienda pública visible no equivale a operación comercial habilitada
+operation_enabled = false bloquea operación comercial aunque exista sesión externa
 
-el contexto externo pasivo no equivale a operación comercial habilitada
+self_service_sales consume catálogo publicado por shops
 
-POST /tienda/salir limpia solo sesión externa self_service_sales.*
+self_service_sales no administra internamente shops
 
-POST /tienda/salir no cierra sesión interna ni invalida toda la sesión Laravel
+Aclaración sobre dashboard y navbar:
 
-Reglas:
+Dashboard y navbar deben mostrar shops como módulo interno estándar cuando corresponda.
 
-Shopping Autoservicio no debe agregarse como navegación principal tenant por la sola existencia de self_service_sales
+No deben mostrar la administración interna de tiendas como entrada dependiente de self_service_sales.
 
-la lectura interna de clientes externos puede alojarse en tenant/profile cuando corresponda por autorización
+La metadata de navegación debe usar la definición modular vigente de shops.
 
-esa lectura interna no convierte self_service_sales en módulo navegable principal
+Regla:
 
-el selector externo de tiendas no abre navegación tenant interna
+no reintroducir navegación interna legacy:
 
-la selección externa de tienda no equivale a pertenencia interna al tenant
+/self-service/shops
 
-la sesión externa mínima no equivale a pertenencia interna al tenant
-
-el middleware externo pasivo no equivale a pertenencia interna al tenant
-
-la selección externa de tienda no equivale a operación comercial habilitada
-
-operation_enabled = false mantiene bloqueada la operación comercial
+self_service_sales.shops.*
 
 <<END SECTION>>
 

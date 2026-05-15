@@ -10,7 +10,7 @@ GESTIÓN: Documento rector inicial para la capacidad self_service_sales como cap
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 OBJETIVO DEL DOCUMENTO
 
@@ -21,6 +21,12 @@ Shopping Autoservicio se identifica técnicamente como:
 self_service_sales
 
 Su función es ordenar una capacidad comercial autogestiva por tenant, orientada a permitir que clientes externos puedan registrarse, acceder a una tienda pública controlada, seleccionar una tienda vinculada, comprar o cargar saldo, consumir fichas mediante QR, consultar movimientos y operar dentro del alcance comercial habilitado por cada tenant.
+
+Lectura estructural vigente:
+
+self_service_sales no administra internamente la tienda.
+
+self_service_sales consume el catálogo publicado por el módulo interno estándar shops.
 
 Este documento busca:
 
@@ -38,13 +44,12 @@ definir el token temporal de selección de tienda
 definir la acción mínima de selección externa de tienda
 definir la sesión externa mínima namespaced
 definir el middleware externo pasivo de resolución contextual
-definir la administración interna inicial de tienda
+distinguir self_service_sales de la administración interna del módulo shops
 distinguir configuración interna de tienda y consumo público externo
-definir la tienda interna como SelfServiceShop
-definir los artículos publicados como SelfServiceShopItem
-definir publicación inicial de productos activos
+definir consumo externo de Shop y ShopItem publicados
+definir publicación inicial de productos activos desde shops
 definir saldo real, fichas, fichas promocionales y consumo futuros
-establecer límites frente a Products, Inventory y Documents
+establecer límites frente a Shops, Products, Inventory y Documents
 preparar integración futura con Mercado Pago
 preparar integración futura con controladores externos
 definir alcance inicial de implementación
@@ -55,7 +60,7 @@ evitar que la selección de tienda se confunda con sesión interna
 evitar que la sesión externa mínima se confunda con guard externo definitivo
 evitar que el middleware externo pasivo se confunda con autorización obligatoria
 evitar que el selector externo prometa operación comercial real
-evitar que la administración interna de tienda se confunda con operación externa customer
+evitar que la tienda pública se confunda con administración interna de shops
 
 No define:
 
@@ -74,6 +79,7 @@ middleware externo definitivo de autorización obligatoria
 remember token externo
 validación final de identidad operativa
 operación comercial real
+administración interna de shops
 
 Estado operativo vigente:
 
@@ -154,49 +160,44 @@ Si la sesión externa corresponde a otro tenant, /shop/{tenant:slug} se muestra 
 
 Si no existe sesión externa, /shop/{tenant:slug} se muestra como tienda pública visitante.
 
-Corte operativo vigente de administración interna de tienda:
+Corte operativo vigente de catálogo publicado:
 
-self_service_sales incorpora una primera administración interna UI de Tienda.
+self_service_sales consume catálogo publicado desde shops.
 
-La administración interna permite gestionar la cabecera/configuración de tienda y artículos publicados sin tocar el plano público externo ni agregar operación transaccional.
+Módulo interno estándar vigente:
 
-Rutas internas vigentes:
+shops
 
-/self-service/shops...
+Modelos vigentes de administración interna:
 
-Nombres de ruta vigentes:
+Shop
+ShopItem
 
-self_service_sales.shops.*
+Rutas internas vigentes de administración:
 
-Autorización vigente:
+/shops
 
-owner/admin mediante TenantProfileAccess::canManageSelfServiceSales()
+Route names vigentes:
 
-Activación vigente:
+shops.*
 
-SelfServiceShopPublisher::activate($shop)
+Ruta vigente de vista previa interna:
+
+/shops/{shop}/preview
 
 Lectura:
 
-SelfServiceShop representa la tienda interna del tenant.
+Shop representa la tienda interna del tenant.
 
-SelfServiceShopItem representa productos publicados en la tienda.
+ShopItem representa productos publicados en la tienda.
 
-ProductLineItemSelector funciona como base para seleccionar productos activos publicables.
+self_service_sales consume Shop activa y ShopItems publicables.
 
-La administración interna de tienda no habilita compra, saldo, fichas, QR, pagos, carrito ni operación comercial real.
+La administración interna de Shop y ShopItem pertenece al plano interno estándar.
 
-La selección válida no crea:
+self_service_sales no administra internamente Shop ni ShopItem.
 
-guard externo definitivo
-middleware externo definitivo de autorización obligatoria
-remember token externo
-Auth::login()
-session('tenant_id')
-User
-Membership
-Fortify
-operación comercial real
+La tienda pública muestra únicamente lo que el contrato público permita exponer.
 
 Regla:
 
@@ -207,7 +208,7 @@ Toda evolución futura debe validarse contra documentación vigente, código rea
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 NATURALEZA DE SHOPPING AUTOSERVICIO
 
@@ -216,6 +217,8 @@ Shopping Autoservicio es una capa satélite comercial autogestiva por tenant.
 No debe leerse como:
 
 módulo CRUD ordinario
+módulo interno shops
+administración interna de shops
 reemplazo de Products
 reemplazo de Inventory
 reemplazo de Parties
@@ -236,8 +239,7 @@ capa de registro externo
 capa de identidad externa customer
 capa de selección externa de tienda
 capa de sesión externa mínima
-capa de publicación comercial
-capa de administración interna de tienda
+capa de publicación comercial consumida desde shops
 capa de saldo prepago futura
 capa de consumo por ficha futura
 capa de movimientos comerciales futura
@@ -261,13 +263,13 @@ Entrada pública general vigente:
 
 /tienda
 
-Rutas internas vigentes de administración:
+Rutas internas vigentes de administración de catálogo:
 
-/self-service/shops...
+/shops
 
 Nombres internos de ruta vigentes:
 
-self_service_sales.shops.*
+shops.*
 
 Label visible:
 
@@ -275,7 +277,9 @@ Tienda
 
 Regla:
 
-Shopping Autoservicio orquesta módulos y capacidades existentes sin absorber su ownership funcional.
+Shopping Autoservicio orquesta o consume módulos y capacidades existentes sin absorber su ownership funcional.
+
+shops conserva administración interna de tiendas y artículos publicados.
 
 Products conserva catálogo.
 
@@ -287,7 +291,7 @@ Documents conserva formalización documental y comprobantes cuando correspondan.
 
 Security conserva autorización.
 
-self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo, la identidad externa, la relación customer-tienda, la publicación comercial, el saldo futuro, las fichas futuras, los movimientos comerciales futuros y el consumo por QR futuro.
+self_service_sales conserva la experiencia comercial autogestiva, el registro externo, la identidad externa, la relación customer-tienda, el consumo de publicación comercial, el saldo futuro, las fichas futuras, los movimientos comerciales futuros y el consumo por QR futuro.
 
 Primer corte operativo validado:
 
@@ -301,19 +305,19 @@ ausencia de User interno
 ausencia de Membership
 ausencia de acceso al panel interno
 
-Corte operativo vigente de administración interna:
+Corte operativo vigente de consumo de catálogo:
 
-self_service_sales incorpora administración interna inicial para tiendas mediante SelfServiceShop y SelfServiceShopItem.
+self_service_sales consume catálogo publicado por shops.
 
 Lectura:
 
-SelfServiceShop configura la tienda del tenant desde el plano interno.
+Shop configura la tienda del tenant desde el plano interno.
 
-SelfServiceShopItem representa un producto publicado en esa tienda.
+ShopItem representa un producto publicado en esa tienda.
 
-SelfServiceShopItem no reemplaza Product.
+ShopItem no reemplaza Product.
 
-SelfServiceShop no reemplaza Tenant.
+Shop no reemplaza Tenant.
 
 La tienda pública muestra únicamente lo que el contrato público permita exponer.
 
@@ -337,7 +341,7 @@ Su función es separar el acceso externo de customers del acceso interno de usua
 
 Regla adicional de administración interna:
 
-la administración interna de tienda pertenece al plano interno autenticado.
+la administración interna de shops pertenece al plano interno autenticado.
 
 No puede ser operada por customer externo.
 
@@ -345,10 +349,12 @@ No puede ser autorizada por sesión externa self_service_sales.*.
 
 No puede confundirse con la tienda pública /shop/{tenant:slug}.
 
+self_service_sales no debe reapropiarse de la administración interna de Shop ni ShopItem.
+
 <<END SECTION>>
 
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO
 
@@ -369,9 +375,9 @@ roles internos
 panel interno
 configuración del tenant
 gestión interna de la operación
-administración interna de tienda
-SelfServiceShop
-SelfServiceShopItem
+administración interna de shops
+Shop
+ShopItem
 publicación de productos activos
 
 El plano interno continúa gobernado por el modelo vigente:
@@ -384,7 +390,20 @@ Auth interno
 Fortify interno
 panel interno
 Security
-TenantProfileAccess
+Policies
+permisos internos
+
+Rutas internas vigentes para shops:
+
+/shops
+
+Route names vigentes:
+
+shops.*
+
+Vista previa interna vigente:
+
+/shops/{shop}/preview
 
 PLANO EXTERNO
 
@@ -413,6 +432,16 @@ transferencias futuras
 solicitudes de comprobantes futuras
 consumo por QR futuro
 
+Rutas públicas externas vigentes:
+
+/shop/{tenant:slug}
+
+/tienda
+
+/tienda/seleccionar
+
+/tienda/salir
+
 Regla central:
 
 el cliente externo no es membership del tenant.
@@ -427,23 +456,13 @@ El cliente externo no posee roles internos del tenant.
 
 El cliente externo no participa de owner, admin, operator, sales ni administrator.
 
-El cliente externo no administra SelfServiceShop ni SelfServiceShopItem.
+El cliente externo no administra Shop ni ShopItem.
 
 El cliente externo solo opera dentro de Shopping Autoservicio y únicamente sobre sus propios datos comerciales autorizados.
 
 Regla adicional:
 
 las rutas públicas de Shopping Autoservicio deben permanecer separadas del grupo interno auth + tenant.
-
-Rutas públicas externas vigentes:
-
-/shop/{tenant:slug}
-
-/tienda
-
-/tienda/seleccionar
-
-/tienda/salir
 
 /shop/{tenant:slug} resuelve el tenant por slug público y no habilita operación interna del tenant.
 
@@ -489,9 +508,9 @@ POST /tienda/salir no debe cerrar sesión interna si existiera.
 
 La entrada pública externa no debe mostrar ni prometer acceso a dashboard, tenant/profile, parties.show ni rutas internas.
 
-Regla adicional para administración interna:
+Regla adicional para shops:
 
-las rutas self_service_sales.shops.* pertenecen al plano interno.
+las rutas shops.* pertenecen al plano interno.
 
 No son rutas públicas.
 
@@ -503,10 +522,24 @@ No deben consumir autorización externa.
 
 Deben requerir usuario interno autenticado, tenant activo y autorización backend efectiva.
 
+Regla adicional para vista previa interna:
+
+/shops/{shop}/preview pertenece al plano interno.
+
+No debe confundirse con:
+
+/shop/{tenant:slug}
+
+La vista previa interna no requiere sesión externa customer.
+
+La vista previa interna no convierte usuario interno en customer externo.
+
+La vista previa interna debe ayudar a diagnosticar publicación sin crear bypass entre planos.
+
 <<END SECTION>>
 
 <<SECTION: CLIENTE EXTERNO Y PARTIES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CLIENTE EXTERNO Y PARTIES
 
@@ -577,6 +610,10 @@ SelfServiceStoreCustomer no reemplaza Membership.
 Party no reemplaza cuenta externa.
 
 Party no reemplaza relación customer-tienda.
+
+Shop no reemplaza Tenant.
+
+ShopItem no reemplaza Product.
 
 Regla de duplicados:
 
@@ -665,6 +702,12 @@ ver catálogo publicado no habilita operación comercial completa
 Regla final:
 
 el cliente externo existe comercialmente como Party dentro del tenant, pero su acceso y operación pertenecen a self_service_sales.
+
+El cliente externo no administra shops.
+
+El cliente externo no accede a /shops.
+
+El cliente externo no opera shops.*.
 
 <<END SECTION>>
 
@@ -890,7 +933,7 @@ operación comercial real futura
 <<END SECTION>>
 
 <<SECTION: LOGIN EXTERNO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 LOGIN EXTERNO
 
@@ -1020,7 +1063,9 @@ no debe habilitar parties.show
 
 no debe habilitar operación comercial real
 
-no debe autorizar administración interna de tienda
+no debe autorizar administración interna de shops
+
+no debe autorizar /shops
 
 no debe invalidar toda la sesión Laravel al salir
 
@@ -1048,7 +1093,9 @@ No redirige por falta de sesión externa.
 
 No habilita operación comercial.
 
-No autoriza administración interna de tienda.
+No autoriza administración interna de shops.
+
+No autoriza /shops.
 
 No reemplaza guard externo definitivo.
 
@@ -1148,7 +1195,7 @@ no habilitar operación comercial por redirigir a /shop/{tenant:slug}
 
 no convertir /shop/{tenant:slug} en ruta privada por existencia de middleware pasivo
 
-no autorizar administración interna con sesión externa mínima
+no autorizar administración interna de shops con sesión externa mínima
 
 Un mismo customer externo puede operar en una o más tiendas app-base si existe relación customer-tienda vigente.
 
@@ -1164,12 +1211,12 @@ No debe revelar causa exacta del fallo.
 
 Regla final:
 
-la existencia de login externo, credencial externa, token temporal de selección, sesión externa mínima namespaced o middleware externo pasivo no habilita por sí misma operación comercial completa ni administración interna de tienda.
+la existencia de login externo, credencial externa, token temporal de selección, sesión externa mínima namespaced o middleware externo pasivo no habilita por sí misma operación comercial completa ni administración interna de shops.
 
 <<END SECTION>>
 
 <<SECTION: TIENDA PÚBLICA DEL TENANT>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 TIENDA PÚBLICA DEL TENANT
 
@@ -1198,6 +1245,10 @@ ResolveSelfServiceExternalCustomer
 Label visible:
 
 Tienda
+
+Módulo interno estándar que configura el catálogo publicado:
+
+shops
 
 La tienda pública puede funcionar como:
 
@@ -1272,7 +1323,7 @@ customer externo activo cuando exista sesión externa mínima válida para el te
 acción para cambiar tienda o cuenta externa
 acción para salir del acceso externo
 aviso de operación pendiente cuando corresponda
-catálogo publicado inicial cuando exista tienda activa y artículos visibles
+catálogo publicado inicial cuando exista Shop activa y artículos visibles
 artículos visibles
 precio visible
 unidad
@@ -1297,7 +1348,7 @@ el middleware pasivo no comparte payload externo
 La tienda pública no debe mostrar ni prometer como implementado:
 
 panel interno
-administración interna de tienda
+administración interna de shops
 saldos operativos reales
 historial comercial real
 datos de otros clientes
@@ -1403,6 +1454,20 @@ No debe reutilizarse visual ni funcionalmente como selector interno de empresas.
 
 No debe invalidar la sesión Laravel completa.
 
+Regla adicional de separación con shops:
+
+/shop/{tenant:slug} es tienda pública externa.
+
+/shops es administración interna estándar.
+
+/shops/{shop}/preview es vista previa interna autorizada.
+
+self_service_sales consume catálogo publicado por shops.
+
+self_service_sales no administra internamente Shop ni ShopItem.
+
+customer externo no accede a /shops ni opera shops.*.
+
 Regla final:
 
 tienda pública visible ≠ operación comercial real.
@@ -1414,7 +1479,7 @@ customer externo activo ≠ habilitación comercial completa.
 <<END SECTION>>
 
 <<SECTION: PUBLICACIÓN DE PRODUCTOS EN TIENDA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PUBLICACIÓN DE PRODUCTOS EN TIENDA
 
@@ -1422,11 +1487,17 @@ No todos los Products deben publicarse automáticamente en Shopping Autoservicio
 
 Debe existir una capa intermedia de publicación de tienda.
 
+Lectura estructural vigente:
+
+shops configura la publicación interna.
+
+self_service_sales consume la publicación externa.
+
 Relación conceptual vigente:
 
-SelfServiceShop
+Shop
 ↓
-SelfServiceShopItem
+ShopItem
 ↓
 Product
 
@@ -1434,29 +1505,29 @@ Lectura:
 
 Product conserva el catálogo maestro.
 
-SelfServiceShop representa cabecera/configuración de tienda.
+Shop representa cabecera/configuración interna de tienda.
 
-SelfServiceShopItem representa un producto publicado dentro de una tienda concreta.
+ShopItem representa un producto publicado dentro de una tienda concreta.
 
-SelfServiceShop no reemplaza Tenant.
+Shop no reemplaza Tenant.
 
-SelfServiceShopItem no reemplaza Product.
+ShopItem no reemplaza Product.
 
-Shopping Autoservicio publica la oferta comercial externa.
+Shopping Autoservicio consume la oferta comercial externa publicada por shops.
 
 Products conserva el catálogo maestro.
 
 Inventory conserva stock físico y trazabilidad material.
 
-La tienda no debe reconstruir reglas internas de Products.
+La tienda pública no debe reconstruir reglas internas de Products.
 
-La tienda no debe asumir stock si Inventory no lo confirma.
+La tienda pública no debe asumir stock si Inventory no lo confirma.
 
-La tienda no debe exponer productos no habilitados para self_service_sales.
+La tienda pública no debe exponer productos no habilitados para publicación.
 
 Regla:
 
-un producto puede existir en Products sin estar publicado en Shopping Autoservicio.
+un producto puede existir en Products sin estar publicado en tienda.
 
 Regla adicional:
 
@@ -1466,9 +1537,9 @@ No debe derivarse automáticamente de products.is_active.
 
 products.is_active puede ser condición necesaria para visibilidad, pero no suficiente para publicar en tienda.
 
-Campos funcionales consolidados para SelfServiceShopItem:
+Campos funcionales consolidados para ShopItem:
 
-self_service_shop_id
+shop_id
 tenant_id
 product_id
 is_visible
@@ -1482,13 +1553,13 @@ meta
 
 Regla:
 
-SelfServiceShopItem siempre pertenece a SelfServiceShop.
+ShopItem siempre pertenece a Shop.
 
-self_service_shop_id es obligatorio.
+shop_id es obligatorio según el modelo vigente.
 
-No debe existir SelfServiceShopItem huérfano.
+No debe existir ShopItem huérfano.
 
-Estados vigentes de SelfServiceShop:
+Estados vigentes de Shop:
 
 draft
 active
@@ -1496,7 +1567,7 @@ inactive
 
 Regla:
 
-archived no forma parte del contrato vigente de SelfServiceShop.
+archived no forma parte del contrato vigente de Shop.
 
 inactive cubre la desactivación operativa de tienda.
 
@@ -1506,6 +1577,7 @@ item.status = published
 item.is_visible = true
 shop.status = active
 product.is_active = true
+producto pertenece al mismo tenant
 
 Reglas:
 

@@ -142,27 +142,41 @@ Detalle técnico puede evolucionar sin alterar doctrina.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00034
+SECTION_VERSION: 00036
 
 [AUTORIDAD CENTRAL]
 Decisión final = backend / capa central de seguridad.
+
 Nada visual, contextual, satélite, transversal, público, automatizado o IA reemplaza esa decisión.
 
 [TENANT]
 Toda autorización ocurre dentro de tenant correcto.
-No operar registros ajenos.
-Slug público puede resolver tenant, pero no habilita acceso interno.
+
+Slug público puede resolver tenant público.
+
+No habilita acceso interno.
 
 [OWNER / ADMIN]
 owner = gobierno estructural vía memberships.is_owner.
+
 admin = rol delegable fuerte.
+
 admin ≠ owner.
-Regla: admin opera fuerte; owner gobierna.
+
+Regla:
+
+admin opera fuerte.
+
+owner gobierna.
 
 [PLANOS SEPARADOS]
-Dataset disponible ≠ visibilidad UI ≠ permiso efectivo ≠ trazabilidad ≠ automatización ≠ IA ≠ autorización.
 Plano interno ≠ plano externo.
-Gestión interna de tienda ≠ consumo público de tienda.
+
+Dataset disponible ≠ visibilidad UI ≠ permiso efectivo ≠ trazabilidad ≠ automatización ≠ IA ≠ autorización.
+
+Gestión interna ≠ consumo público.
+
+Configuración interna ≠ operación externa.
 
 [NO AUTORIZAN]
 
@@ -187,71 +201,92 @@ Gestión interna de tienda ≠ consumo público de tienda.
 
 [MÍNIMO ACOPLE]
 Consumidor no reinterpreta seguridad de otro módulo.
+
 Usar capacidades oficiales.
+
 Respetar ownership y contrato del módulo dueño.
 
 [FRONTERAS EXTERNAS]
 Si acción propia depende de condición externa:
+
 módulo dueño consulta hook/service/frontera explícita.
+
 No reconstruir lógica externa.
+
 Falla en bloqueo crítico = bloquear.
 
 [AUTONOMÍA MODULAR]
 Módulo autónomo ≠ acceso libre.
+
 Vínculo opcional ≠ permiso.
+
 Snapshot textual ≠ permiso.
+
 Contexto request ≠ permiso.
 
 [ACTIVIDAD]
 Lectura general tenant-scoped requiere:
+
 operational_activity.view_any
 
 Lectura contextual requiere:
+
 host autorizado + frontera declarada si es agregada/especial.
 
 [CAPAS SATÉLITE]
 Permiso área ≠ permiso operativo.
+
 Universo semántico ≠ contrato del módulo dueño.
+
 Entrada pública ≠ acceso interno.
-Administración interna de una capa satélite requiere usuario interno autenticado, tenant activo y autorización backend.
 
-Casos:
+Capa satélite externa puede consumir datos internos publicados.
 
-* /service: universo Servicio y mantenimiento; acciones reales = Orders u otros módulos dueños.
-* self_service_sales: plano externo customer separado del plano interno tenant.
+No administra el módulo interno consumido.
 
-[SHOPPING AUTOSERVICIO]
+[PLANO EXTERNO]
 Puede ingresar ≠ puede operar.
+
 Cuenta externa válida ≠ operación comercial habilitada.
+
 Sesión externa mínima ≠ operación comercial habilitada.
+
 Catálogo publicado visible ≠ compra habilitada.
-Customer externo no administra tienda.
+
+Customer externo no administra recursos internos.
+
 operation_enabled = false bloquea operación comercial.
+
+[RECURSOS INTERNOS CONSUMIDOS POR PLANO EXTERNO]
+Todo recurso interno consumido por un plano externo conserva autorización interna propia.
+
+Caso:
+
+shops pertenece al plano interno.
+
+self_service_sales consume publicación de shops.
 
 [ACCIONES CRÍTICAS]
 Requieren autorización efectiva + validación backend + confirmación humana o regla explícita cuando corresponda.
 
-Ejemplos:
-crear/cerrar/cancelar/reabrir orden
-aprobar/cerrar documento
-consumir/revertir stock
-modificar permisos
-habilitar módulos
-eliminar registros
-modificar datos sensibles
-confirmar token externo
-crear customer externo
-habilitar operación comercial externa
-activar tienda pública
-publicar artículos de tienda
-acreditar saldo futuro
-consumir ficha futura
-ejecutar cobro futuro
-emitir comprobante futuro
+Familias críticas:
+
+órdenes
+documentos
+inventario
+permisos
+módulos
+datos sensibles
+customers externos
+operación comercial externa
+publicación interna consumida externamente
+pagos o comprobantes futuros
 
 [ESTADOS TERMINALES]
 Order closed/cancelled no permite operación ordinaria.
+
 Reapertura = acción restringida.
+
 Estado satélite no puede saltar lifecycle base.
 
 [REGLA SÍNTESIS]
@@ -260,11 +295,13 @@ Todo plano auxiliar debe volver a autorización backend efectiva.
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 [ACCESO PÚBLICO]
 Previo o externo a operación interna autenticada.
+
 Puede mostrar onboarding, login, tienda pública, entrada externa, selector externo, salida externa o formularios externos.
+
 No habilita operación interna.
 
 [ACCESO INTERNO AUTENTICADO]
@@ -277,42 +314,67 @@ Autorización efectiva
 
 [TENANT POR SLUG]
 Puede resolver tenant.
+
 No debilita aislamiento.
+
 No habilita acceso interno.
+
 Operaciones públicas se asocian al tenant_id correspondiente.
 
 [ENTRADA PÚBLICA GENERAL]
 Entrada pública externa ≠ login interno.
+
 No autentica User.
+
 No crea Membership.
+
 No habilita panel interno.
+
 No reemplaza /login.
+
 No reemplaza /solicitar-empresa.
-No habilita operación comercial completa por sí misma.
+
+No habilita operación comercial completa.
 
 [SELECTOR EXTERNO]
 Selector externo ≠ selector interno de tenants.
+
 No pertenece al panel interno.
+
 No abre navegación tenant interna.
+
 No habilita dashboard.
+
 No habilita tenant/profile.
+
 No habilita operación comercial completa.
 
 [TOKEN TEMPORAL]
 Token temporal externo ≠ sesión interna.
+
 No concede pertenencia interna.
+
 No concede roles internos.
+
 No habilita operación comercial.
+
 No reemplaza autorización externa posterior.
+
 Token usado no puede reutilizarse.
 
 [SESIÓN EXTERNA]
 Sesión externa ≠ sesión interna app-base.
+
 Sesión externa ≠ tenant activo interno.
+
 Sesión externa ≠ Membership.
+
 Sesión externa ≠ User.
+
 Sesión externa ≠ guard externo definitivo.
+
 Sesión externa ≠ operación comercial habilitada.
+
 Sesión externa ≠ autorización para administración interna.
 
 Debe usar namespace propio cuando corresponda.
@@ -329,25 +391,38 @@ habilitar panel interno
 habilitar dashboard
 habilitar tenant/profile
 habilitar operación comercial completa
-habilitar administración interna de tienda
+habilitar administración interna
 
 [MIDDLEWARE EXTERNO PASIVO]
 Middleware externo pasivo puede resolver contexto externo.
+
 No es autorización obligatoria.
+
 No bloquea visitantes públicos.
+
 No exige sesión externa para ver tienda pública.
+
 No redirige por falta de sesión externa.
+
 No habilita operación comercial.
+
 No reemplaza guard externo definitivo.
+
 No reemplaza middleware externo definitivo de autorización obligatoria.
+
 No escribe session('tenant_id').
+
 No usa Auth.
+
 No crea User.
+
 No crea Membership.
 
 [REGISTRO EXTERNO]
 Puede crear registro pendiente externo.
+
 Puede confirmar email por token.
+
 Puede crear Party customer person al confirmar.
 
 No debe:
@@ -374,15 +449,17 @@ duplicados
 antes de crear Party.
 
 [HABILITACIÓN OPERATIVA]
-Confirmar email no habilita operación comercial completa.
-Completar identidad operativa no habilita operación comercial completa.
-Crear contraseña externa no habilita operación comercial completa.
-Validar credencial externa propia no habilita operación comercial completa.
-Seleccionar tienda no habilita operación comercial completa.
-Iniciar sesión externa mínima no habilita operación comercial completa.
-Resolver contexto externo pasivo no habilita operación comercial completa.
-Redirigir a tienda pública no habilita operación comercial completa.
-Ver catálogo publicado no habilita operación comercial completa.
+No habilitan operación comercial completa por sí mismos:
+
+confirmar email
+completar identidad operativa
+crear contraseña externa
+validar credencial externa propia
+seleccionar tienda
+iniciar sesión externa mínima
+resolver contexto externo pasivo
+redirigir a tienda pública
+ver catálogo publicado
 
 Para operar deberá existir:
 
@@ -404,10 +481,10 @@ documentos
 movimientos de stock
 carrito
 selección transaccional
-administración interna de tienda
+administración interna
 
-[ADMINISTRACIÓN INTERNA DE TIENDA]
-Administración interna de tienda pertenece al plano interno.
+[ADMINISTRACIÓN INTERNA]
+Administración interna pertenece al plano interno autenticado.
 
 Debe requerir:
 
@@ -424,10 +501,26 @@ middleware externo pasivo
 tienda pública
 entrada pública
 
+Caso:
+
+/shops pertenece al plano interno.
+
+[PREVIEW INTERNA]
+Vista previa interna de recurso publicado debe autorizarse como acceso interno al recurso.
+
+No como sesión pública customer.
+
+No como bypass entre planos.
+
 [ERRORES DE ACCESO EXTERNO]
 Los fallos de acceso externo deben usar mensajes genéricos cuando corresponda.
 
 No deben revelar causa exacta del fallo.
+
+[DIAGNÓSTICO DE VISIBILIDAD EXTERNA]
+No ver contenido externo publicado no implica automáticamente problema de permiso interno.
+
+Debe distinguirse autorización interna, publicación efectiva, plano externo, customer operativo y estado del recurso publicado.
 
 [REGLA GENERAL PARA FLUJOS EXTERNOS]
 Todo flujo externo debe validar identidad externa, tenant, relación externa, estado operativo y alcance antes de permitir cualquier operación.
@@ -443,7 +536,7 @@ Token temporal ≠ sesión interna.
 Selección de tienda ≠ operación comercial habilitada.
 Contexto externo pasivo ≠ operación comercial habilitada.
 Catálogo publicado ≠ operación comercial habilitada.
-Customer externo ≠ administrador interno de tienda.
+Customer externo ≠ administrador interno.
 Salida externa ≠ logout interno.
 
 <<END SECTION>>
@@ -597,7 +690,7 @@ Owner no debe degradarse a permiso aislado común.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00019
 
 [MODELO]
 Permisos persistidos orientados a módulos/capacidades.
@@ -635,15 +728,34 @@ Backend resuelve permisos efectivos.
 Constraints operan sobre dimensión real.
 Acciones críticas requieren autorización + validación + confirmación/regla.
 
+[MÓDULO ESTÁNDAR]
+Todo módulo estándar debe alinear:
+
+ModuleCatalog
+TenantModuleAccess
+PermissionModuleSeeder
+RolePermissionModuleSeeder
+PermissionScopeCatalog
+Policy
+Security
+
+Regla:
+
+permiso estándar sin scope compatible no cierra contrato de seguridad.
+
+Si un módulo aparece en navegación pero falla en Security, el cierre es inválido.
+
 [CASOS]
 operational_activity.view_any = lectura general log tenant-scoped.
 parties usa allowed_party_roles.
 allowed_kinds no aplica a parties.
 orders puede usar allowed_kinds.
 service_maintenance.view_any = acceso área, no permiso operativo.
+shops = módulo interno estándar con autorización propia.
 
 [REGLA]
 No crear capability persistida por reflejo si contrato vigente alcanza.
+
 Evolucionar permisos propios solo con justificación real.
 
 [CAPAS SATÉLITE]
@@ -651,11 +763,14 @@ Cada operación vuelve a módulo dueño/capacidad central.
 
 [ORDERS MANTENIMIENTO]
 Estados satélite no reemplazan lifecycle Orders.
+
 Order approved = habilita operación técnica.
+
 Order closed = no operación ordinaria sin reapertura autorizada.
 
 [INVENTORY]
 Custodia/consumo/devolución/faltante/daño/cancelación se autorizan por contrato Inventory.
+
 Custodia ≠ consumo.
 
 <<END SECTION>>
@@ -976,129 +1091,222 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza operaci�
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00038
+SECTION_VERSION: 00040
 
 [USO]
 Solo restricciones de seguridad de alto impacto.
+
 No inventario de implementación.
 
 [TENANT PROFILE]
 tenant/profile = gobierno interno tenant.
+
 Pieza central = TenantProfileAccess.
+
 owner edita General.
+
 admin ve con restricciones.
+
 admin no gestiona admin.
+
 admin no modifica propia autoridad.
+
 admin no vacía propios roles.
+
 Policies deben consumir autoridad central.
 
 [ORDERS]
 Contrato propio.
+
 party_id opcional.
+
 counterparty_name dato propio.
+
 party_id ≠ autorización.
+
 closed/cancelled = no operación ordinaria.
+
 Reapertura restringida.
+
 Estados satélite no saltan Orders.status.
+
 Bloqueos externos vía fronteras.
+
 OrderController no reconstruye Inventory.
 
 [/SERVICE]
 Universo semántico.
+
 No reemplaza seguridad Orders.
+
 No autoriza por sí mismo.
+
 Crear/ver desde /service requiere autorización Orders.
+
 group=service backend-first.
+
 ?group=service ≠ seguridad.
 
 [TASKS / APPOINTMENTS]
 tasks.order_id y appointments.order_id pertenecen a sus módulos.
+
 No transfieren ownership a Orders.
+
 Request contextual ≠ permiso.
 
 [PRODUCTS]
 Ver Products ≠ ver ProductOperationalSummary.
+
 Subcapa respeta tenant/membership/módulos/scopes.
+
 Selector productos ≠ bypass Products.
+
+[SHOPS]
+Módulo interno estándar.
+
+Administración interna bajo plano interno.
+
+Requiere auth interno, membership, tenant activo, permisos efectivos, Policy/Security.
+
+Preview interna requiere autorización interna sobre el recurso.
+
+Preview interna no usa sesión externa customer.
+
+Shop activo no habilita operación comercial completa.
+
+ShopItem publicado no habilita compra, pago, stock, carrito ni documento por sí mismo.
+
+Customer externo no administra Shop ni ShopItem.
 
 [DOCUMENTS]
 Order → Document requiere documents.create.
+
 party_id opcional.
+
 counterparty_name dato propio.
+
 order_id contexto derivación, no bypass.
 
 [INVENTORY]
 Owner de stock/movimientos/trazabilidad.
+
 Orders/Documents consumen capacidades oficiales.
+
 Inventory puede bloquear por frontera.
+
 Falla crítica = bloqueo.
 
 [PARTIES]
 kind = person/company.
+
 role = party_roles.role.
+
 allowed_party_roles vigente.
+
 employee protegido backend.
+
 Party con membership activa protege kind/employee/email según contrato.
 
 [SHOPPING AUTOSERVICIO]
-self_service_sales plano comercial externo.
+self_service_sales = plano comercial externo.
+
 Entrada pública ≠ panel interno.
+
 Selector externo ≠ selector interno.
+
 Salida externa ≠ logout interno.
+
 Customer externo ≠ User.
+
 Customer externo ≠ Membership.
+
 Customer externo ≠ roles internos.
+
 Party customer externa ≠ identidad interna.
+
 Cuenta externa ≠ User.
+
 Relación customer-tienda ≠ Membership.
+
 Token externo ≠ sesión interna.
+
 Sesión externa ≠ sesión interna.
+
 Sesión externa ≠ guard definitivo.
+
 Sesión externa ≠ operación comercial habilitada.
+
 Middleware externo pasivo ≠ autorización obligatoria.
+
 Middleware externo pasivo ≠ guard definitivo.
+
 Middleware externo pasivo ≠ ruta privada.
+
 Registro externo ≠ invitation.
+
 Credencial externa propia ≠ Fortify interno.
+
 Confirmación token requiere validación backend suficiente.
+
 Validación de credencial externa no habilita operación comercial completa.
+
 Selección de tienda no habilita operación comercial completa.
+
 Sesión externa mínima no habilita operación comercial completa.
+
 Contexto externo pasivo no habilita operación comercial completa.
+
 Redirección a tienda pública no habilita operación comercial completa.
+
 Catálogo publicado no habilita operación comercial completa.
+
 operation_enabled = false bloquea operación comercial.
+
 Duplicados relevantes bloquean alta.
-Administración interna de tienda requiere plano interno autorizado.
-Customer externo no administra tienda.
+
+Customer externo no administra recursos internos.
+
 Fallos del flujo externo deben usar error genérico cuando corresponda.
 
 [OPERATIONAL ACTIVITY]
 No autoriza.
+
 No decide permisos.
+
 No valida operación original.
+
 No create/edit/update/delete/destroy UI.
+
 Lectura general = operational_activity.view_any.
+
 Lectura contextual = host autorizado.
 
 [SERVICIOS Y MANTENIMIENTO]
 service_maintenance.view_any = acceso área.
+
 No permisos operativos módulos.
+
 Cada acción vuelve a módulo dueño.
+
 No usar Orders.status como estado técnico.
+
 No operar closed sin reapertura.
+
 No reintroducir lógica externa en OrderController.
 
 [IA / AUTOMATIZACIONES]
 Consumidores sujetos a seguridad.
+
 No privilegios.
+
 No ejecución crítica sin autorización/confirmación/regla explícita.
+
 Ejecución final vuelve al módulo dueño.
 
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 [DOCTRINA]
 Toda evolución relevante exige revisar seguridad.
@@ -1124,18 +1332,13 @@ Sin actor real/tenant real/membership real/dataset real, la prueba sensible no v
 
 Implementación funcional contraria a doctrina = cierre inválido.
 
-[CASO]
-tenant/profile/accesses requiere validar:
-UI
-backend
-request manipulado
-persistencia
-rollback/limpieza
+[REGLA DE CASOS SENSIBLES]
+Cuando un frente afecta gobierno, permisos, plano externo, operación comercial, stock, cierre de órdenes, documentos o datos sensibles, debe validarse con evidencia runtime suficiente.
 
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 [USO]
 Documento rector de seguridad.
@@ -1161,12 +1364,13 @@ Decisiones vivas → decisiones_vivas_app_base.
 Capas satélite funcionales → documentos especializados.
 Flujos detallados de Shopping Autoservicio → shopping_autoservicio_app_base.
 Entidades auxiliares de capas satélite → documento funcional o mapa de entidades.
+Administración interna de shops → documentos de módulo, navegación, entidades, UI o checklist según corresponda.
 Explicación humana → bajo demanda.
 
 [REGLA DE COMPACTACIÓN]
 Si una regla ya está en principio general, sección por módulo solo conserva excepción o consecuencia específica.
 
-Si un detalle describe flujo, ruta, entidad auxiliar, vista, estado de implementación o pieza concreta, no pertenece a este rector salvo que evite un bypass crítico.
+Si un detalle describe flujo, ruta, entidad auxiliar, vista, estado de implementación, pieza concreta o diagnóstico operativo, no pertenece a este rector salvo que evite un bypass crítico.
 
 [REGLA FINAL]
 Este documento no debe convertirse en inventario de implementación.

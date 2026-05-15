@@ -295,7 +295,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -319,9 +319,11 @@ si el mismo partial reusable opera en más de un universo, debe recibir configur
 
 no debe inferir rutas por su cuenta cuando el contexto sea relevante
 
-si la vista pertenece a administración interna de una capa satélite, debe usar gramática interna del sistema
+si la vista pertenece a administración interna, debe usar gramática interna del sistema
 
 si la vista pertenece a plano público externo, debe expresar claramente que no es panel interno
+
+si una capa externa consume datos configurados por un módulo interno estándar, la UI debe distinguir administración interna y consumo público
 
 CASO VIGENTE: SERVICE DASHBOARD
 
@@ -455,6 +457,8 @@ resources/views/self-service-sales/confirmed.blade.php
 
 resources/views/self-service-sales/shop.blade.php
 
+resources/views/self-service-sales/store-selector.blade.php
+
 Lectura:
 
 estas vistas pertenecen al plano público externo de self_service_sales.
@@ -462,6 +466,8 @@ estas vistas pertenecen al plano público externo de self_service_sales.
 No son panel interno.
 
 No son administración interna del tenant.
+
+No son administración interna de shops.
 
 No deben exponer navegación interna.
 
@@ -489,7 +495,7 @@ salida externa
 
 cambio de tienda o cuenta externa
 
-catálogo publicado inicial cuando exista tienda activa y artículos visibles
+catálogo publicado inicial cuando exista Shop activa y artículos visibles
 
 Reglas:
 
@@ -505,15 +511,15 @@ la vista pública no debe asumir operación comercial completa
 
 el catálogo publicado debe mostrarse como información visible no transaccional mientras no exista contrato de compra
 
-CASO VIGENTE: ADMINISTRACIÓN INTERNA DE TIENDA SELF_SERVICE_SALES
+CASO VIGENTE: ADMINISTRACIÓN INTERNA DE SHOPS
 
 Vistas internas vigentes:
 
-resources/views/self-service-sales/shops/...
+resources/views/shops/...
 
 Lectura:
 
-estas vistas pertenecen al plano interno autorizado de self_service_sales.
+estas vistas pertenecen al plano interno autorizado del módulo shops.
 
 No son tienda pública.
 
@@ -521,11 +527,13 @@ No son vistas customer.
 
 No son panel externo.
 
+No pertenecen a self_service_sales como administración interna.
+
 No deben usar sesión externa mínima como autorización.
 
 No deben resolverse desde ResolveSelfServiceExternalCustomer.
 
-Debe representar datos y permisos ya preparados por backend.
+Deben representar datos y permisos ya preparados por backend.
 
 Estructura visual esperada:
 
@@ -535,6 +543,10 @@ x-breadcrumb
 
 x-page-header
 
+x-show-summary cuando corresponda
+
+x-host-tabs cuando corresponda
+
 cards o bloques equivalentes
 
 acciones internas visibles según autorización preparada
@@ -543,9 +555,9 @@ mensajes claros de estado
 
 Reglas:
 
-SelfServiceShop se presenta como configuración interna de tienda
+Shop se presenta como configuración interna de tienda
 
-SelfServiceShopItem se presenta como publicación de producto
+ShopItem se presenta como publicación de producto
 
 Product conserva lectura de catálogo maestro
 
@@ -558,6 +570,18 @@ la vista no debe sugerir operación comercial real si todavía no existe contrat
 el botón o acción de activar tienda no debe comunicar habilitación comercial completa
 
 el customer externo no debe tener acceso visual ni funcional a estas vistas
+
+la vista previa interna debe mostrar diagnóstico de visibilidad pública efectiva
+
+la vista previa interna no debe abrir /shop/{tenant:slug} como si fuera administración interna
+
+Ruta vigente de vista previa interna:
+
+/shops/{shop}/preview
+
+Regla:
+
+la vista previa interna no requiere sesión externa customer y no crea bypass entre plano interno y plano externo.
 
 <<END SECTION>>
 
@@ -600,7 +624,7 @@ la navegación puede incluir iconografía por módulo, pero esta debe provenir d
 
 
 <<SECTION: COMPONENTES DE ÍCONOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 COMPONENTES DE ÍCONOS
 
@@ -618,6 +642,8 @@ los íconos reutilizables no deben permanecer inline en blades complejos
 deben definirse como componentes Blade
 los nombres deben ser genéricos por forma visual
 no deben nombrarse por módulo
+no debe declararse un ícono si el componente Blade no existe realmente
+antes de usar un ícono en ModuleCatalog o metadata equivalente debe verificarse su existencia real
 
 Ejemplos válidos:
 
@@ -634,6 +660,7 @@ activity
 changes
 lock
 unlock
+box
 
 Uso vigente adicional:
 
@@ -652,26 +679,17 @@ Editar funciones
 lock / unlock
 acciones o estados de bloqueo y desbloqueo
 
-Regla crítica:
+box
+módulo shops
 
-las vistas no deben decidir qué ícono usar cuando la iconografía corresponda a metadata ya resuelta.
+Caso detectado:
 
-La iconografía debe venir resuelta desde metadata modular o desde la surface correspondiente.
+building-storefront no debe usarse si no existe como componente disponible.
 
-Caso vigente:
+Regla:
 
-OperationalActivitySurfaceService declara icon = activity para la tab Actividad.
+un ícono inexistente puede romper dashboard/navbar cuando se renderiza mediante x-dynamic-component.
 
-Aclaración:
-
-no existe `<x-icons.user />`
-debe utilizarse `<x-icons.user-group />` u otro ícono existente
-
-Objetivo:
-
-evitar duplicación de SVG
-permitir consistencia visual
-facilitar mantenimiento y evolución visual
 <<END SECTION>>
 
 

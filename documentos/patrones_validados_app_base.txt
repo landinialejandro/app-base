@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 PATRONES VIGENTES
 
@@ -324,130 +324,330 @@ ProductLineItemSelector
 Responsabilidad:
 
 opciones de productos
-reglas de validación de productos
-verificación de acceso a productos para líneas o publicaciones cuando corresponda
+reglas mínimas de selección
+validación tenant-scoped
+validación de disponibilidad según contrato vigente
+payload reusable para formularios
 
-Consumidores vigentes:
+Consumidores:
 
-OrderItemController
-
-DocumentItemController
-
-self_service_sales como publicación de tienda cuando corresponda al contrato vigente
+Orders
+Documents
+shops cuando publica productos
 
 Reglas:
 
-Products ofrece selección y validación de productos
+Products ofrece selección/validación.
 
-Orders administra sus propios order_items
+Orders administra order_items.
 
-Documents administra sus propios document_items
+Documents administra document_items.
 
-self_service_sales administra sus propias publicaciones de tienda
+shops administra shop_items.
 
-los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial
+self_service_sales consume catálogo publicado, no reconstruye selector interno.
 
-PUBLICACIÓN INTERNA DE TIENDA SIN OPERACIÓN COMERCIAL
+Los consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') si existe selector oficial o capacidad equivalente.
+
+MÓDULO INTERNO ESTÁNDAR CONSUMIDO POR CAPA EXTERNA
 
 Patrón validado:
 
-una capa satélite comercial puede publicar un catálogo visible sin habilitar todavía operación transaccional.
+una capa satélite externa puede consumir datos configurados por un módulo interno estándar sin apropiarse de su administración interna.
+
+Secuencia:
+
+módulo interno estándar configura
+↓
+módulo interno estándar autoriza
+↓
+módulo interno estándar publica o deja disponible lectura
+↓
+capa satélite externa consume
+↓
+plano público representa solo lo permitido
 
 Caso vigente:
 
-self_service_sales publica catálogo inicial mediante:
+shops configura catálogo interno.
 
+self_service_sales consume catálogo publicado por shops.
+
+Relación:
+
+Shop
+↓
+ShopItem
+↓
+Product
+↓
+self_service_sales
+↓
+/shop/{tenant:slug}
+
+Reglas:
+
+la capa externa no administra el módulo interno
+
+el customer externo no opera rutas internas
+
+la sesión externa mínima no autoriza el módulo interno
+
+el middleware externo pasivo no autoriza el módulo interno
+
+la vista previa interna no usa sesión customer
+
+el catálogo publicado no habilita operación comercial completa
+
+la publicación no mueve stock
+
+la publicación no crea Orders, Documents ni InventoryMovements
+
+RECLASIFICACIÓN SIN LEGACY ESTABLE
+
+Patrón validado:
+
+si una pieza fue mal clasificada y se redefine como módulo estándar, la reconversión debe migrar lectura, rutas, modelos, supports, vistas, permisos, navegación y documentación.
+
+Caso vigente:
+
+administración interna de tienda pasa a shops.
+
+Lectura nueva:
+
+/shops
+shops.*
+Shop
+ShopItem
+App\Support\Shops cuando corresponda
+
+Lectura eliminada como cierre estable:
+
+/self-service/shops
+self_service_sales.shops.*
 SelfServiceShop
 SelfServiceShopItem
-SelfServiceShopCatalogReader
-SelfServiceShopPublisher
+administración interna de tienda bajo self_service_sales
+
+Reglas:
+
+conservar nombre físico de tabla no obliga a conservar modelo legacy
+
+conservar tabla self_service_* no implica ownership self_service_sales
+
+la convivencia solo puede ser transitoria durante migración controlada
+
+no cerrar con rutas nuevas y legacy para la misma administración interna
+
+MÓDULO ESTÁNDAR COMPLETO
+
+Patrón validado:
+
+un módulo estándar no queda integrado solo por tener rutas y vistas.
+
+Debe alinear:
+
+ModuleCatalog
+TenantModuleAccess
+PermissionModuleSeeder
+RolePermissionModuleSeeder
+PermissionScopeCatalog
+Policy
+Security::allows
+Dashboard
+Navbar
+rutas estándar
+vistas estándar
+seeders/demo
+limpieza legacy
+
+Caso vigente:
+
+shops.
+
+Regla:
+
+todo módulo estándar con permisos debe tener scopes compatibles con Security.
+
+Si falta scope, puede aparecer en navegación por canUseModule() pero fallar en Security::allows().
+
+Ese estado no es cierre válido.
+
+VISTA PREVIA INTERNA SIN BYPASS EXTERNO
+
+Patrón validado:
+
+una vista previa interna debe resolver diagnóstico o lectura simulada del resultado público sin operar como customer externo.
+
+Caso vigente:
+
+/shops/{shop}/preview
 
 Lectura:
 
-SelfServiceShop configura la tienda.
+preview interna pertenece al plano interno.
 
-SelfServiceShopItem publica productos.
+No usa /shop/{tenant:slug} como vista interna.
 
-Product conserva catálogo maestro.
+No requiere sesión externa customer.
 
-Reglas:
+No convierte usuario interno en customer externo.
 
-publicar producto no equivale a vender
-
-publicar producto no mueve stock
-
-publicar producto no crea documento
-
-publicar producto no habilita carrito
-
-activar tienda no habilita operación comercial completa
-
-catálogo visible no equivale a operación comercial habilitada
-
-SEPARACIÓN DE ADMINISTRACIÓN INTERNA Y PLANO CUSTOMER
-
-Patrón validado:
-
-una capacidad satélite con entrada pública puede tener administración interna, pero ambos planos deben permanecer separados.
-
-Caso vigente:
-
-self_service_sales
-
-Plano interno:
-
-self_service_sales.shops.*
-
-SelfServiceShop
-
-SelfServiceShopItem
-
-TenantProfileAccess::canManageSelfServiceSales()
-
-Plano externo:
-
-/tienda
-
-/tienda/seleccionar
-
-/shop/{tenant:slug}
-
-/tienda/salir
-
-SelfServiceExternalSession
-
-ResolveSelfServiceExternalCustomer
+No habilita operación comercial.
 
 Reglas:
 
-customer externo no administra tienda
+autorizar como acceso interno al recurso
 
-sesión externa mínima no autoriza administración interna
+mostrar diagnóstico de visibilidad pública efectiva
 
-middleware externo pasivo no autoriza administración interna
+explicar por qué un item no sería visible públicamente
 
-vista pública no debe exponer rutas internas
+no saltar separación de planos
 
-vista interna no debe depender de sesión externa
-
-NUMERACIÓN TRANSVERSAL CON SIGNIFICADO EN CATÁLOGOS
+DIAGNÓSTICO DE VISIBILIDAD DE CATÁLOGO PUBLICADO
 
 Patrón validado:
 
-un servicio transversal puede ejecutar mecánica común de numeración, pero no decidir significado de negocio propio de cada módulo.
+cuando un usuario interno no ve un artículo publicado en la tienda pública, no debe asumirse automáticamente error de permisos.
 
-Regla síntesis:
+Validar:
 
-el módulo define el significado.
-
-el servicio transversal ejecuta la mecánica.
+Shop activa
+ShopItem publicado
+ShopItem visible
+Product activo
+Product del mismo tenant
+sesión/customer externo si aplica
+operation_enabled si aplica
+plano interno vs plano externo
 
 Caso vigente:
 
-RecordNumberGenerator ejecuta numeración.
+una Shop activa puede tener artículos configurados pero no visibles si están ocultos, en borrador, no publicados o asociados a producto inactivo.
 
-OrderCatalog define prefijos Orders.
+Regla:
 
-DocumentCatalog define prefijos Documents.
+preview interna debe ayudar a distinguir configuración, visibilidad pública y operación externa.
+
+ICONOGRAFÍA VALIDADA
+
+Patrón validado:
+
+antes de asignar ícono de módulo o frente en metadata, debe existir componente Blade real.
+
+Ubicación:
+
+resources/views/components/icons
+
+Caso vigente:
+
+shops usa box.
+
+No usar:
+
+building-storefront
+
+si no existe como componente.
+
+Regla:
+
+un ícono inexistente rompe dashboard/navbar cuando x-dynamic-component intenta renderizarlo.
+
+INDEX SIN ACCIONES POR FILA INNECESARIAS
+
+Patrón validado:
+
+cuando el dato principal de un index abre el detalle, no se deben agregar acciones por fila por reflejo.
+
+Caso vigente:
+
+shops.index
+
+Patrón:
+
+filtro por nombre
+filtro por estado
+detalle desde link en nombre
+sin botones de acción por fila
+
+Reglas:
+
+acciones secundarias deben tener bajo protagonismo
+
+no duplicar acceso al detalle
+
+no usar botón textual si existe patrón icon-only o si la acción no aporta valor operativo
+
+TAB EMBEBIDO CON TOOLBAR CONTEXTUAL
+
+Patrón validado:
+
+un bloque embebido puede tener segmentación interna si expresa una dimensión clara.
+
+Caso vigente:
+
+ShopItems dentro de shops.show.
+
+Segmentos:
+
+Todos
+Publicados
+Borradores
+Ocultos
+
+Acción contextual:
+
+Agregar artículo
+
+Reglas:
+
+la segmentación del embebido no crea tabs principales nuevas del host
+
+no altera return_tab del show principal
+
+debe mantenerse subordinada al host
+
+TABLA EMBEBIDA SIN CARD DUPLICADA
+
+Patrón validado:
+
+si el componente embebido ya aporta estructura visual suficiente, no debe envolverse en card duplicada.
+
+Caso vigente:
+
+tabla de ShopItems dentro del tab embebido de shops.show.
+
+Regla:
+
+evitar doble contenedor visual cuando no aporta jerarquía ni claridad.
+
+ACCIONES POR ÍCONO EN TABLAS EMBEBIDAS
+
+Patrón validado:
+
+las acciones secundarias por fila dentro de tablas embebidas deben usar herramientas compactas.
+
+Caso vigente:
+
+ShopItem.
+
+Componentes:
+
+x-button-tool
+x-button-tool-submit
+
+Íconos:
+
+x-icons.pencil
+x-icons.trash
+
+Reglas:
+
+no usar botones textuales por fila si existen componentes compactos
+
+mantener bajo protagonismo visual
+
+conservar legibilidad del contenido principal
 
 <<END SECTION>>

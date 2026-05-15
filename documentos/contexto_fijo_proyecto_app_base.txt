@@ -175,7 +175,7 @@ Complejidad se activa por necesidad.
 <<END SECTION>>
 
 <<SECTION: ENTORNO TÉCNICO BASE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 [STACK BASE]
 OS = Linux
@@ -184,33 +184,20 @@ PHP = 8.5
 Laravel = 13.x
 DB = MariaDB
 
-[VALIDACIÓN VIGENTE]
-Laravel Framework 13.8.0
-laravel/tinker 3.0.2
-phpunit/phpunit 12.5.24
-laravel/fortify 1.37.0
-
 [REGLA]
-Upgrade mayor ≠ cerrado por Composer.
+El stack base orienta compatibilidad general.
 
-[VALIDAR MÍNIMO]
+Versiones efectivas, paquetes, validaciones finas y pruebas runtime pertenecen a documentos técnicos, plantilla de inicio o auditorías operativas.
 
-* versiones efectivas
-* autoload
-* package discovery
-* cache limpia
-* migraciones
-* rutas
-* colas
-* failed_jobs
-* runtime Tinker
-* PDF si aplica
-* tests disponibles
-* prueba navegador si aplica
+[REGLA DE VALIDACIÓN]
+Cambio mayor de stack, framework o paquete crítico no queda cerrado por instalación.
+
+Debe validarse contra evidencia real cuando afecte operación, seguridad, rutas, migraciones, colas, pruebas, PDF o runtime.
 
 [FRONTERA]
-Detalle técnico fino puede moverse a documento técnico o plantilla de inicio.
-Este bloque solo conserva contexto base mínimo.
+Este bloque conserva solo contexto técnico mínimo estable.
+
+No debe convertirse en inventario de versiones ni checklist técnico completo.
 
 <<END SECTION>>
 
@@ -336,7 +323,7 @@ Autorización, permisos y restricciones owner/admin pertenecen a seguridad_acces
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00043
+SECTION_VERSION: 00045
 
 [GLOBAL]
 Gobierno plataforma.
@@ -373,30 +360,46 @@ parties = anclaje relacional principal del negocio.
 [MÓDULOS FUNCIONALES]
 Capacidades operativas visibles del tenant.
 
+shops = módulo interno estándar del tenant para configurar publicación comercial de catálogo.
+
 [CAPAS SATÉLITE]
-Capa satélite = frente especializado que orquesta módulos existentes.
-Puede tener universo, entrada pública, administración interna separada o dashboard mínimo.
-No absorbe ownership.
-No duplica CRUD por reflejo.
-No mezcla plano interno y plano externo.
+Frentes especializados que orquestan o consumen módulos existentes.
+
+Pueden tener universo, entrada pública, administración interna separada o dashboard mínimo.
+
+No absorben ownership.
+No duplican CRUD por reflejo.
+No mezclan plano interno y plano externo.
 
 Casos estructurales:
 
 * /service = universo Servicio y mantenimiento. Owner real órdenes = Orders.
 * self_service_sales = capa satélite comercial externa. Customer externo ≠ User/Membership.
 
-[PLANO INTERNO / PLANO EXTERNO]
-Plano interno = User, Membership, tenant activo, roles internos, panel interno y configuración autorizada.
+[REGLA ENTRE MÓDULO INTERNO Y CAPA SATÉLITE]
+Módulo interno estándar puede configurar datos consumidos por capa satélite externa.
 
-Plano externo = customer externo, cuenta externa, relación customer-tienda, sesión externa mínima, tienda pública y catálogo publicado.
+Capa satélite externa consume.
+
+No administra internamente el módulo consumido.
+
+Caso:
+
+shops configura catálogo interno.
+
+self_service_sales consume publicación de shops.
+
+[PLANO INTERNO / PLANO EXTERNO]
+Plano interno = User, Membership, tenant activo, roles internos, panel interno, configuración autorizada.
+
+Plano externo = customer externo, cuenta externa, relación customer-tienda, sesión externa mínima, tienda pública, catálogo publicado.
 
 [REGLAS]
 Entrada pública ≠ pertenencia.
 Ruta pública ≠ panel interno.
 Tienda pública ≠ panel interno.
 Catálogo publicado ≠ operación comercial real.
-Administración interna de tienda ≠ consumo público de tienda.
-self_service_sales no reemplaza Products, Inventory, Parties, Documents, Security, Membership ni User.
+Administración interna ≠ consumo público.
 Capacidades externas futuras requieren contrato y evidencia real.
 
 [SUBCAPAS CONTEXTUALES]
@@ -410,7 +413,7 @@ Caso:
 
 ProductOperationalSummary bajo Products.
 
-[REGLA]
+[FRONTERA]
 Detalle operativo, rutas, UI, permisos, validaciones, entidades auxiliares y estado de implementación van a documentos especializados.
 
 <<END SECTION>>
@@ -475,28 +478,10 @@ Entidades del sistema ≠ entidades del negocio.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00034
+SECTION_VERSION: 00035
 
 [NEGOCIO]
 Entidades operativas tenant-scoped.
-
-[ACTUALES]
-parties
-party_roles
-projects
-tasks
-appointments
-products
-assets
-orders
-order_items
-documents
-document_items
-document_sequences
-inventory_movements
-inventory_operations
-operational_activities
-attachments
 
 [ROLES POSIBLES]
 
@@ -506,6 +491,7 @@ attachments
 * capacidad transversal
 * soporte operativo interno
 * entidad complementaria
+* configuración interna consumible por capa externa
 
 [REGLAS]
 User no pasa a negocio.
@@ -514,6 +500,9 @@ Party puede ser ficha ampliada, no acceso.
 OperationalActivity = trazabilidad, no entidad hija de módulos.
 OrderItem / DocumentItem = entidades hijas.
 Orders / Documents = cabeceras operativas.
+Shop = configuración interna de tienda.
+ShopItem = publicación interna de producto.
+self_service_sales consume publicación, no administra Shop.
 
 [PARTIES]
 parties.kind = tipo contacto: person | company.
@@ -524,8 +513,16 @@ employee ≠ kind.
 Pueden conservar vínculo opcional con Parties.
 Pueden existir con dato propio de contraparte si el contrato lo permite.
 
+[SHOPS]
+Configura publicación comercial interna del tenant.
+No reemplaza Tenant.
+No reemplaza Product.
+No representa operación comercial externa por sí mismo.
+
 [FRONTERA]
-Campos, helpers, salidas visuales, rutas y seguridad van a documentos especializados.
+Inventario detallado de tablas, modelos, campos, helpers, rutas y relaciones va a mapa_entidades_app_base.
+
+Seguridad va a seguridad_acceso_proyecto_app_base.
 
 <<END SECTION>>
 
@@ -550,7 +547,7 @@ No mezclar membership con customer externo.
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00027
 
 [MÓDULOS NUCLEARES]
 orders
@@ -562,6 +559,7 @@ parties
 products
 assets
 appointments
+shops
 
 [MÓDULOS TRANSVERSALES]
 attachments
@@ -583,14 +581,14 @@ Publican lectura controlada hacia hosts.
 No se vuelven módulo ordinario.
 
 [CAPAS SATÉLITE]
-Orquestan módulos existentes.
+Orquestan o consumen módulos existentes.
 No CRUD por reflejo.
 No ownership ajeno.
 
 Casos:
 
 * Servicios y Mantenimiento: capa satélite ERP/CMMS liviana. Universo: /service. Owner órdenes = Orders.
-* Shopping Autoservicio: capa satélite comercial externa. Key: self_service_sales. Customer externo ≠ User/Membership.
+* Shopping Autoservicio: capa satélite comercial externa. Key: self_service_sales. Consume publicación de shops.
 
 [SUBCAPAS INTERNAS]
 Capacidad dentro de módulo host.
@@ -599,12 +597,14 @@ Caso:
 
 ProductOperationalSummary bajo Products.
 
-[REGLA]
+[REGLAS]
 Clasificación ≠ autorización.
 Clasificación ≠ navegación automática.
 Clasificación ≠ ownership.
 Entrada pública ≠ pertenencia.
 Universo semántico ≠ módulo dueño.
+Capa satélite ≠ administración interna del módulo consumido.
+Publicación externa ≠ operación comercial real.
 
 <<END SECTION>>
 
@@ -706,7 +706,7 @@ Complejidad de parties debe crecer por entidades hijas/complementarias, no sobre
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 [MÓDULOS]
 parties
@@ -718,6 +718,7 @@ assets
 orders
 documents
 inventory
+shops
 
 [NO MÓDULO FUNCIONAL]
 users
@@ -732,10 +733,17 @@ tasks = pendientes / seguimiento.
 products = catálogo maestro.
 assets = recursos operativos.
 parties = actores/contactos negocio.
+shops = configuración interna de tiendas y catálogo publicable.
 
 [PRODUCTS]
 Puede alojar ProductOperationalSummary como subcapa contextual.
 No crea módulo nuevo.
+
+[SHOPS]
+Módulo interno estándar.
+Configura publicación comercial de catálogo.
+No representa operación comercial externa.
+No reemplaza self_service_sales.
 
 [REGLA]
 Convergencia hacia patrones maduros.
@@ -744,15 +752,15 @@ No soluciones locales dispersas.
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00023
 
 [ORDERS]
 Núcleo operativo autónomo.
-Puede recibir contexto de Tasks/Appointments.
-Puede vincular Parties/Assets.
-Puede derivar Documents.
-Puede consumir Inventory.
-No absorbe esos módulos.
+Puede recibir contexto.
+Puede vincular.
+Puede derivar.
+Puede consumir capacidades externas por frontera.
+No absorbe módulos.
 
 [DOCUMENTS]
 Formaliza operaciones.
@@ -765,9 +773,15 @@ Catálogo maestro.
 Puede publicar selección/validación.
 Puede alojar subcapas contextuales.
 
+[SHOPS]
+Módulo interno estándar.
+Configura publicación comercial de catálogo.
+No representa operación comercial externa.
+No reemplaza Products, Inventory, Documents ni self_service_sales.
+
 [INVENTORY]
-Stock, ejecución material, trazabilidad.
-Puede intervenir mediante fronteras explícitas.
+Stock, ejecución material y trazabilidad material.
+Interviene mediante fronteras explícitas.
 
 [ASSETS]
 Recursos operativos.
@@ -778,16 +792,17 @@ No asumir campos técnicos sin contrato real.
 Actores/contactos negocio.
 kind = tipo contacto.
 role = relación empresa.
-Customer externo self_service_sales puede representarse como Party sin ser User/Membership.
+Customer externo puede representarse como Party sin ser User/Membership.
 
 [CAPAS SATÉLITE]
 /service = Servicio y mantenimiento. Owner órdenes = Orders.
-/shop/{tenant:slug} = Tienda pública. self_service_sales. Customer externo ≠ acceso interno.
+/shop/{tenant:slug} = tienda pública. Plano externo self_service_sales.
+self_service_sales consume publicación de shops y no administra shops.
 
 [PROHIBICIONES]
 Orders no absorbe Assets/Inventory/Documents/Tasks/Appointments.
 Servicio y mantenimiento no absorbe módulos participantes.
-Shopping Autoservicio no absorbe Parties/Products/Inventory/Documents/Security.
+Shopping Autoservicio no absorbe Shops/Parties/Products/Inventory/Documents/Security.
 OperationalActivity no se vuelve timeline específico.
 IA no crea canal paralelo.
 
@@ -798,7 +813,7 @@ Ownership se conserva aunque haya integración.
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00029
 
 [RELACIONES BASE]
 users → memberships → tenants
@@ -807,12 +822,14 @@ projects → tasks
 orders → order_items
 documents → document_items
 inventory_operations → inventory_movements
+shops → shop_items
 
 [RELACIONES FUNCIONALES]
 tasks → orders desde Tasks.
 appointments → orders desde Appointments.
 orders → documents como derivación.
 products → líneas operativas/documentales.
+shops → products mediante shop_items.
 inventory → stock/trazabilidad.
 attachments → múltiples recursos.
 módulos → OperationalActivity si corresponde.
@@ -828,33 +845,34 @@ Lectura:
 Orders conserva ownership.
 
 [SHOPPING AUTOSERVICIO]
+shops
+↓
+configuración interna tenant
+↓
+catálogo publicado
+↓
 self_service_sales
 ↓
 plano externo customer
-↓
-Parties / Products según contrato publicado
 
 Lectura:
+
+shops configura publicación comercial interna.
 self_service_sales organiza experiencia comercial externa.
-Parties representa customer confirmado cuando corresponda.
 Products conserva catálogo maestro.
+Parties representa customer confirmado cuando corresponda.
 Ruta pública ≠ acceso interno.
 Catálogo publicado ≠ operación comercial real.
 
-[REGLAS]
-self_service_sales no reemplaza Parties/Products/Inventory/Documents/Security.
-OperationalActivity no reemplaza relaciones funcionales.
-Lectura contextual ampliada debe declararla módulo dueño.
-Intervención externa requiere frontera explícita.
-Entidades auxiliares de capa satélite no reemplazan módulos dueños.
+[REGLA TRANSVERSAL]
+Módulo interno estándar puede configurar datos consumidos por capa satélite externa.
 
-[FRONTERA]
-Rutas, helpers, UI, campos, validaciones, entidades auxiliares y flujos detallados van a documentos especializados.
+La capa satélite externa consume, no administra internamente.
 
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 [CRECIMIENTO]
 Módulos con identidad clara.
@@ -871,6 +889,8 @@ entrada pública / panel interno
 cliente externo / membership
 registro externo / invitation
 vínculo opcional / dependencia estructural
+configuración interna / consumo externo
+publicación comercial / operación transaccional
 automatización asistida / acción crítica
 
 [REGLAS]
@@ -879,12 +899,15 @@ No crear CRUD por simetría.
 No mezclar planos.
 No convertir clientes externos en Users/Memberships.
 No reutilizar contratos internos para flujos externos.
+No permitir que una capa externa administre internamente el módulo que consume.
 Consumir capacidades existentes antes de crear variantes.
 No implementar capacidades futuras sin contrato y evidencia real.
 
 [CASOS]
 /service = capa satélite mantenimiento sobre Orders.
-/shop/{tenant:slug} = capa satélite comercial externa sobre self_service_sales + Parties.
+/shop/{tenant:slug} = capa satélite comercial externa.
+shops = módulo interno estándar que configura catálogo publicable.
+self_service_sales = capa externa que consume publicación.
 
 [ANTES DE CRECER]
 Definir:
@@ -898,6 +921,7 @@ Definir:
 
 [REGLA]
 La arquitectura crece por contrato.
+
 No por ruta nueva, pantalla nueva, tabla nueva o caso puntual.
 
 <<END SECTION>>

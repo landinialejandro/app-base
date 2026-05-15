@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 LECCIONES VIGENTES
 
@@ -276,7 +276,7 @@ No debe usarse como fuente principal de texto visible cuando el módulo dueño p
 
 Caso vigente:
 
-Orders puede representar Activo mediante asset_id y asset_reference.
+Orders puede tener asset_reference aunque asset_id sea null.
 
 Lección:
 
@@ -290,164 +290,148 @@ si no existe asset_id pero existe asset_reference, debe mostrarse texto propio
 
 no inventar link hacia Asset
 
-no mostrar vacío si el módulo dueño posee referencia propia
+no mostrar vacío si el módulo dueño posee referencia textual propia
 
-SHOWPARTY NO DEBE SEGUIR COMO CONTRATO PRINCIPAL SI EL DATO ES CONTRAPARTE
+NO ASUMIR ÍCONOS DISPONIBLES
 
-Un nombre de contrato visual incorrecto genera confusión conceptual y acoplamiento.
-
-Caso detectado:
-
-showParty podía interpretarse como columna de vínculo gestionado a Party, cuando el dato visible real era Contraparte.
-
-Corrección vigente:
-
-showCounterparty es el contrato visual para columnas de contraparte en Orders y Documents.
-
-Lección:
-
-el nombre del contrato visual debe expresar el dato operativo visible, no necesariamente la entidad gestionada relacionada.
-
-Regla:
-
-usar Contraparte cuando se representa dato propio del registro.
-
-Usar Contacto cuando se filtra o selecciona Party gestionada.
-
-NO DEJAR FLAGS VISUALES SIN REPRESENTACIÓN EN TABLAS REUSABLES
-
-Un flag publicado por SurfaceService o payload no puede quedar sin efecto real en el partial consumidor.
+Un ícono declarado en metadata modular no debe asumirse existente.
 
 Caso detectado:
 
-showCounterparty y showAsset debían tener representación efectiva en orders.partials.table.
+building-storefront
+
+El componente no existía en resources/views/components/icons.
+
+Riesgo:
+
+dashboard/navbar pueden romper al renderizar con x-dynamic-component.
+
+Corrección aplicada:
+
+usar ícono existente.
+
+Caso vigente:
+
+shops usa box.
 
 Lección:
 
-un flag visual sin representación real es contrato fantasma.
+antes de declarar iconografía en ModuleCatalog o metadata equivalente, validar existencia real del componente Blade.
 
 Regla:
 
-si se publica un flag visual, debe implementarse en la vista final o eliminarse del contrato.
+no declarar íconos inexistentes.
 
-PUBLICAR CATÁLOGO NO ES OPERAR COMERCIALMENTE
+RECLASIFICAR SIN LIMPIAR LEGACY NO CIERRA LA RECONVERSIÓN
 
-Una tienda pública puede mostrar catálogo sin habilitar todavía compra, saldo, fichas, QR, pago ni carrito.
-
-Caso vigente:
-
-self_service_sales muestra catálogo publicado inicial mediante SelfServiceShop y SelfServiceShopItem.
-
-Lección:
-
-la publicación visual de productos no debe confundirse con operación comercial real.
-
-Reglas:
-
-publicar producto no equivale a vender
-
-publicar producto no mueve stock
-
-publicar producto no crea documento
-
-publicar producto no habilita carrito
-
-activar tienda no habilita operación comercial completa
-
-catálogo publicado no habilita operación comercial
-
-operation_enabled = false mantiene bloqueada la operación comercial
-
-NO MEZCLAR ADMINISTRACIÓN INTERNA DE TIENDA CON PLANO CUSTOMER
-
-Una capa satélite con entrada pública puede tener administración interna, pero ambos planos deben permanecer estrictamente separados.
+Una pieza puede ser reclasificada correctamente a nivel conceptual, pero quedar mal cerrada si conviven indefinidamente rutas, modelos, support o vistas de la clasificación anterior.
 
 Caso vigente:
 
-self_service_sales tiene plano externo customer y administración interna de tienda.
+administración interna de tienda fue reclasificada como módulo estándar shops.
 
-Plano externo:
+Lectura correcta:
 
-/tienda
-/tienda/seleccionar
-/shop/{tenant:slug}
-/tienda/salir
-SelfServiceExternalSession
-ResolveSelfServiceExternalCustomer
+/shops
+shops.*
+Shop
+ShopItem
 
-Plano interno:
+Lectura que no debe quedar como cierre estable:
 
+/self-service/shops
 self_service_sales.shops.*
 SelfServiceShop
 SelfServiceShopItem
-TenantProfileAccess::canManageSelfServiceSales()
 
 Lección:
 
-la existencia de sesión externa mínima no autoriza gestión interna.
+una reclasificación conceptual exige limpiar o migrar los contratos visibles y técnicos asociados.
 
-Reglas:
+Regla:
 
-customer externo no administra tienda
+no cerrar reconversiones con convivencia estable entre patrón nuevo y patrón legacy.
 
-SelfServiceExternalSession no autoriza self_service_sales.shops.*
+UNA CAPA EXTERNA NO DEBE APROPIARSE DE ADMINISTRACIÓN INTERNA
 
-ResolveSelfServiceExternalCustomer no autoriza self_service_sales.shops.*
-
-/shop/{tenant:slug} no es administración interna
-
-/self-service/shops... no es tienda pública
-
-NO USAR ENTIDADES SATÉLITE COMO REEMPLAZO DEL MÓDULO DUEÑO
-
-Una entidad auxiliar de capa satélite puede representar una publicación, configuración o relación específica, pero no reemplaza al módulo dueño del dato base.
+Una capa satélite externa puede consumir datos configurados internamente, pero no debe convertirse en dueña de la administración interna de esa entidad si corresponde a un módulo estándar.
 
 Caso vigente:
 
-SelfServiceShopItem publica productos en tienda.
+self_service_sales consume catálogo publicado por shops.
 
-Product conserva catálogo maestro.
+shops administra internamente Shop y ShopItem.
 
 Lección:
 
-la publicación satélite no debe absorber catálogo, stock, documento ni operación.
+consumir una publicación no equivale a administrar la entidad publicada.
 
-Reglas:
+Regla:
 
-SelfServiceShop no reemplaza Tenant
+si la entidad pertenece al plano interno estándar, debe operar con rutas, permisos, Policy, navegación y vistas internas estándar.
 
-SelfServiceShopItem no reemplaza Product
+VISTA PREVIA INTERNA NO ES BYPASS DEL PLANO EXTERNO
 
-self_service_sales no redefine catálogo maestro
-
-Products conserva ownership de productos
-
-Inventory conserva ownership de stock
-
-Documents conserva ownership documental
-
-NO PROMETER EN UI ACCIONES NO OPERABLES
-
-La UI puede anticipar una capacidad futura solo si deja claro que no está operativa.
+Una preview interna debe permitir diagnóstico del resultado publicado sin convertir al usuario interno en customer externo.
 
 Caso vigente:
 
-botón deshabilitado de operación en preparación dentro del catálogo publicado inicial.
+/shops/{shop}/preview
 
 Lección:
 
-la claridad visual evita ambigüedad operativa y reduce falsas expectativas.
+la vista previa interna no debe abrir directamente /shop/{tenant:slug} como si fuera pantalla interna.
 
 Reglas:
 
-si compra no existe, no mostrar compra como acción disponible
+autorizar preview como recurso interno
 
-si pago no existe, no mostrar pago como acción disponible
+no requerir sesión externa customer
 
-si saldo no existe, no mostrar saldo como operativo
+no crear sesión externa artificial
 
-si QR no existe, no mostrar consumo QR como operativo
+no saltar separación entre plano interno y externo
 
-si operación está bloqueada, debe expresarse como bloqueada o pendiente
+CATÁLOGO VISIBLE NO SIGNIFICA OPERACIÓN COMERCIAL
+
+La publicación de catálogo permite visibilidad comercial inicial.
+
+No habilita por sí misma compra, pago, saldo, fichas, QR, carrito, órdenes, documentos ni movimientos de stock.
+
+Caso vigente:
+
+self_service_sales muestra catálogo publicado inicial consumido desde shops.
+
+Lección:
+
+la UI no debe prometer operación transaccional si solo existe publicación.
+
+Reglas:
+
+Shop activo ≠ operación comercial completa
+
+ShopItem publicado ≠ venta
+
+catálogo publicado ≠ compra
+
+customer externo activo ≠ operación habilitada
+
+operation_enabled = false bloquea operación comercial
+
+NO ASUMIR PERMISOS COMPLETOS POR NAVEGACIÓN VISIBLE
+
+Un módulo puede aparecer en navegación y fallar luego por Security si su contrato de permisos está incompleto.
+
+Caso detectado:
+
+RolePermissionResolver::canUseModule() podía habilitar navegación mientras Security::allows() bloqueaba shops.viewAny por falta de scopes definidos.
+
+Lección:
+
+navegación visible no cierra contrato de seguridad.
+
+Regla:
+
+todo módulo estándar debe alinear permisos, matriz de roles y scopes compatibles con Security antes de considerarse integrado.
 
 <<END SECTION>>

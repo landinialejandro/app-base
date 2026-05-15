@@ -44,7 +44,7 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ESTRUCTURA GENERAL DE PÁGINA
 
@@ -115,9 +115,9 @@ Regla:
 
 una vista pública externa debe expresar claramente que pertenece al plano público/externo y no al panel interno del tenant.
 
-Base esperada para administración interna de tienda:
+Base esperada para administración interna de shops:
 
-la administración interna de self_service_sales debe usar estructura interna estándar del sistema.
+la administración interna de shops debe usar estructura interna estándar del sistema.
 
 Debe respetar:
 
@@ -132,7 +132,7 @@ autorización preparada desde backend
 
 Caso vigente:
 
-resources/views/self-service-sales/shops/...
+resources/views/shops/...
 
 Lectura:
 
@@ -143,6 +143,33 @@ No son tienda pública.
 No son vistas customer.
 
 No deben usar experiencia visual pública si administran configuración interna.
+
+Regla:
+
+la administración interna de shops no debe resolverse como pantalla pública ni como vista self_service_sales customer.
+
+Base esperada para vista previa interna de Shop:
+
+la vista previa interna debe usar formato de pantalla interna.
+
+Debe mostrar:
+
+resumen de la tienda
+artículos configurados
+diagnóstico de visibilidad pública efectiva
+motivo cuando un artículo no sería visible públicamente
+
+Ruta vigente:
+
+/shops/{shop}/preview
+
+Reglas:
+
+la vista previa interna no debe abrir /shop/{tenant:slug} como si fuera vista interna
+
+la vista previa interna no debe requerir sesión externa customer
+
+la vista previa interna no debe crear bypass entre plano interno y plano externo
 
 Regla adicional para landing pública:
 
@@ -189,7 +216,7 @@ resources/views/landing
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00030
 
 COMPONENTES DISPONIBLES
 
@@ -241,6 +268,23 @@ activity
 changes
 lock
 unlock
+box
+
+Regla:
+
+antes de asignar un ícono de módulo en ModuleCatalog o metadata equivalente, debe verificarse que exista el componente Blade correspondiente en:
+
+resources/views/components/icons
+
+No debe declararse un ícono inexistente.
+
+Un ícono inexistente puede romper dashboard/navbar cuando se renderiza con x-dynamic-component.
+
+Caso vigente:
+
+shops usa box.
+
+No usar building-storefront si no existe como componente disponible.
 
 Uso vigente de íconos de actividad:
 
@@ -450,7 +494,7 @@ los partials compactos de ProductOperationalSummary no requieren x-dev-component
 
 Caso vigente adicional:
 
-las pantallas internas de administración de tienda de self_service_sales deben evaluar x-dev-component-version cuando sean vistas, cards o bloques con entidad visual propia.
+las pantallas internas de administración de shops deben evaluar x-dev-component-version cuando sean vistas, cards o bloques con entidad visual propia.
 
 Si son vistas internas principales, deben seguir la estructura visual estándar:
 
@@ -637,67 +681,7 @@ el partial no reconstruye historia operativa
 
 el partial no interpreta metadata.changes directamente
 
-el partial representa datos ya resueltos por la lectura general o contextual de OperationalActivity
-
-el partial puede utilizarse para lectura general tenant-scoped y lectura contextual asociada a un record host autorizado cuando el payload recibido sea compatible
-
-el partial puede representar change_summary y change_details cuando una pieza de presentación los haya preparado previamente
-
-Pieza de presentación vigente:
-
-OperationalActivityChangePresenter
-
-Responsabilidad:
-
-transformar cambios persistidos en payload visual legible para la tabla.
-
-La vista no debe interpretar reglas de campos ni JSON operativo.
-
-Criterio visual para ProductOperationalSummary:
-
-ProductOperationalSummary debe representarse como métricas compactas contextuales dentro del show-summary de products.show.
-
-La salida visual vigente se organiza en tres summary_items:
-
-Compras
-Ventas
-Entradas / salidas
-
-Regla:
-
-estos summary_items representan payload ya preparado.
-
-No deben calcular métricas.
-
-No deben consultar permisos.
-
-No deben reconstruir Orders, Inventory ni Parties desde Blade.
-
-No deben usar OperationalActivity como fuente principal de métricas.
-
-No deben duplicar datos que ya pertenecen al summary principal o a surfaces existentes.
-
-Precio vigente permanece como dato propio del producto en el summary principal.
-
-Último movimiento permanece como lectura de Inventory y detalle disponible en tab Movimientos.
-
-Por eso el tercer summary_item vigente debe ser Entradas / salidas, no Último movimiento.
-
-Vistas compactas vigentes de la subcapa:
-
-resources/views/products/operational-summary/purchases-summary.blade.php
-resources/views/products/operational-summary/sales-summary.blade.php
-resources/views/products/operational-summary/inventory-flow-summary.blade.php
-
-Regla final:
-
-los componentes representan payload preparado.
-
-No autorizan.
-
-No consultan datos críticos.
-
-No reconstruyen reglas del dominio.
+el partial representa datos ya resueltos por la lectura general o contextual correspondiente
 
 <<END SECTION>>
 
@@ -1291,7 +1275,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -1401,6 +1385,31 @@ El host debe consumir filas ya resueltas por la capa de lectura correspondiente.
 Partial reusable vigente:
 
 resources/views/tenants/partials/operational-activity-table.blade.php
+
+Aclaración vigente para shops.show:
+
+shops.show debe respetar el patrón de host visual interno mediante:
+
+x-show-summary
+x-host-tabs
+
+El show de Shop representa administración interna del módulo shops.
+
+No representa tienda pública customer.
+
+No debe abrir /shop/{tenant:slug} como si fuera vista interna.
+
+La vista previa interna debe accederse mediante:
+
+/shops/{shop}/preview
+
+Reglas:
+
+la vista previa interna no requiere sesión externa customer
+
+la vista previa interna no convierte al usuario interno en customer externo
+
+la vista previa interna debe mostrar diagnóstico de publicación sin crear bypass entre plano interno y plano externo
 
 <<END SECTION>>
 
@@ -1639,7 +1648,7 @@ No debe hacer parecer obligatorio un vínculo que doctrinalmente es opcional.
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 TABS INTERNAS DEL EMBEBIDO
 
@@ -1681,10 +1690,29 @@ cuando un bloque embebido comparte gramática entre módulos, puede utilizar x-t
 
 Este componente puede mostrar métricas principales y métricas secundarias mediante subvalue, siempre que la segunda lectura sea contextual y de menor jerarquía visual.
 
+Caso vigente:
+
+el tab embebido de artículos en shops.show puede segmentar ShopItems por estado de publicación.
+
+Segmentos vigentes:
+
+Todos
+Publicados
+Borradores
+Ocultos
+
+Acción contextual vigente:
+
+Agregar artículo
+
+Regla:
+
+la segmentación interna de ShopItems no debe crear tabs principales nuevas del host ni alterar return_tab del show principal.
+
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -1702,58 +1730,72 @@ Acciones frecuentes:
 
 crear
 editar
-eliminar
+ver detalle
 volver
-abrir relación vinculada
-crear relacionado contextual
-acciones rápidas por fila
-micro-operaciones locales en modal
+cancelar
+guardar
+eliminar
+activar
+desactivar
+previsualizar
+abrir relación contextual
 
-Regla adicional UX:
+Reglas adicionales:
 
-si el sistema puede resolver una intención mediante fallback sano, la UI no debe bloquear innecesariamente al usuario.
+no usar acciones por fila por reflejo
 
-Caso consolidado:
+no usar botones textuales por fila si existen acciones icon-only del sistema
 
-en tasks, no seleccionar colaborador explícito puede resolverse asignando al usuario actual.
+no duplicar el acceso al detalle si el dato principal ya funciona como link
 
-La interfaz debe acompañar ese comportamiento con copy claro y consistente.
+no aumentar protagonismo visual de acciones secundarias
 
-Regla adicional para componentes linked:
+no mostrar como acción disponible una operación comercial no implementada
 
-la decisión de readonly, apertura o visibilidad debe venir resuelta desde el módulo oferente.
+no mostrar tienda pública como administración interna
 
-El componente visual solo representa el estado contractual recibido.
+Caso vigente:
 
-Regla adicional para show pages:
+shops.index debe priorizar:
 
-las acciones contextuales dentro de una show page deben aparecer donde nace la intención del usuario.
+filtro por nombre
+filtro por estado
+detalle desde link en el nombre
+sin botones de acción por fila
 
-Regla adicional para ficha ampliada:
+Caso vigente adicional:
 
-la acción Más datos debe leerse como acción contextual de apertura de información ampliada.
+acciones por fila de ShopItem deben usar botones de herramienta por ícono.
 
-Si existe ficha vinculada, debe abrir lectura mediante parties.show.
+Componentes esperados:
 
-No debe llevar directamente a edición.
+x-button-tool
+x-button-tool-submit
 
-Si no existe ficha vinculada, no debe crearla silenciosamente.
+Íconos esperados:
 
-Debe existir confirmación explícita antes de crear o vincular la ficha ampliada.
-
-Regla adicional para parties:
-
-la acción visual o el campo que permite marcar relación Colaborador debe mostrarse solo cuando corresponda al estado autorizado o bloqueado del recurso.
-
-Si la party está bloqueada por membership activa, la opción puede mostrarse como lectura protegida con ayuda contextual.
-
-Si el usuario no está autorizado para asignar employee, la opción no debe presentarse como acción disponible.
+x-icons.pencil
+x-icons.trash
 
 Regla:
 
-la ocultación o bloqueo visual no constituye autorización.
+en tablas embebidas, las acciones secundarias deben mantenerse compactas y subordinadas al contenido principal.
 
-El backend debe seguir validando la operación.
+Caso vigente adicional:
+
+el botón del show de Shop debe decir:
+
+Vista previa
+
+Debe apuntar a la vista previa interna:
+
+/shops/{shop}/preview
+
+No debe abrir directamente:
+
+/shop/{tenant:slug}
+
+como si fuera vista interna.
 
 <<END SECTION>>
 

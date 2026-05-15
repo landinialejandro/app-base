@@ -88,7 +88,7 @@ Contrato compacto = formato principal.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00036
+SECTION_VERSION: 00037
 
 [PRINCIPIOS]
 Simplicidad.
@@ -135,6 +135,7 @@ Universo semántico no absorbe ownership.
 Capa satélite no absorbe ownership.
 Entrada pública no absorbe plano interno.
 Customer externo no absorbe administración interna.
+Capa satélite externa no se apropia de la administración interna de un módulo estándar.
 
 [INTEGRACIÓN]
 Consumidor solicita.
@@ -292,7 +293,8 @@ ProductLineItemSelector
 Regla:
 Products ofrece selección/validación.
 Orders/Documents administran sus ítems.
-self_service_sales administra publicaciones propias.
+shops administra publicaciones propias.
+self_service_sales consume publicaciones vigentes.
 Consumidores no reconstruyen Product::query(), products.viewAny ni Rule::exists('products') si existe selector oficial.
 
 [SERVICIOS TRANSVERSALES]
@@ -482,6 +484,7 @@ No depender de controller para completar obligatorios.
 No aceptar payload legacy silencioso.
 No crear datos inválidos.
 Poblar snapshots si no pasa por controller.
+No usar modelos legacy si la reclasificación conceptual ya definió modelos vigentes nuevos.
 
 [SUBCAPAS INTERNAS]
 Capacidad contextual dentro de módulo host.
@@ -521,6 +524,10 @@ operación comercial
 Caso:
 parties.kind = person/company.
 party_roles.role = customer/supplier/employee/other.
+
+Caso:
+shops = configuración interna de tienda.
+self_service_sales = consumo externo customer.
 
 [CONSTRAINTS]
 Constraint opera sobre dimensión real del dominio.
@@ -581,19 +588,47 @@ Separar intención IA de proveedor IA.
 No asumir API paga ni proveedor único.
 
 [CAPAS SATÉLITE]
-Capa satélite orquesta módulos.
+Capa satélite orquesta o consume módulos.
 No CRUD ordinario por reflejo.
 No absorbe ownership.
 No reabre módulos cerrados por reflejo.
+No administra internamente un módulo estándar que solo debe consumir.
 
 Casos:
 Servicios y Mantenimiento = /service sobre Orders group=service.
 Shopping Autoservicio = /shop/{tenant:slug} plano externo self_service_sales.
+self_service_sales consume catálogo publicado por shops.
 
 Detalle funcional de capas satélite pertenece a documentos especializados.
 
+[SHOPS]
+shops = módulo interno estándar del tenant.
+Administra configuración interna de tiendas y artículos publicados.
+
+Rutas internas vigentes:
+shops.*
+
+Path interno vigente:
+/shops
+
+Modelos vigentes:
+Shop
+ShopItem
+
+Tablas vigentes:
+self_service_shops
+self_service_shop_items
+
+Reglas:
+Shop no reemplaza Tenant.
+ShopItem no reemplaza Product.
+Shop publicado no habilita operación comercial completa.
+ShopItem publicado no mueve stock.
+ShopItem publicado no equivale a venta.
+ShopItem publicado no crea Orders, Documents ni InventoryMovements.
+
 [SELF_SERVICE_SALES]
-self_service_sales = capa satélite comercial autogestiva.
+self_service_sales = capa satélite comercial autogestiva externa.
 
 Distinguir:
 registro externo
@@ -603,8 +638,7 @@ selección externa
 sesión externa mínima
 middleware externo pasivo
 tienda pública
-administración interna de tienda
-publicación de productos
+consumo de catálogo publicado
 operación comercial futura
 
 Reglas:
@@ -612,22 +646,10 @@ customer externo ≠ User
 customer externo ≠ Membership
 SelfServiceCustomerAccount ≠ User
 SelfServiceStoreCustomer ≠ Membership
-SelfServiceShop ≠ Tenant
-SelfServiceShopItem ≠ Product
 SelfServiceExternalSession ≠ sesión interna
 SelfServiceExternalSession ≠ autorización interna
 ResolveSelfServiceExternalCustomer ≠ autorización obligatoria
-
-[ADMINISTRACIÓN INTERNA DE TIENDA]
-Rutas internas self_service_sales.shops.* pertenecen al plano interno.
-Requieren User, Membership, tenant activo y autorización backend.
-
-No autoriza:
-customer externo
-sesión externa mínima
-middleware externo pasivo
-/shop/{tenant:slug}
-/tienda
+self_service_sales ≠ administración interna de shops
 
 [PUBLICACIÓN DE PRODUCTOS]
 Publicar producto no equivale a vender.
@@ -635,6 +657,7 @@ Publicar producto no mueve stock.
 Publicar producto no crea documento.
 Publicar producto no habilita carrito.
 Activar tienda no habilita operación comercial completa.
+Catálogo publicado no habilita operación comercial completa.
 
 [CSS / COMPONENTES / JS]
 No usar componentes Blade inexistentes.
@@ -647,13 +670,23 @@ app-linked-select-sync
 
 JS no decide permisos ni consistencia crítica.
 
+[ICONOGRAFÍA]
+No declarar íconos inexistentes.
+Antes de usar un ícono en ModuleCatalog o metadata equivalente, validar componente real en:
+resources/views/components/icons
+
+Caso:
+shops usa box.
+
+No usar building-storefront si no existe.
+
 [REGLA FINAL]
 Convención válida = regla repetible de implementación que evita acoplamiento, legacy, ambigüedad o duplicación.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CAPAS SATÉLITE, UNIVERSOS Y ENTRADAS PÚBLICAS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 [USO]
 Convenciones para capacidades que no deben leerse como CRUD ordinario.
@@ -664,10 +697,12 @@ universos semánticos
 frentes contextuales
 entradas públicas externas
 administraciones internas de capas satélite
+configuraciones internas consumidas por capas externas
 
 [CAPA SATÉLITE]
 Puede:
 orquestar módulos existentes
+consumir módulos existentes
 tener universo propio
 tener rutas propias
 tener dashboard mínimo
@@ -686,6 +721,7 @@ mezclar plano interno y externo
 usar controllers internos si el flujo pertenece a otro plano
 usar controllers externos si el flujo pertenece al plano interno
 crear módulos/rutas/tablas por simetría visual
+apropiarse de la administración interna de un módulo estándar que solo consume
 
 [SERVICIO Y MANTENIMIENTO]
 Tipo = capa satélite productiva ERP/CMMS liviana.
@@ -739,7 +775,7 @@ Entrada pública = /shop/{tenant:slug}.
 Entrada general = /tienda.
 Visible = Tienda.
 Plano externo = customer.
-Plano interno = administración autorizada de tienda.
+Plano interno = administración interna estándar cuando corresponda a módulos internos consumidos.
 
 Reglas:
 self_service_sales ≠ CRUD ordinario.
@@ -751,148 +787,101 @@ Customer externo ≠ Membership.
 Customer externo ≠ roles internos.
 Customer externo ≠ panel interno.
 Customer externo ≠ administrador de tienda.
+self_service_sales consume catálogo publicado por shops.
+self_service_sales no administra internamente shops.
 
-[ADMINISTRACIÓN INTERNA SELF_SERVICE_SALES]
-Puede existir administración interna para configurar la tienda del tenant.
+[SHOPS COMO CONFIGURACIÓN INTERNA CONSUMIDA]
+Tipo = módulo interno estándar del tenant.
+Path interno = /shops.
+Route names = shops.*.
 
+Modelos vigentes:
+Shop
+ShopItem
+
+Tablas vigentes:
+self_service_shops
+self_service_shop_items
+
+Lectura:
+shops configura catálogo interno publicable.
+self_service_sales consume publicación externa.
+Shop no reemplaza Tenant.
+ShopItem no reemplaza Product.
+
+Reglas:
+shops pertenece al plano interno auth + tenant.
+shops requiere permisos estándar shops.*.
+shops no pertenece al plano externo customer.
+/shops no es tienda pública.
+/shops/{shop}/preview es vista previa interna.
+/shop/{tenant:slug} es tienda pública externa.
+
+[ADMINISTRACIÓN INTERNA DE SHOPS]
 Rutas internas vigentes:
-self_service_sales.shops.*
+shops.*
 
 Path interno vigente:
-/self-service/shops...
-
-Entidades vigentes:
-SelfServiceShop
-SelfServiceShopItem
-
-Servicios vigentes:
-SelfServiceShopPublisher
+/shops
 
 Autorización vigente:
-TenantProfileAccess::canManageSelfServiceSales()
+Security / Policy / permisos shops.*
 
 Reglas:
 administración interna ≠ tienda pública
-administración interna ≠ operación customer
-administración interna ≠ operación comercial real
-SelfServiceShop ≠ Tenant
-SelfServiceShopItem ≠ Product
-customer externo no administra tienda
-SelfServiceExternalSession no autoriza self_service_sales.shops.*
-ResolveSelfServiceExternalCustomer no autoriza self_service_sales.shops.*
+administración interna ≠ vista customer
+administración interna ≠ sesión externa
+administración interna ≠ middleware externo pasivo
+customer externo no opera shops.*
+la vista previa interna no debe crear bypass hacia el plano externo
+la vista previa interna debe autorizarse como acceso interno al recurso
 
-[ENTRADA PÚBLICA EXTERNA]
-/shop/{tenant:slug}:
-no navegación principal interna
-no grupo auth + tenant
-resuelve tenant por slug público
-no convierte visitante en User
-no convierte customer en Membership
-no otorga roles internos
-no habilita dashboard/tenant/profile/parties.show/rutas internas
+[PUBLICACIÓN CONSUMIDA POR SELF_SERVICE_SALES]
+self_service_sales puede consumir Shop activa y ShopItems publicables.
 
-Rutas públicas iniciales:
-GET /shop/{tenant:slug}
-GET /shop/{tenant:slug}/register
-POST /shop/{tenant:slug}/register
-GET /shop/{tenant:slug}/register/thanks
-GET /shop/{tenant:slug}/register/confirm/{token}
+Visibilidad pública efectiva de item:
 
-[FORMULARIOS EXTERNOS]
-Usar contrato propio del plano externo.
+shop.status = active
+item.status = published
+item.is_visible = true
+product.is_active = true
+producto pertenece al mismo tenant
+
+Reglas:
+una Shop activa puede no tener ítems visibles públicamente
+un ShopItem configurado puede no ser visible si está oculto, en borrador, no publicado o asociado a producto inactivo
+catálogo visible no habilita operación comercial
+catálogo visible no habilita compra
+catálogo visible no mueve stock
+catálogo visible no crea Orders, Documents ni InventoryMovements
+
+[REGISTRO EXTERNO SELF_SERVICE_SALES]
+Entrada externa ≠ login interno.
+Registro externo ≠ invitation.
+Confirmación de email ≠ operación comercial.
+Credencial externa ≠ Fortify interno.
+Sesión externa mínima ≠ guard definitivo.
+Middleware externo pasivo ≠ autorización obligatoria.
+
+[REGLA DE RECLASIFICACIÓN]
+Si una pieza fue reclasificada como módulo interno estándar, deben migrarse rutas, modelos, namespaces, supports, vistas, navegación, permisos y documentación hacia la nueva lectura.
+
+No cerrar con convivencia indefinida.
 
 Caso:
-StoreSelfServiceCustomerRegistrationRequest
-
-No usar como contrato externo:
-StorePartyRequest
-PartyController
-TenantMembershipPartyController
-InvitationAcceptanceController
-Fortify interno
-
-Regla:
-StorePartyRequest puede servir solo como referencia de campos.
-
-[VALIDACIONES EXTERNAS]
-Backend valida:
-tenant
-token
-estado
-vencimiento
-duplicados
-datos mínimos
-relación customer-tienda
-operación habilitada cuando corresponda
-
-Duplicados:
-bloquear si existe cualquier Party del tenant con mismo email, teléfono o DNI.
-No limitar a customer.
-
-[SESIÓN EXTERNA]
-Namespace:
-self_service_sales.*
-
-No usar:
-Auth::login()
-Fortify interno
-session('tenant_id')
-User
-Membership
-roles internos
-
-No habilita:
-panel interno
-dashboard
-tenant/profile
-parties.show
-operación comercial completa
-administración interna de tienda
-
-[MIDDLEWARE EXTERNO PASIVO]
-ResolveSelfServiceExternalCustomer:
-resuelve contexto externo si existe sesión externa mínima válida.
-No bloquea visitantes.
-No exige login.
-No autoriza operación.
-No convierte tienda pública en ruta privada.
-No reemplaza guard externo definitivo.
-
-[PUBLICACIÓN DE TIENDA]
-SelfServiceShop configura la tienda.
-SelfServiceShopItem publica productos activos.
-Publicación ≠ venta.
-Publicación ≠ stock.
-Publicación ≠ carrito.
-Publicación ≠ pago.
-Publicación ≠ documento.
-Activación ≠ operación comercial completa.
-
-[PLANOS]
-Plano interno:
-User
-Membership
-tenant activo
-Security
-TenantProfileAccess
+No dejar como estado vigente:
+self_service_sales.shops.*
+/self-service/shops
 SelfServiceShop
 SelfServiceShopItem
+administración interna de tienda bajo self_service_sales
 
-Plano externo:
-SelfServiceCustomerAccount
-SelfServiceStoreCustomer
-SelfServiceStoreSelectionToken
-SelfServiceExternalSession
-/shop/{tenant:slug}
-/tienda
-customer externo
-
-Regla:
-no cruzar planos sin contrato explícito.
-
-[REGLA FINAL]
-Una capa satélite puede tener rutas, entidades y pantallas.
-Eso no la convierte por defecto en módulo CRUD ordinario ni le transfiere ownership de módulos existentes.
+Usar:
+shops.*
+/shops
+Shop
+ShopItem
+App\Support\Shops cuando corresponda
 
 <<END SECTION>>
 
@@ -2072,7 +2061,7 @@ Policy no inventa permisos; consume el contrato central.
 <<END SECTION>>
 
 <<SECTION: REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 [USO]
 La UI no debe mostrar accesos que el usuario no puede usar realmente.
@@ -2085,6 +2074,7 @@ navegación principal debe resolverse desde catálogo/acceso cuando exista capa 
 no hardcodear módulos navegables si el sistema puede resolver catálogo + acceso efectivo.
 entrada pública externa no equivale a navegación interna.
 administración interna de una capa satélite no equivale a consumo público externo.
+administración interna de un módulo estándar no debe mostrarse como si perteneciera al plano externo.
 
 [LISTADOS]
 view_any controla listado/dataset.
@@ -2113,8 +2103,23 @@ navbar no copia breadcrumb.
 [CONTEXTO]
 Si hay navegación contextual, módulo activo puede resolverse por origen funcional, no solo pantalla hoja.
 
+[ICONOGRAFÍA]
+La navegación puede consumir iconografía desde metadata modular.
+
+Reglas:
+
+no declarar íconos inexistentes
+
+no resolver iconografía localmente si existe metadata modular
+
+validar existencia real del componente en resources/views/components/icons
+
+Caso:
+
+shops usa box.
+
 [CAPAS SATÉLITE]
-Una capa satélite puede tener entrada pública, universo funcional o administración interna.
+Una capa satélite puede tener entrada pública, universo funcional o consumo de módulos existentes.
 
 La UI debe distinguir:
 
@@ -2136,6 +2141,30 @@ no mostrar selector externo como tenants/select
 
 no mostrar salida externa como logout interno
 
+no mostrar consumo externo de catálogo como administración interna
+
+[SHOPS]
+shops es módulo interno estándar.
+
+Rutas internas:
+
+/shops
+shops.*
+
+Vista previa interna:
+
+/shops/{shop}/preview
+
+Reglas:
+
+/shops no es tienda pública
+
+/shops/{shop}/preview no es /shop/{tenant:slug}
+
+/shops/{shop}/preview no requiere sesión externa customer
+
+shops debe aparecer en dashboard/navbar como módulo estándar cuando corresponda
+
 [SELF_SERVICE_SALES]
 La entrada pública Tienda corresponde al plano externo customer.
 
@@ -2148,12 +2177,6 @@ Las rutas públicas:
 
 no deben aparecer como navegación interna ordinaria del tenant.
 
-Las rutas internas:
-
-self_service_sales.shops.*
-
-pertenecen al plano interno autorizado.
-
 Reglas:
 
 customer externo no ve rutas internas
@@ -2164,7 +2187,9 @@ ResolveSelfServiceExternalCustomer no habilita accesos internos
 
 /shop/{tenant:slug} no abre administración de tienda
 
-/self-service/shops... no es tienda pública
+self_service_sales consume catálogo publicado por shops
+
+self_service_sales no administra internamente shops
 
 [CATÁLOGO PUBLICADO]
 La UI puede mostrar catálogo publicado inicial en tienda pública.
@@ -2177,33 +2202,17 @@ si no hay compra implementada, no mostrar compra como acción disponible
 
 si no hay pago implementado, no mostrar pago como acción disponible
 
-si no hay saldo operativo, no mostrar saldo como disponible
+si no hay carrito implementado, no mostrar carrito como acción disponible
 
-si no hay QR operativo, no mostrar QR como disponible
+si operation_enabled = false, comunicar operación pendiente o bloqueada según corresponda
 
-si la operación está bloqueada, mostrar estado pendiente o bloqueado
-
-si una acción futura se anticipa visualmente, debe estar deshabilitada y expresarse como no operativa
-
-[GESTIONES COMPLEMENTARIAS]
-Una entrada en dashboard o navbar interno solo corresponde si:
-
-hay usuario interno autenticado
-hay tenant activo
-hay autorización backend efectiva
-la acción pertenece al plano interno
-la UI no promete operación no disponible
-
-Caso vigente previsto:
-
-entrada Tienda en gestiones complementarias o menú interno para administración de self_service_sales.
-
-Regla:
-
-esa entrada debe llevar al frente interno autorizado, no a /tienda ni a /shop/{tenant:slug}, salvo que la intención explícita sea abrir vista pública.
+si un item no aparece públicamente, diagnosticar visibilidad efectiva antes de asumir problema de permisos
 
 [REGLA FINAL]
-La UI expresa acceso real; no crea acceso.
+UI visible ≠ autorización.
+Acción visible ≠ operación disponible.
+Catálogo visible ≠ compra habilitada.
+Preview interna ≠ sesión externa customer.
 
 <<END SECTION>>
 

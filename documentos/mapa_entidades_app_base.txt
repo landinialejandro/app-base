@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -64,12 +64,15 @@ projects → tasks
 tasks → orders mediante tasks.order_id cuando exista vínculo operativo
 appointments → orders mediante appointments.order_id cuando exista vínculo operativo
 orders → documents mediante documents.order_id cuando exista derivación documental
+shops → shop_items
+shop_items → products
 
 Relaciones transversales relevantes:
 
 orders → inventory mediante hooks, líneas y capacidades oficiales cuando corresponda
 documents → inventory mediante hooks, líneas y capacidades oficiales cuando corresponda
 products → order_items y document_items mediante selector/capacidad oficial de Products
+products → shop_items mediante publicación interna de tienda
 módulos operativos → operational_activities
 módulo funcional → activity_record_set opcional → OperationalActivityContextReader
 módulo funcional → activity_context opcional → OperationalActivityContextReader
@@ -370,11 +373,118 @@ Orders administra sus propios order_items.
 
 Documents administra sus propios document_items.
 
-self_service_sales administra sus propias publicaciones de tienda.
+shops administra sus propios shop_items.
+
+self_service_sales consume la publicación vigente.
 
 OrderItemController y DocumentItemController no deben reconstruir internamente Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial.
 
-SelfServiceShopItem puede tomar productos activos mediante selector oficial o capacidad equivalente de Products.
+ShopItem puede tomar productos activos mediante selector oficial o capacidad equivalente de Products.
+
+Aclaración operativa de Shops:
+
+Shops es un módulo interno estándar del tenant.
+
+Modelo vigente:
+
+App\Models\Shop
+
+Tabla vigente:
+
+self_service_shops
+
+ShopItem es entidad hija del módulo shops.
+
+Modelo vigente:
+
+App\Models\ShopItem
+
+Tabla vigente:
+
+self_service_shop_items
+
+Relación conceptual vigente:
+
+Tenant
+↓
+Shop
+↓
+ShopItem
+↓
+Product
+
+Lectura:
+
+Shop representa configuración interna de tienda del tenant.
+
+ShopItem representa producto publicado dentro de una tienda concreta.
+
+Shop no reemplaza Tenant.
+
+ShopItem no reemplaza Product.
+
+Product conserva catálogo maestro.
+
+shops configura la publicación comercial interna.
+
+self_service_sales consume el catálogo publicado por shops en el plano externo customer.
+
+Regla:
+
+shops no pertenece al plano externo customer.
+
+self_service_sales no debe apropiarse de la administración interna de Shop ni ShopItem.
+
+Tablas existentes pueden conservar nombre físico self_service_* si la reclasificación conceptual ya migró a modelos internos estándar.
+
+Regla de compatibilidad:
+
+mantener tabla existente no implica conservar modelo, ruta o namespace legacy.
+
+Modelos legacy eliminados como lectura vigente:
+
+SelfServiceShop
+SelfServiceShopItem
+
+Relación con self_service_sales:
+
+self_service_sales puede consumir Shop activa y ShopItems publicables.
+
+self_service_sales no reemplaza shops.
+
+self_service_sales no administra internamente shops.
+
+Condición vigente:
+
+puede haber múltiples Shops por tenant.
+
+Solo una Shop activa debe operar como publicación vigente para el plano externo.
+
+Visibilidad pública efectiva de un ShopItem:
+
+shop.status = active
+item.status = published
+item.is_visible = true
+product.is_active = true
+producto pertenece al mismo tenant
+
+Reglas:
+
+un Shop activo no habilita operación comercial completa
+
+un ShopItem publicado no mueve stock
+
+un ShopItem publicado no equivale a venta
+
+un ShopItem publicado no crea Orders
+
+un ShopItem publicado no crea Documents
+
+un ShopItem publicado no crea InventoryMovements
+
+un ShopItem publicado no habilita fichas ni QR
+
+una Shop activa puede tener artículos configurados pero no visibles públicamente si los ShopItems están ocultos, en borrador, no publicados o asociados a producto inactivo
 
 Aclaración operativa de numeración:
 
@@ -784,15 +894,19 @@ SelfServiceStoreCustomer
 ↓
 Tenant
 
-Relación de tienda interna:
+Relación vigente entre módulo interno y capa externa:
 
 Tenant
 ↓
-SelfServiceShop
+Shop
 ↓
-SelfServiceShopItem
+ShopItem
 ↓
 Product
+↓
+self_service_sales consume publicación vigente
+↓
+/shop/{tenant:slug}
 
 Ruta pública tenant-scoped vigente:
 
@@ -808,19 +922,21 @@ Selector externo vigente:
 
 Administración interna vigente:
 
-/self-service/shops...
+/shops
 
 Rutas internas vigentes:
 
-self_service_sales.shops.*
+shops.*
 
-Key técnica:
+Key técnica de capa externa:
 
 self_service_sales
 
 Lectura:
 
 Shopping Autoservicio es una capa satélite comercial autogestiva por tenant.
+
+shops es el módulo interno estándar que configura el catálogo publicable.
 
 SelfServiceCustomerAccount representa la identidad externa global del customer.
 
@@ -864,13 +980,13 @@ self_service_customer_registrations.party_id se completa al confirmar.
 
 SelfServiceCustomerRegistration representa una solicitud o registro inicial de ingreso a tienda, no una cuenta externa definitiva.
 
-SelfServiceShop representa la cabecera/configuración interna de una tienda del tenant.
+Shop representa la cabecera/configuración interna de una tienda del tenant.
 
-SelfServiceShop no reemplaza Tenant.
+Shop no reemplaza Tenant.
 
-SelfServiceShopItem representa un producto publicado en una tienda.
+ShopItem representa un producto publicado en una tienda.
 
-SelfServiceShopItem no reemplaza Product.
+ShopItem no reemplaza Product.
 
 Publicar un producto no implica venta.
 
@@ -878,7 +994,7 @@ Publicar un producto no mueve stock.
 
 Activar una tienda no habilita operación comercial completa.
 
-La administración interna de tienda pertenece al plano interno autorizado.
+La administración interna de shops pertenece al plano interno autorizado.
 
 La tienda pública pertenece al plano externo controlado.
 
@@ -894,8 +1010,7 @@ selección externa de tienda
 sesión externa mínima
 middleware externo pasivo
 tienda pública visible
-administración interna inicial de tienda
-publicación inicial de productos activos
+consumo de catálogo publicado por shops
 
 No implementado como operación comercial real:
 
@@ -916,19 +1031,19 @@ SelfServiceCustomerAccount no debe mezclarse con users
 
 SelfServiceStoreCustomer no debe mezclarse con memberships
 
-SelfServiceShop no debe mezclarse con tenant/profile
+Shop no debe mezclarse con tenant/profile
 
-SelfServiceShopItem no debe mezclarse con products como catálogo maestro
+ShopItem no debe mezclarse con products como catálogo maestro
 
-customer externo no administra SelfServiceShop
+customer externo no administra Shop
 
-customer externo no administra SelfServiceShopItem
+customer externo no administra ShopItem
 
-sesión externa mínima no autoriza self_service_sales.shops.*
+sesión externa mínima no autoriza shops.*
 
 /shop/{tenant:slug} no es administración interna
 
-/self-service/shops... no es tienda pública
+/shops no es tienda pública
 
 <<END SECTION>>
 

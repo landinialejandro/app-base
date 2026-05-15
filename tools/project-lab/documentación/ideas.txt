@@ -1,0 +1,3 @@
+cambia el area de documetnación del proyecto a projectLab
+inlcuido la interfaz humana de visualizacion y edicion
+codex que genere direcamtne la actualizacionde documentación

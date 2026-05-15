@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -525,6 +525,7 @@ reemplazo de Products
 reemplazo de Inventory
 reemplazo de Documents
 reemplazo de Security
+administración interna de shops
 
 Universo público tenant-scoped vigente:
 
@@ -550,7 +551,83 @@ Label visible:
 
 Tienda
 
-Cierre parcial consolidado:
+Módulo interno estándar relacionado:
+
+shops
+
+Lectura vigente:
+
+shops configura catálogo interno publicable.
+
+self_service_sales consume catálogo publicado por shops.
+
+Cierre consolidado de reclasificación:
+
+shops fue reclasificado como módulo interno estándar del tenant.
+
+Queda completado:
+
+creación de Shop
+creación de ShopItem
+creación de ShopPolicy
+incorporación de shops a ModuleCatalog
+incorporación de permisos shops.*
+incorporación de scopes shops.*
+creación de rutas /shops
+creación de CRUD interno
+creación de tabs de artículos
+creación de vista previa interna
+migración del consumo externo hacia lectura de catálogo publicado por shops
+actualización de Dashboard y Navbar
+migración de seeders demo relacionados
+eliminación de rutas legacy self_service_sales.shops.*
+eliminación de archivos legacy de administración interna self_service_sales.shops.*
+ajustes visuales del index y show
+
+Rutas internas vigentes de administración:
+
+/shops
+
+Nombres de ruta vigentes:
+
+shops.index
+shops.create
+shops.store
+shops.show
+shops.edit
+shops.update
+shops.destroy
+shops.activate
+shops.preview
+shops.items.create
+shops.items.store
+shops.items.edit
+shops.items.update
+shops.items.destroy
+
+Modelos vigentes:
+
+Shop
+ShopItem
+
+Tablas vigentes:
+
+self_service_shops
+self_service_shop_items
+
+Regla:
+
+conservar el nombre físico de tablas self_service_* no implica conservar modelos, rutas, support ni vistas legacy.
+
+No queda como lectura vigente:
+
+/self-service/shops
+self_service_sales.shops.*
+SelfServiceShop
+SelfServiceShopItem
+administración interna de shops bajo self_service_sales
+
+Cierre parcial consolidado previo:
 
 implementación inicial de Shopping Autoservicio / self_service_sales como capa satélite comercial autogestiva.
 
@@ -575,354 +652,115 @@ tab interna Clientes Tienda dentro de tenant/profile
 filtro visual por estado en lectura interna
 incorporación visual de Tienda en landing pública
 validación de no creación de User ni Membership
-validación runtime de alta externa sin membership
-validación runtime de no uso de Fortify interno
-validación runtime de no acceso al panel interno
+validación runtime de alta externa
 
-Corte operativo adicional consolidado:
+Corte operativo vigente adicional:
 
-implementación inicial de arquitectura de identidad externa de self_service_sales.
+cuenta externa customer implementada
+relación customer-tienda implementada
+credencial externa propia implementada
+token temporal de selección implementado
+selector externo de tiendas implementado
+POST /tienda/seleccionar consume token mediante used_at
+POST /tienda/seleccionar redirige a /shop/{tenant:slug}
+SelfServiceExternalSession implementa sesión externa mínima namespaced
+/shop/{tenant:slug} puede mostrar customer externo activo si la sesión externa corresponde al tenant de la ruta
+ResolveSelfServiceExternalCustomer implementado como middleware externo pasivo para /shop/{tenant:slug}
+finalización de registro externo implementada
+creación de contraseña externa implementada
+identity_stage operational_identity_completed implementado
+access_enabled implementado
+operation_enabled false hasta habilitación manual
+habilitación manual desde tenant/profile implementada
+canOperate true con operation_enabled true
+catálogo publicado inicial consumido desde shops
+/shop/{tenant:slug} muestra catálogo publicado inicial
 
-Implementado y validado:
+El middleware externo pasivo:
 
-SelfServiceCustomerAccount como cuenta externa customer
-SelfServiceStoreCustomer como relación customer-tienda
-SelfServiceStoreSelectionToken como token temporal de selección
-credencial externa propia en SelfServiceCustomerAccount
-POST /tienda conectado a credencial externa propia
-GET /tienda/seleccionar visible por token temporal
-selector externo de tiendas por token temporal
-
-Corte operativo del selector externo consolidado:
-
-POST /tienda/seleccionar ya ejecuta selección mínima de tienda externa.
-
-Implementado y validado:
-
-acción mínima de selección externa de tienda
-validación de token temporal
-validación de token vencido
-validación de token usado
-validación de store_customer_id
-validación de pertenencia del store_customer a la cuenta del token
-validación de relación customer-tienda
-validación de store_customer.status = active
-marcado de SelfServiceStoreSelectionToken.used_at
-redirección a /shop/{tenant:slug}
-aviso de operación pendiente cuando operation_enabled = false
-errores genéricos para todos los fallos del selector
-pruebas negativas del selector externo
-
-Casos negativos validados:
-
-token ausente
-token inválido
-token usado
-token vencido
-store_customer_id no numérico
-store_customer_id ajeno a la cuenta del token
-store_customer bloqueado
-
-Resultado esperado de fallos del selector:
-
-redirect_path = /tienda
-redirect_ok = true
-generic_error_ok = true
-
-Corte operativo de sesión externa mínima consolidado:
-
-self_service_sales ya cuenta con sesión externa mínima namespaced.
-
-Pieza vigente:
-
-SelfServiceExternalSession
-
-Implementado y validado:
-
-inicio de sesión externa mínima al seleccionar tienda válida
-uso de namespace propio self_service_sales.*
-lectura de customer externo activo en /shop/{tenant:slug} cuando la sesión corresponde al tenant de la ruta
-acción “Cambiar tienda o cuenta externa” desde tienda pública
-retorno a /tienda para nuevo acceso externo
-POST /tienda/salir como salida externa
-limpieza de claves self_service_sales.* al salir
-salida externa sin invalidar toda la sesión Laravel
-salida externa sin cerrar sesión interna si existiera
-salida externa sin limpiar session('tenant_id') por reflejo
-
-Corte operativo de middleware externo pasivo consolidado:
-
-Pieza vigente:
-
-ResolveSelfServiceExternalCustomer
-
-Implementado y validado:
-
-middleware externo pasivo para /shop/{tenant:slug}
-resolución de contexto externo solo si existe sesión externa mínima válida
-validación de correspondencia entre sesión externa y tenant público de la ruta
-payload externo compartido en request para vista pública
-tienda pública visible como visitante si no existe sesión externa
-tienda pública visible como visitante si la sesión externa corresponde a otro tenant
-
-Reglas vigentes:
-
+resuelve contexto customer externo cuando la sesión corresponde al tenant público de la ruta
+comparte payload externo en request
 no bloquea visitantes públicos
-no exige login externo
+no exige login externo para ver /shop/{tenant:slug}
 no convierte /shop/{tenant:slug} en ruta privada
 no habilita operación comercial
-no usa Auth
-no escribe session('tenant_id')
-no crea User
-no crea Membership
 no reemplaza guard externo definitivo
 no reemplaza middleware externo definitivo de autorización obligatoria
-
-Corte operativo de finalización de registro externo consolidado:
-
-Implementado y validado:
-
-finalización de registro externo
-completado de identidad operativa
-creación de contraseña externa
-flujo de finalización posterior a confirmación de email
-identity_stage = operational_identity_completed
-access_enabled
-operation_enabled = false hasta habilitación manual
-canOperate() solo verdadero con operación habilitada
-operación bloqueada luego de completar identidad mientras no exista habilitación interna
-validación de no creación de User
-validación de no creación de Membership
-validación de no acceso interno
-
-Lectura vigente:
-
-puede ingresar ≠ puede operar
-
-Confirmar email no habilita operación comercial completa.
-
-Completar identidad operativa no habilita operación comercial completa.
-
-Crear contraseña externa no habilita operación comercial completa.
-
-Validar credencial externa no habilita operación comercial completa.
-
-Seleccionar tienda no habilita operación comercial completa.
-
-Iniciar sesión externa mínima no habilita operación comercial completa.
-
-Corte operativo de habilitación manual consolidado:
-
-Implementado y validado:
-
-habilitación manual desde tenant/profile / Clientes Tienda
-operation_enabled como columna operativa fuente de verdad
-operation_enabled no duplicado en meta como estado operativo
-operation_enabled = false hasta decisión interna
-operation_enabled = true habilita canOperate()
-trazabilidad mínima en meta de habilitación manual
-
-Metadata operativa de habilitación manual:
-
-operation_enabled_source = tenant_profile_manual
-operation_enabled_by_user_id
-operation_enabled_at
+no toca session('tenant_id')
+no usa Auth
+no crea User
+no crea Membership
+si la sesión externa corresponde a otro tenant, la tienda se muestra como visitante
+si no existe sesión externa, la tienda se muestra como visitante
+cambio de tienda o cuenta externa disponible desde tienda pública
+POST /tienda/salir limpia la sesión externa
 
 Reglas vigentes:
 
-habilitar operación comercial externa es acción sensible interna
-
-requiere owner/admin según contrato vigente
-
-debe resolverse por backend
-
-no puede depender de UI
-
-no puede ejecutarla customer externo
-
-Corte operativo de catálogo publicado inicial consolidado:
-
-Implementado y validado:
-
-SelfServiceShop
-SelfServiceShopItem
-SelfServiceShopCatalogReader
-SelfServiceShopPublisher
-catálogo publicado inicial
-self_service_shop_id obligatorio en SelfServiceShopItem
-tienda activa por tenant
-/shop/{tenant:slug} muestra catálogo publicado inicial
-artículos visibles
-precio visible
-unidad
-botón deshabilitado de operación en preparación
-
-Estados vigentes de SelfServiceShop:
-
-draft
-active
-inactive
-
-No se incorpora archived porque se consideró redundante con inactive.
-
-Relación vigente:
-
-Tenant
-→ SelfServiceShop
-→ SelfServiceShopItem
-→ Product
-
-Reglas vigentes:
-
-SelfServiceShop representa cabecera/configuración de tienda
-
-SelfServiceShopItem representa producto publicado en una tienda
-
-SelfServiceShopItem siempre pertenece a SelfServiceShop
-
-Product conserva catálogo maestro
-
-SelfServiceShopItem no reemplaza Product
-
-publicar producto no mueve stock
-
-publicar producto no equivale a vender
-
-tienda activa no habilita operación comercial completa
-
-Visibilidad efectiva de artículo publicado:
-
-item.status = published
-item.is_visible = true
-shop.status = active
-product.is_active = true
-
-Estado operativo vigente de /shop/{tenant:slug}:
-
-puede mostrar tienda activa
-
-puede mostrar catálogo publicado inicial
-
-puede mostrar artículos visibles
-
-puede mostrar precio visible
-
-puede mostrar unidad
-
-puede mostrar botón deshabilitado de operación en preparación
-
-sigue sin generar operación comercial real
-
-Reglas vigentes:
-
-el customer externo no debe convertirse en User
-
-el customer externo no debe convertirse en Membership
-
-el customer externo no debe recibir roles internos
-
-el customer externo no debe acceder al panel interno
-
-SelfServiceCustomerAccount no debe reemplazar User
-
-SelfServiceStoreCustomer no debe reemplazar Membership
-
-SelfServiceStoreSelectionToken no debe reemplazar sesión interna
-
-SelfServiceExternalSession no debe reemplazar sesión interna
-
-SelfServiceExternalSession no debe reemplazar guard externo definitivo
-
-SelfServiceExternalSession no debe reemplazar tenant activo interno
-
-ResolveSelfServiceExternalCustomer no debe reemplazar guard externo definitivo
-
-ResolveSelfServiceExternalCustomer no debe reemplazar middleware externo definitivo de autorización obligatoria
-
-ResolveSelfServiceExternalCustomer no debe convertir /shop/{tenant:slug} en ruta privada
-
-self_service_sales no debe reutilizar PartyController para alta externa
-
-self_service_sales no debe reutilizar TenantMembershipPartyController para alta externa
-
-self_service_sales no debe reutilizar InvitationAcceptanceController para alta externa
-
-self_service_sales no debe reutilizar Fortify interno como login de customers externos
-
-self_service_sales no debe reutilizar tenants/select como selector externo de tiendas
-
-self_service_sales no debe usar Auth::login() para customer externo
-
-self_service_sales no debe escribir session('tenant_id') para sesión externa
-
-invitations no debe usarse para registro externo de customer
-
-self_service_customer_registrations conserva el registro externo pendiente antes de crear Party
-
-la confirmación por token debe validar token, estado, vencimiento y duplicados
-
-si existe una Party en el tenant con mismo email o teléfono, el alta autogestiva debe bloquearse
-
-si el flujo incluye DNI/document_number, también debe bloquearse ante duplicado por ese dato
-
-la confirmación de email no habilita operación comercial completa
-
-la validación de credencial externa propia no habilita operación comercial completa
-
-la selección de tienda no habilita operación comercial completa
-
-la sesión externa mínima no habilita operación comercial completa
-
-la resolución contextual pasiva no habilita operación comercial completa
-
-la redirección a /shop/{tenant:slug} no habilita operación comercial completa
-
-el token temporal de selección no equivale a sesión interna
-
-el token temporal se consume mediante used_at al seleccionar correctamente
-
-operation_enabled = false sigue bloqueando operación comercial
-
-el acceso externo debe usar mensajes genéricos ante fallas
-
-el selector externo debe usar mensaje genérico ante fallas
-
-la sesión externa debe usar mensaje genérico ante fallas
-
-no debe revelarse si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas, token ausente, token inválido, token vencido, token usado, store_customer_id manipulado, pertenencia de cuenta, relación bloqueada, sesión externa o estado no habilitado para operar
-
-No implementado todavía:
-
-administración interna UI de tienda
-selección transaccional
-compra
-pagos
+customer externo ≠ User
+customer externo ≠ Membership
+customer externo ≠ roles internos
+customer externo ≠ panel interno
+customer externo ≠ administrador de shops
+self_service_sales no reemplaza shops
+self_service_sales consume catálogo publicado por shops
+shops no pertenece al plano externo customer
+/shops no es tienda pública
+/shop/{tenant:slug} no es administración interna
+confirmar email no habilita operación comercial completa
+completar identidad operativa no habilita operación comercial completa
+crear contraseña externa no habilita operación comercial completa
+validar credencial externa propia no habilita operación comercial completa
+seleccionar tienda no habilita operación comercial completa
+iniciar sesión externa mínima no habilita operación comercial completa
+resolver contexto externo pasivo no habilita operación comercial completa
+ver catálogo publicado no habilita operación comercial completa
+operation_enabled = false bloquea operación comercial
+
+Estado todavía no implementado en self_service_sales:
+
+middleware externo definitivo de autorización obligatoria
+guard externo definitivo
+remember token externo
+recuperación real de contraseña
+cambio real de contraseña externa
 saldo operativo real
 fichas operativas
 QR operativo
+pagos reales
 movimientos comerciales reales
-órdenes generadas desde tienda
-documents generados desde tienda
-carrito
 Mercado Pago real
 facturación/comprobantes reales
-operación comercial completa
+carrito
+compra
+operación comercial real
 
-Pendientes estructurales próximos:
+Pendiente futuro no incluido en esta reforma:
 
-auditar si la administración interna UI de tienda debe cerrarse antes de avanzar a operación comercial
+definir operación comercial real sobre catálogo publicado.
 
-definir contrato de publicación visual de productos sin crear operación transaccional
+Debe resolver, si corresponde:
 
-definir contrato de carrito solo cuando exista decisión explícita
+selección/cantidad
+carrito
+compra
+pago
+saldo
+fichas
+QR
+Orders
+Documents
+InventoryMovements
+comprobantes
+integraciones externas
 
-definir contrato de saldo/fichas/QR antes de cualquier operación real
+Regla:
 
-definir si Documents participa en comprobantes futuros
+no implementar operación comercial real por inferencia a partir de catálogo publicado.
 
-definir si Inventory participa solo en minimercado o también en consumos por ficha
+Lavadero SA queda como tenant demo/base para pruebas reales de este frente.
 
-definir integración futura con Mercado Pago sin convertir app-base en intermediario financiero por defecto
+Cuenta demo multi-tienda disponible para validar selección/cambio de tienda.
 
 <<END SECTION>>
 

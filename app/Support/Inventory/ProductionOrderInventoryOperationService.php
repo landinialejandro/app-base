@@ -14,58 +14,82 @@ use InvalidArgumentException;
 
 class ProductionOrderInventoryOperationService
 {
-    public function executeLine(
-        Order $order,
-        OrderItem $item,
-        float|int|string $quantity,
-        ?string $notes = null,
-        int|string|null $createdBy = null,
-    ): array {
-        $this->validateProductionOrder($order);
-        $this->validateOrderItemRelation($order, $item);
-        $this->validateOrderOperable($order);
+public function executeLine(
+    Order $order,
+    OrderItem $item,
+    float|int|string $quantity,
+    ?string $notes = null,
+    int|string|null $createdBy = null,
+): array {
+    $this->validateProductionOrder($order);
+    $this->validateOrderItemRelation($order, $item);
+    $this->validateOrderOperable($order);
 
-        $item->loadMissing(['product']);
-        $product = $this->resolvePhysicalProduct($item);
-        $normalizedQuantity = $this->normalizeQuantity($quantity);
+    $item->loadMissing(['product']);
+    $product = $this->resolvePhysicalProduct($item);
+    $normalizedQuantity = $this->normalizeQuantity($quantity);
 
-        if ($normalizedQuantity <= 0) {
-            throw new InvalidArgumentException('La cantidad debe ser mayor a cero.');
+    if ($normalizedQuantity <= 0) {
+        throw new InvalidArgumentException('La cantidad debe ser mayor a cero.');
+    }
+
+    $statusService = app(OrderItemStatusService::class);
+    $pendingQuantity = $statusService->pendingQuantity($item);
+
+    if ($pendingQuantity <= 0) {
+        $statusService->recalculate($item);
+
+        throw new InvalidArgumentException('La línea ya no tiene cantidad pendiente.');
+    }
+
+    if ($normalizedQuantity > $pendingQuantity) {
+        throw new InvalidArgumentException('La cantidad supera el pendiente de la línea.');
+    }
+
+    $formalDecision = $this->formalStagedProductionDecision(
+        order: $order,
+        item: $item,
+        product: $product,
+        quantity: $normalizedQuantity,
+    );
+
+    if (($formalDecision['has_formal_flows'] ?? false) === true) {
+        if (($formalDecision['can_produce'] ?? false) !== true) {
+            throw new InvalidArgumentException(
+                $this->formalStagedProductionBlockerMessage($formalDecision)
+            );
         }
 
-        $statusService = app(OrderItemStatusService::class);
-        $pendingQuantity = $statusService->pendingQuantity($item);
-
-        if ($pendingQuantity <= 0) {
-            $statusService->recalculate($item);
-
-            throw new InvalidArgumentException('La línea ya no tiene cantidad pendiente.');
-        }
-
-        if ($normalizedQuantity > $pendingQuantity) {
-            throw new InvalidArgumentException('La cantidad supera el pendiente de la línea.');
-        }
-
-        $this->assertNoDoubleConsumptionRisk(
+        return $this->runFormalStagedProduction(
             order: $order,
             item: $item,
             product: $product,
             quantity: $normalizedQuantity,
-        );
-
-        return $this->runProductionMovement(
-            order: $order,
-            item: $item,
-            product: $product,
-            quantity: $normalizedQuantity,
-            outputKind: InventoryMovementService::KIND_INGRESAR,
-            componentKind: InventoryMovementService::KIND_CONSUMIR,
-            operationType: InventoryOperationCatalog::TYPE_ORDER_LINE_EXECUTE,
-            notes: $notes ?: 'Ejecución de producción.',
-            componentNotesPrefix: 'Consumo de componente por producción.',
+            notes: $notes ?: 'Ingreso de producción formal por etapas.',
             createdBy: $createdBy,
         );
     }
+
+    $this->assertNoDoubleConsumptionRisk(
+        order: $order,
+        item: $item,
+        product: $product,
+        quantity: $normalizedQuantity,
+    );
+
+    return $this->runProductionMovement(
+        order: $order,
+        item: $item,
+        product: $product,
+        quantity: $normalizedQuantity,
+        outputKind: InventoryMovementService::KIND_INGRESAR,
+        componentKind: InventoryMovementService::KIND_CONSUMIR,
+        operationType: InventoryOperationCatalog::TYPE_ORDER_LINE_EXECUTE,
+        notes: $notes ?: 'Ejecución de producción.',
+        componentNotesPrefix: 'Consumo de componente por producción.',
+        createdBy: $createdBy,
+    );
+}
 
     public function returnLineQuantity(
         Order $order,
@@ -301,5 +325,177 @@ class ProductionOrderInventoryOperationService
     protected function normalizeQuantity(float|int|string|null $value): float
     {
         return round((float) ($value ?? 0), 2);
+    }
+
+
+    protected function formalStagedProductionDecision(
+        Order $order,
+        OrderItem $item,
+        Product $product,
+        float $quantity,
+    ): array {
+        $balances = app(InventoryMaterialBalanceService::class)->productionComponentBalances(
+            order: $order,
+            item: $item,
+            producedProduct: $product,
+            quantity: $quantity,
+        );
+    
+        $materials = collect($balances['materials'] ?? []);
+    
+        if ($materials->isEmpty()) {
+            return [
+                'has_formal_flows' => false,
+                'can_produce' => false,
+                'component_balances' => $balances,
+                'materials' => [],
+                'insufficient_materials' => [],
+            ];
+        }
+    
+        $hasFormalFlows = $materials->contains(function (array $row) {
+            return ((int) ($row['flow_count'] ?? 0)) > 0
+                || ($row['consistency_status'] ?? null) === InventoryMaterialBalanceService::CONSISTENCY_FORMAL;
+        });
+    
+        if (! $hasFormalFlows) {
+            return [
+                'has_formal_flows' => false,
+                'can_produce' => false,
+                'component_balances' => $balances,
+                'materials' => $materials->all(),
+                'insufficient_materials' => [],
+            ];
+        }
+    
+        $insufficientMaterials = $materials
+            ->filter(function (array $row) {
+                $required = (float) ($row['required'] ?? 0);
+                $available = (float) ($row['available'] ?? 0);
+    
+                return ($row['is_reliable'] ?? false) !== true
+                    || ($row['consistency_status'] ?? null) !== InventoryMaterialBalanceService::CONSISTENCY_FORMAL
+                    || $available < $required;
+            })
+            ->values();
+    
+        return [
+            'has_formal_flows' => true,
+            'can_produce' => $insufficientMaterials->isEmpty(),
+            'component_balances' => $balances,
+            'materials' => $materials->all(),
+            'insufficient_materials' => $insufficientMaterials->all(),
+        ];
+    }
+
+
+    protected function formalStagedProductionBlockerMessage(array $decision): string
+    {
+        $materials = collect($decision['insufficient_materials'] ?? [])
+            ->map(function (array $row) {
+                $name = $row['product_name'] ?? ('Producto #'.($row['product_id'] ?? ''));
+                $required = number_format((float) ($row['required'] ?? 0), 2, ',', '.');
+                $available = number_format((float) ($row['available'] ?? 0), 2, ',', '.');
+    
+                return trim($name.' requerido '.$required.' disponible '.$available);
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->implode('; ');
+    
+        return 'La producción formal por etapas supera el material entregado disponible'
+            .($materials !== '' ? ': '.$materials : '.');
+    }
+
+
+    protected function runFormalStagedProduction(
+        Order $order,
+        OrderItem $item,
+        Product $product,
+        float $quantity,
+        string $notes,
+        int|string|null $createdBy = null,
+    ): array {
+        $movementService = app(InventoryMovementService::class);
+        $materialFlowService = app(InventoryMaterialFlowService::class);
+        $openOperationResolver = app(InventoryOpenOperationResolver::class);
+        $statusService = app(OrderItemStatusService::class);
+    
+        return DB::transaction(function () use (
+            $order,
+            $item,
+            $product,
+            $quantity,
+            $notes,
+            $createdBy,
+            $movementService,
+            $materialFlowService,
+            $openOperationResolver,
+            $statusService,
+        ) {
+            $operation = $openOperationResolver->resolve(
+                tenantId: $order->tenant_id,
+                operationType: InventoryOperationCatalog::TYPE_ORDER_LINE_EXECUTE,
+                originType: InventoryOriginCatalog::TYPE_ORDER,
+                originId: $order->id,
+                originLineType: InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+                originLineId: $item->id,
+                notes: $notes,
+                createdBy: $createdBy,
+            );
+    
+            $outputResult = $movementService->createForOrderItem(
+                order: $order,
+                item: $item,
+                product: $product,
+                kind: InventoryMovementService::KIND_INGRESAR,
+                quantity: $quantity,
+                notes: $notes,
+                createdBy: $createdBy,
+                operation: $operation,
+            );
+    
+            $componentResults = [];
+    
+            foreach ($this->physicalComponents($product) as $component) {
+                $componentProduct = $component->componentProduct;
+    
+                if (! $componentProduct) {
+                    continue;
+                }
+    
+                $componentQuantity = $this->normalizeQuantity(
+                    $quantity * (float) $component->quantity
+                );
+    
+                if ($componentQuantity <= 0) {
+                    continue;
+                }
+    
+                $componentResults[] = $materialFlowService->applyToOrderItem(
+                    order: $order,
+                    item: $item,
+                    product: $componentProduct,
+                    quantity: $componentQuantity,
+                    notes: 'Aplicación formal de componente por producción. Producto producido: '.$product->name,
+                    createdBy: $createdBy,
+                );
+            }
+    
+            $item->refresh();
+            $statusService->recalculate($item);
+    
+            return [
+                'operation' => $operation,
+                'movement' => $outputResult['movement'] ?? null,
+                'output_result' => $outputResult,
+                'component_results' => $componentResults,
+                'stock_after' => $outputResult['stock_after'] ?? null,
+                'negative_stock' => ($outputResult['negative_stock'] ?? false) === true,
+                'owner_alert_task' => $outputResult['owner_alert_task'] ?? null,
+                'formal_staged' => true,
+            ];
+        });
     }
 }

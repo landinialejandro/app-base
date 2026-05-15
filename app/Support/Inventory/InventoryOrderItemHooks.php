@@ -109,26 +109,69 @@ class InventoryOrderItemHooks
      *
      * Inventory informa si existen líneas físicas pendientes o parciales que impiden cerrar.
      */
-    public function hasCloseBlockers(Order $order): bool
-    {
-        $order->loadMissing('items.product');
+public function hasCloseBlockers(Order $order): bool
+{
+    $order->loadMissing('items.product');
 
-        return $order->items->contains(function ($item) {
-            $product = $item->product;
+    $hasLineBlockers = $order->items->contains(function ($item) {
+        $product = $item->product;
 
-            if (! $product || $product->kind !== 'product') {
-                return false;
-            }
+        if (! $product || $product->kind !== 'product') {
+            return false;
+        }
 
-            return ! in_array($item->status, [
-                OrderItemCatalog::STATUS_COMPLETED,
-                OrderItemCatalog::STATUS_CANCELLED,
-            ], true);
-        });
+        return ! in_array($item->status, [
+            OrderItemCatalog::STATUS_COMPLETED,
+            OrderItemCatalog::STATUS_CANCELLED,
+        ], true);
+    });
+
+    if ($hasLineBlockers) {
+        return true;
     }
+
+    return $this->hasMaterialCloseBlockers($order);
+}
 
     protected function normalizeQuantity(float|int|string|null $value): float
     {
         return round((float) ($value ?? 0), 2);
+    }
+
+
+    protected function hasMaterialCloseBlockers(Order $order): bool
+    {
+        $balance = app(InventoryMaterialBalanceService::class)->forOrder($order);
+    
+        foreach (($balance['items'] ?? []) as $itemBalance) {
+            foreach (($itemBalance['materials'] ?? []) as $material) {
+                $flowCount = (int) ($material['flow_count'] ?? 0);
+                $available = (float) ($material['available'] ?? 0);
+                $isAmbiguous = ($material['is_ambiguous'] ?? false) === true;
+                $status = (string) ($material['consistency_status'] ?? '');
+    
+                if ($flowCount <= 0) {
+                    continue;
+                }
+    
+                if ($available > 0) {
+                    return true;
+                }
+    
+                if ($available < 0) {
+                    return true;
+                }
+    
+                if ($status === InventoryMaterialBalanceService::CONSISTENCY_NOT_FORMALIZABLE) {
+                    return true;
+                }
+    
+                if ($isAmbiguous) {
+                    return true;
+                }
+            }
+        }
+    
+        return false;
     }
 }

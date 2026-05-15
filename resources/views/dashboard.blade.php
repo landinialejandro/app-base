@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/dashboard.blade.php | V11 --}}
+{{-- FILE: resources/views/dashboard.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -56,6 +56,27 @@
             'title' => 'Nueva orden de servicio',
             'text' => 'Crear una orden de servicio sin configurar el tipo manualmente',
             'meta' => 'Tipo Servicio preseleccionado',
+        ],
+    ])
+        ->where('can', true)
+        ->values();
+
+    $productionCards = collect([
+        [
+            'module' => ModuleCatalog::ORDERS,
+            'can' => $canViewProductionOrders ?? false,
+            'route' => route('production.index'),
+            'title' => 'Órdenes de producción',
+            'text' => 'Ver producción, recetas, entregas de materiales y cierres operativos',
+            'meta' => ($productionOrdersCount ?? 0) . ' órdenes de producción',
+        ],
+        [
+            'module' => ModuleCatalog::ORDERS,
+            'can' => $canCreateProductionOrders ?? false,
+            'route' => route('production.orders.create'),
+            'title' => 'Nueva orden de producción',
+            'text' => 'Crear una orden de producción sin configurar el tipo manualmente',
+            'meta' => 'Tipo Producción preseleccionado',
         ],
     ])
         ->where('can', true)
@@ -196,6 +217,41 @@
             </x-card>
         @endif
 
+        @if ($productionCards->isNotEmpty())
+            <x-card>
+                <div class="dashboard-section-header">
+                    <h2 class="dashboard-section-title">Producción</h2>
+                    <p class="dashboard-section-text">
+                        Acceso operativo a órdenes de producción, recetas y contrato material. Las órdenes siguen siendo
+                        gestionadas por Orders, con materiales desde Inventory y composición desde Products.
+                    </p>
+                </div>
+
+                <div class="dashboard-grid dashboard-grid--premium">
+                    @foreach ($productionCards as $card)
+                        @php
+                            $icon = ModuleCatalog::icon($card['module']);
+                        @endphp
+
+                        <a href="{{ $card['route'] }}"
+                            class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+                            <span class="dashboard-module-icon">
+                                <x-dynamic-component :component="'icons.' . $icon" />
+                            </span>
+
+                            <span class="dashboard-module-watermark">
+                                <x-dynamic-component :component="'icons.' . $icon" />
+                            </span>
+
+                            <span class="dashboard-link-title">{{ $card['title'] }}</span>
+                            <span class="dashboard-link-text">{{ $card['text'] }}</span>
+                            <span class="dashboard-link-meta">{{ $card['meta'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </x-card>
+        @endif
+
         @if ($managementCards->isNotEmpty())
             <x-card>
                 <div class="dashboard-section-header">
@@ -235,6 +291,6 @@
             ])
         @endif
 
-        <x-dev-component-version name="dashboard" version="V11" align="right" />
+        <x-dev-component-version name="dashboard" version="V12" align="right" />
     </x-page>
 @endsection

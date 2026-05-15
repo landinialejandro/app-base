@@ -87,6 +87,7 @@ class OrderNavigationTrail
         $trail = NavigationTrail::removeNodes($trail, [
             ['key' => 'orders.create', 'id' => 'new'],
             ['key' => 'service.orders.create', 'id' => 'new'],
+            ['key' => 'production.orders.create', 'id' => 'new'],
             ['key' => 'orders.edit', 'id' => $order->id],
             ['key' => 'orders.items.create', 'id' => $order->id],
             ['key' => 'orders.items.edit'],
@@ -174,41 +175,65 @@ class OrderNavigationTrail
         ]);
     }
 
-    public static function showRouteName(Request $request, ?array $trail = null): string
-    {
-        return self::usesServiceUniverse($request, $trail)
-            ? 'service.orders.show'
-            : 'orders.show';
+public static function showRouteName(Request $request, ?array $trail = null): string
+{
+    if (self::usesServiceUniverse($request, $trail)) {
+        return 'service.orders.show';
     }
 
-    public static function indexRouteName(Request $request, ?array $trail = null): string
-    {
-        return self::usesServiceUniverse($request, $trail)
-            ? 'service.orders.index'
-            : 'orders.index';
+    if (self::usesProductionUniverse($request, $trail)) {
+        return 'production.orders.show';
     }
 
-    protected static function routeNameForRequest(Request $request, string $action): string
-    {
-        if ($action === 'show') {
-            return self::showRouteName($request);
+    return 'orders.show';
+}
+
+public static function indexRouteName(Request $request, ?array $trail = null): string
+{
+    if (self::usesServiceUniverse($request, $trail)) {
+        return 'service.orders.index';
+    }
+
+    if (self::usesProductionUniverse($request, $trail)) {
+        return 'production.orders.index';
+    }
+
+    return 'orders.index';
+}
+
+protected static function routeNameForRequest(Request $request, string $action): string
+{
+    if ($action === 'show') {
+        return self::showRouteName($request);
+    }
+
+    if ($action === 'create') {
+        if (self::usesServiceUniverse($request)) {
+            return 'service.orders.create';
         }
 
-        if ($action === 'create') {
-            return self::usesServiceUniverse($request)
-                ? 'service.orders.create'
-                : 'orders.create';
+        if (self::usesProductionUniverse($request)) {
+            return 'production.orders.create';
         }
 
-        return 'orders.'.$action;
+        return 'orders.create';
     }
 
-    protected static function baseForRequest(Request $request): array
-    {
-        return self::usesServiceUniverse($request)
-            ? self::serviceOrdersBase()
-            : self::ordersBase();
+    return 'orders.'.$action;
+}
+
+protected static function baseForRequest(Request $request): array
+{
+    if (self::usesServiceUniverse($request)) {
+        return self::serviceOrdersBase();
     }
+
+    if (self::usesProductionUniverse($request)) {
+        return self::productionOrdersBase();
+    }
+
+    return self::ordersBase();
+}
 
     protected static function usesServiceUniverse(Request $request, ?array $trail = null): bool
     {
@@ -229,6 +254,39 @@ class OrderNavigationTrail
             }
         }
 
+        return false;
+    }
+
+
+    public static function productionOrdersBase(): array
+    {
+        return NavigationTrail::base([
+            NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+            NavigationTrail::makeNode('production.index', null, 'Producción', route('production.index')),
+            NavigationTrail::makeNode('production.orders.index', null, 'Órdenes de producción', route('production.orders.index')),
+        ]);
+    }
+
+
+    protected static function usesProductionUniverse(Request $request, ?array $trail = null): bool
+    {
+        if ($request->routeIs('production.orders.*')) {
+            return true;
+        }
+    
+        $trail = $trail ?? NavigationTrail::fromRequest($request);
+    
+        foreach (NavigationTrail::normalize($trail) as $node) {
+            if (in_array($node['key'] ?? null, [
+                'production.index',
+                'production.orders.index',
+                'production.orders.create',
+                'production.orders.show',
+            ], true)) {
+                return true;
+            }
+        }
+    
         return false;
     }
 }

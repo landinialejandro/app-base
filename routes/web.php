@@ -30,6 +30,7 @@ use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
 use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
 use App\Http\Controllers\SelfServiceStoreCustomerOperationController;
 use App\Http\Controllers\ServiceDashboardController;
+use App\Http\Controllers\ProductionDashboardController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopItemController;
 use App\Http\Controllers\SuperadminDashboardController;
@@ -304,6 +305,16 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Service universe
     Route::prefix('service')->name('service.')->group(function () {
         Route::get('/', [ServiceDashboardController::class, 'index'])->name('index');
+
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
+        Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    });
+
+    // Production universe
+    Route::prefix('production')->name('production.')->group(function () {
+        Route::get('/', [ProductionDashboardController::class, 'index'])->name('index');
 
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');

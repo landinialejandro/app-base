@@ -151,6 +151,22 @@ class DashboardController extends Controller
                 ->count()
             : null;
 
+        $canViewProductionOrders = $canAccessOrders;
+
+        $canCreateProductionOrders = $security->allows(
+            $user,
+            ModuleCatalog::ORDERS.'.create',
+            Order::class,
+            ['kind' => OrderCatalog::GROUP_PRODUCTION]
+        );
+
+        $productionOrdersCount = $canViewProductionOrders
+            ? $security
+                ->scope($user, ModuleCatalog::ORDERS.'.viewAny', Order::query())
+                ->where('group', OrderCatalog::GROUP_PRODUCTION)
+                ->count()
+            : null;
+
         $canSeeAnalytics = ($membership?->is_owner === true)
             || $security->allows($user, ModuleCatalog::DASHBOARD.'.viewAny');
 
@@ -174,6 +190,10 @@ class DashboardController extends Controller
             'canViewServiceOrders' => $canViewServiceOrders,
             'canCreateServiceOrders' => $canCreateServiceOrders,
             'serviceOrdersCount' => $serviceOrdersCount,
+
+            'canViewProductionOrders' => $canViewProductionOrders,
+            'canCreateProductionOrders' => $canCreateProductionOrders,
+            'productionOrdersCount' => $productionOrdersCount,
 
             'projectOverview' => [
                 'visible_projects_count' => $visibleProjectsCount,

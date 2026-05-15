@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/create.blade.php | V11 --}}
+{{-- FILE: resources/views/orders/create.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -7,9 +7,25 @@
 
     $groupLocked = $groupLocked ?? false;
     $isServiceContext = ($prefilledGroup ?? null) === OrderCatalog::GROUP_SERVICE;
-    $pageTitle = $isServiceContext ? 'Nueva orden de servicio' : 'Nueva orden';
-    $submitLabel = $isServiceContext ? 'Crear orden de servicio' : 'Crear orden';
-    $storeRouteName = $groupLocked && $isServiceContext ? 'service.orders.store' : 'orders.store';
+    $isProductionContext = ($prefilledGroup ?? null) === OrderCatalog::GROUP_PRODUCTION;
+
+    $pageTitle = match (true) {
+        $isServiceContext => 'Nueva orden de servicio',
+        $isProductionContext => 'Nueva orden de producción',
+        default => 'Nueva orden',
+    };
+
+    $submitLabel = match (true) {
+        $isServiceContext => 'Crear orden de servicio',
+        $isProductionContext => 'Crear orden de producción',
+        default => 'Crear orden',
+    };
+
+    $storeRouteName = match (true) {
+        $groupLocked && $isServiceContext => 'service.orders.store',
+        $groupLocked && $isProductionContext => 'production.orders.store',
+        default => 'orders.store',
+    };
 @endphp
 
 @section('title', $pageTitle)
@@ -20,9 +36,13 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $fallbackBackUrl = $groupLocked && $isServiceContext
-            ? route('service.orders.index')
-            : route('orders.index');
+
+        $fallbackBackUrl = match (true) {
+            $groupLocked && $isServiceContext => route('service.orders.index'),
+            $groupLocked && $isProductionContext => route('production.orders.index'),
+            default => route('orders.index'),
+        };
+
         $backUrl = NavigationTrail::previousUrl($navigationTrail, $fallbackBackUrl);
     @endphp
 
@@ -57,5 +77,5 @@
         </x-card>
     </x-page>
 
-    <x-dev-component-version name="orders.create" version="V11" align="right" />
+    <x-dev-component-version name="orders.create" version="V12" align="right" />
 @endsection

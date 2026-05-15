@@ -33,6 +33,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $this->authorizeServiceUniverse($request);
+        $this->authorizeProductionUniverse($request);
         $this->authorize('viewAny', Order::class);
 
         $security = app(Security::class);
@@ -87,63 +88,65 @@ class OrderController extends Controller
         ));
     }
 
-    public function create(Request $request)
-    {
-        $this->authorizeServiceUniverse($request);
+public function create(Request $request)
+{
+    $this->authorizeServiceUniverse($request);
+    $this->authorizeProductionUniverse($request);
 
-        $security = app(Security::class);
-        $user = auth()->user();
+    $security = app(Security::class);
+    $user = auth()->user();
 
-        $prefilledGroup = old('group', OrderCatalog::GROUP_SALE);
-        $prefilledKind = old('kind', OrderCatalog::KIND_STANDARD);
+    $prefilledGroup = old('group', OrderCatalog::GROUP_SALE);
+    $prefilledKind = old('kind', OrderCatalog::KIND_STANDARD);
 
-        $requestedGroup = $this->orderGroupFromRequest($request);
-        $requestedKind = (string) $request->get('kind', '');
+    $requestedGroup = $this->orderGroupFromRequest($request);
+    $requestedKind = (string) $request->get('kind', '');
 
-        if ($requestedGroup !== null) {
-            $prefilledGroup = $requestedGroup;
-        }
-
-        if ($requestedKind !== '' && in_array($requestedKind, array_keys(OrderCatalog::kindLabels()), true)) {
-            $prefilledKind = $requestedKind;
-        }
-
-        $security->authorize(
-            $user,
-            'orders.create',
-            Order::class,
-            ['kind' => $prefilledGroup]
-        );
-
-        $navigationTrail = OrderNavigationTrail::create($request);
-
-        $relationshipBoundary = $this->relationshipBoundaryForOrderForm(
-            request: $request,
-            order: null,
-            mode: 'create',
-            fieldDefaults: [
-                'party_id' => '',
-                'asset_id' => '',
-                'counterparty_reference' => '',
-                'group' => $prefilledGroup,
-                'kind' => $prefilledKind,
-            ],
-        );
-
-        $groupLocked = $this->isServiceUniverse($request);
-
-        return view('orders.create', compact(
-            'prefilledGroup',
-            'prefilledKind',
-            'navigationTrail',
-            'relationshipBoundary',
-            'groupLocked',
-        ));
+    if ($requestedGroup !== null) {
+        $prefilledGroup = $requestedGroup;
     }
+
+    if ($requestedKind !== '' && in_array($requestedKind, array_keys(OrderCatalog::kindLabels()), true)) {
+        $prefilledKind = $requestedKind;
+    }
+
+    $security->authorize(
+        $user,
+        'orders.create',
+        Order::class,
+        ['kind' => $prefilledGroup]
+    );
+
+    $navigationTrail = OrderNavigationTrail::create($request);
+
+    $relationshipBoundary = $this->relationshipBoundaryForOrderForm(
+        request: $request,
+        order: null,
+        mode: 'create',
+        fieldDefaults: [
+            'party_id' => '',
+            'asset_id' => '',
+            'counterparty_reference' => '',
+            'group' => $prefilledGroup,
+            'kind' => $prefilledKind,
+        ],
+    );
+
+    $groupLocked = $this->isServiceUniverse($request) || $this->isProductionUniverse($request);
+
+    return view('orders.create', compact(
+        'prefilledGroup',
+        'prefilledKind',
+        'navigationTrail',
+        'relationshipBoundary',
+        'groupLocked',
+    ));
+}
 
 public function store(Request $request)
 {
     $this->authorizeServiceUniverse($request);
+        $this->authorizeProductionUniverse($request);
 
     if ($this->isServiceUniverse($request)) {
         $request->merge([
@@ -248,7 +251,9 @@ public function store(Request $request)
     public function show(Request $request, Order $order)
     {
         $this->authorizeServiceUniverse($request);
+        $this->authorizeProductionUniverse($request);
         $this->abortUnlessServiceOrder($request, $order);
+        $this->abortUnlessProductionOrder($request, $order);
 
         $this->authorize('view', $order);
 
@@ -787,40 +792,44 @@ public function destroy(Request $request, Order $order)
         ];
     }
 
-    private function isServiceUniverse(Request $request): bool
-    {
-        return $request->routeIs('service.orders.*');
+private function isServiceUniverse(Request $request): bool
+{
+    return $request->routeIs('service.orders.*');
+}
+
+private function authorizeServiceUniverse(Request $request): void
+{
+    if (! $this->isServiceUniverse($request)) {
+        return;
     }
 
-    private function authorizeServiceUniverse(Request $request): void
-    {
-        if (! $this->isServiceUniverse($request)) {
-            return;
-        }
+    $tenant = app('tenant');
+    $user = auth()->user();
+    $security = app(Security::class);
 
-        $tenant = app('tenant');
-        $user = auth()->user();
-        $security = app(Security::class);
+    abort_unless(
+        TenantModuleAccess::isEnabled(ModuleCatalog::SERVICE_MAINTENANCE, $tenant)
+            && $security->allows($user, ModuleCatalog::SERVICE_MAINTENANCE.'.viewAny'),
+        403
+    );
+}
 
-        abort_unless(
-            TenantModuleAccess::isEnabled(ModuleCatalog::SERVICE_MAINTENANCE, $tenant)
-                && $security->allows($user, ModuleCatalog::SERVICE_MAINTENANCE.'.viewAny'),
-            403
-        );
+private function orderGroupFromRequest(Request $request): ?string
+{
+    if ($this->isServiceUniverse($request)) {
+        return OrderCatalog::GROUP_SERVICE;
     }
 
-    private function orderGroupFromRequest(Request $request): ?string
-    {
-        if ($this->isServiceUniverse($request)) {
-            return OrderCatalog::GROUP_SERVICE;
-        }
-
-        $group = (string) $request->get('group', '');
-
-        return $group !== '' && array_key_exists($group, OrderCatalog::groups())
-            ? $group
-            : null;
+    if ($this->isProductionUniverse($request)) {
+        return OrderCatalog::GROUP_PRODUCTION;
     }
+
+    $group = (string) $request->get('group', '');
+
+    return $group !== '' && array_key_exists($group, OrderCatalog::groups())
+        ? $group
+        : null;
+}
 
     private function abortUnlessServiceOrder(Request $request, Order $order): void
     {
@@ -829,5 +838,37 @@ public function destroy(Request $request, Order $order)
         }
 
         abort_unless($order->group === OrderCatalog::GROUP_SERVICE, 404);
+    }
+
+
+    private function isProductionUniverse(Request $request): bool
+    {
+        return $request->routeIs('production.orders.*');
+    }
+
+
+    private function authorizeProductionUniverse(Request $request): void
+    {
+        if (! $this->isProductionUniverse($request)) {
+            return;
+        }
+    
+        $user = auth()->user();
+        $security = app(Security::class);
+    
+        abort_unless(
+            $security->allows($user, ModuleCatalog::ORDERS.'.viewAny'),
+            403
+        );
+    }
+
+
+    private function abortUnlessProductionOrder(Request $request, Order $order): void
+    {
+        if (! $this->isProductionUniverse($request)) {
+            return;
+        }
+    
+        abort_unless($order->group === OrderCatalog::GROUP_PRODUCTION, 404);
     }
 }

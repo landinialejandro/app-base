@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php | V14 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V15 --}}
 
 @extends('layouts.app')
 
@@ -6,20 +6,51 @@
     use App\Support\Catalogs\OrderCatalog;
 
     $isServiceUniverse = $isServiceUniverse ?? request()->routeIs('service.orders.*');
-    $currentGroup = $isServiceUniverse ? OrderCatalog::GROUP_SERVICE : request('group');
+    $isProductionUniverse = $isProductionUniverse ?? request()->routeIs('production.orders.*');
+
+    $currentGroup = match (true) {
+        $isServiceUniverse => OrderCatalog::GROUP_SERVICE,
+        $isProductionUniverse => OrderCatalog::GROUP_PRODUCTION,
+        default => request('group'),
+    };
+
     $isServiceContext = $isServiceUniverse || $currentGroup === OrderCatalog::GROUP_SERVICE;
+    $isProductionContext = $isProductionUniverse || $currentGroup === OrderCatalog::GROUP_PRODUCTION;
 
-    $pageTitle = $isServiceContext ? 'Órdenes de servicio' : 'Órdenes';
-    $createLabel = $isServiceContext ? 'Nueva orden de servicio' : 'Nueva orden';
-    $emptyMessage = $isServiceContext ? 'No hay órdenes de servicio cargadas.' : 'No hay órdenes cargadas.';
+    $pageTitle = match (true) {
+        $isServiceContext => 'Órdenes de servicio',
+        $isProductionContext => 'Órdenes de producción',
+        default => 'Órdenes',
+    };
 
-    $breadcrumbItems = $isServiceUniverse
-        ? [
+    $createLabel = match (true) {
+        $isServiceContext => 'Nueva orden de servicio',
+        $isProductionContext => 'Nueva orden de producción',
+        default => 'Nueva orden',
+    };
+
+    $emptyMessage = match (true) {
+        $isServiceContext => 'No hay órdenes de servicio cargadas.',
+        $isProductionContext => 'No hay órdenes de producción cargadas.',
+        default => 'No hay órdenes cargadas.',
+    };
+
+    $breadcrumbItems = match (true) {
+        $isServiceUniverse => [
             ['label' => 'Inicio', 'url' => route('dashboard')],
             ['label' => 'Servicio y mantenimiento', 'url' => route('service.index')],
             ['label' => 'Órdenes de servicio'],
-        ]
-        : [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => $pageTitle]];
+        ],
+        $isProductionUniverse => [
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Producción', 'url' => route('production.index')],
+            ['label' => 'Órdenes de producción'],
+        ],
+        default => [
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => $pageTitle],
+        ],
+    };
 @endphp
 
 @section('title', $pageTitle)
@@ -30,16 +61,37 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Navigation\OrderNavigationTrail;
 
-        $indexRouteName = $isServiceUniverse ? 'service.orders.index' : 'orders.index';
-        $createRouteName = $isServiceUniverse ? 'service.orders.create' : 'orders.create';
-        $showRouteName = $isServiceUniverse ? 'service.orders.show' : 'orders.show';
+        $indexRouteName = match (true) {
+            $isServiceUniverse => 'service.orders.index',
+            $isProductionUniverse => 'production.orders.index',
+            default => 'orders.index',
+        };
 
-        $trailBase = $isServiceUniverse
-            ? OrderNavigationTrail::serviceOrdersBase()
-            : OrderNavigationTrail::ordersBase();
+        $createRouteName = match (true) {
+            $isServiceUniverse => 'service.orders.create',
+            $isProductionUniverse => 'production.orders.create',
+            default => 'orders.create',
+        };
+
+        $showRouteName = match (true) {
+            $isServiceUniverse => 'service.orders.show',
+            $isProductionUniverse => 'production.orders.show',
+            default => 'orders.show',
+        };
+
+        $trailBase = match (true) {
+            $isServiceUniverse => OrderNavigationTrail::serviceOrdersBase(),
+            $isProductionUniverse => OrderNavigationTrail::productionOrdersBase(),
+            default => OrderNavigationTrail::ordersBase(),
+        };
 
         $trailQuery = NavigationTrail::toQuery($trailBase);
-        $createGroup = $isServiceContext ? OrderCatalog::GROUP_SERVICE : $defaultCreateKind;
+
+        $createGroup = match (true) {
+            $isServiceContext => OrderCatalog::GROUP_SERVICE,
+            $isProductionContext => OrderCatalog::GROUP_PRODUCTION,
+            default => $defaultCreateKind,
+        };
     @endphp
 
     <x-page class="list-page">
@@ -48,7 +100,7 @@
 
         <x-page-header :title="$pageTitle">
             @if ($canCreateOrders)
-                <x-button-create :href="$isServiceUniverse
+                <x-button-create :href="$isServiceUniverse || $isProductionUniverse
                     ? route($createRouteName, $trailQuery)
                     : route($createRouteName, array_merge($trailQuery, ['group' => $createGroup]))" :label="$createLabel" />
             @endif
@@ -79,7 +131,7 @@
 
             <x-slot:secondary>
                 <div class="list-filters-grid">
-                    @unless ($isServiceUniverse)
+                    @unless ($isServiceUniverse || $isProductionUniverse)
                         <div class="form-group">
                             <label for="group" class="form-label">Tipo</label>
                             <select id="group" name="group" class="form-control">
@@ -119,5 +171,5 @@
 
     </x-page>
 
-    <x-dev-component-version name="orders.index" version="V14" align="right" />
+    <x-dev-component-version name="orders.index" version="V15" align="right" />
 @endsection

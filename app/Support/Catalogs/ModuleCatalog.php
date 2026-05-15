@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/ModuleCatalog.php | V7
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V9
 
 namespace App\Support\Catalogs;
 
@@ -30,6 +30,8 @@ class ModuleCatalog
     public const PARTIES = 'parties';
 
     public const PRODUCTS = 'products';
+
+    public const SHOPS = 'shops';
 
     public const INVENTORY = 'inventory';
 
@@ -112,6 +114,17 @@ class ModuleCatalog
                 'route' => 'products.index',
                 'active' => ['products.*'],
                 'order' => 20,
+            ],
+        ],
+
+        self::SHOPS => [
+            'label' => 'Tiendas',
+            'icon' => 'box',
+            'nav' => [
+                'group' => 'management',
+                'route' => 'shops.index',
+                'active' => ['shops.*'],
+                'order' => 23,
             ],
         ],
 

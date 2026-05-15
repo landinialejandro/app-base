@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/dashboard.blade.php | V10 --}}
+{{-- FILE: resources/views/dashboard.blade.php | V11 --}}
 
 @extends('layouts.app')
 
@@ -10,7 +10,6 @@
 
 @php
     use App\Support\Catalogs\ModuleCatalog;
-    use App\Support\Catalogs\OrderCatalog;
 
     $dailyCards = collect([
         [
@@ -94,6 +93,14 @@
             'title' => 'Productos',
             'text' => 'Ver y administrar productos y servicios',
             'meta' => $productsCount . ' productos',
+        ],
+        [
+            'module' => ModuleCatalog::SHOPS,
+            'can' => $canAccessShops,
+            'route' => route('shops.index'),
+            'title' => 'Tiendas',
+            'text' => 'Configurá las tiendas internas que publican catálogo hacia la tienda externa.',
+            'meta' => ($shopsCount ?? 0) . ' tiendas',
         ],
         [
             'module' => ModuleCatalog::INVENTORY,
@@ -228,6 +235,6 @@
             ])
         @endif
 
-        <x-dev-component-version name="dashboard" version="V10" align="right" />
+        <x-dev-component-version name="dashboard" version="V11" align="right" />
     </x-page>
 @endsection

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V11
+// FILE: app/Http/Controllers/DashboardController.php | V12
 
 namespace App\Http\Controllers;
 
@@ -10,6 +10,7 @@ use App\Models\Membership;
 use App\Models\Order;
 use App\Models\Party;
 use App\Models\Product;
+use App\Models\Shop;
 use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
@@ -123,6 +124,7 @@ class DashboardController extends Controller
         $canAccessTasks = $security->allows($user, ModuleCatalog::TASKS.'.viewAny');
         $canAccessProjects = $security->allows($user, ModuleCatalog::PROJECTS.'.viewAny');
         $canAccessProducts = $security->allows($user, ModuleCatalog::PRODUCTS.'.viewAny');
+        $canAccessShops = $security->allows($user, ModuleCatalog::SHOPS.'.viewAny');
         $canAccessDocuments = $security->allows($user, ModuleCatalog::DOCUMENTS.'.viewAny');
         $canAccessInventory = $security->allows($user, ModuleCatalog::INVENTORY.'.viewAny');
 
@@ -164,6 +166,7 @@ class DashboardController extends Controller
             'canAccessTasks' => $canAccessTasks,
             'canAccessProjects' => $canAccessProjects,
             'canAccessProducts' => $canAccessProducts,
+            'canAccessShops' => $canAccessShops,
             'canAccessDocuments' => $canAccessDocuments,
             'canAccessInventory' => $canAccessInventory,
 
@@ -192,23 +195,27 @@ class DashboardController extends Controller
             ],
 
             'partiesCount' => $canAccessParties
-                ? $security->scope($user, 'parties.viewAny', Party::query())->count()
+                ? $security->scope($user, ModuleCatalog::PARTIES.'.viewAny', Party::query())->count()
                 : null,
 
             'productsCount' => $canAccessProducts
-                ? $security->scope($user, 'products.viewAny', Product::query())->count()
+                ? $security->scope($user, ModuleCatalog::PRODUCTS.'.viewAny', Product::query())->count()
+                : null,
+
+            'shopsCount' => $canAccessShops
+                ? $security->scope($user, ModuleCatalog::SHOPS.'.viewAny', Shop::query())->count()
                 : null,
 
             'assetsCount' => $canAccessAssets
-                ? $security->scope($user, 'assets.viewAny', Asset::query())->count()
+                ? $security->scope($user, ModuleCatalog::ASSETS.'.viewAny', Asset::query())->count()
                 : null,
 
             'ordersCount' => $canAccessOrders
-                ? $security->scope($user, 'orders.viewAny', Order::query())->count()
+                ? $security->scope($user, ModuleCatalog::ORDERS.'.viewAny', Order::query())->count()
                 : null,
 
             'documentsCount' => $canAccessDocuments
-                ? $security->scope($user, 'documents.viewAny', Document::query())->count()
+                ? $security->scope($user, ModuleCatalog::DOCUMENTS.'.viewAny', Document::query())->count()
                 : null,
         ]);
     }

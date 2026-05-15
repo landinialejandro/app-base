@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/SelfServiceShopItem.php | V2
+// FILE: app/Models/ShopItem.php | V1
 
 namespace App\Models;
 
@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use InvalidArgumentException;
 
-class SelfServiceShopItem extends Model
+class ShopItem extends Model
 {
     use SoftDeletes;
     use TenantScoped;
@@ -18,6 +18,8 @@ class SelfServiceShopItem extends Model
     public const STATUS_DRAFT = 'draft';
     public const STATUS_PUBLISHED = 'published';
     public const STATUS_HIDDEN = 'hidden';
+
+    protected $table = 'self_service_shop_items';
 
     protected $fillable = [
         'tenant_id',
@@ -43,12 +45,14 @@ class SelfServiceShopItem extends Model
 
     protected static function booted(): void
     {
-        static::saving(function (SelfServiceShopItem $item): void {
+        static::saving(function (ShopItem $item): void {
+            $item->normalizePublicationState();
+
             if (! $item->self_service_shop_id || ! $item->tenant_id) {
-                throw new InvalidArgumentException('El artículo publicado debe pertenecer a una tienda de autoservicio.');
+                throw new InvalidArgumentException('El artículo publicado debe pertenecer a una tienda.');
             }
 
-            $shopBelongsToTenant = SelfServiceShop::query()
+            $shopBelongsToTenant = Shop::query()
                 ->whereKey($item->self_service_shop_id)
                 ->where('tenant_id', $item->tenant_id)
                 ->exists();
@@ -61,12 +65,12 @@ class SelfServiceShopItem extends Model
                 return;
             }
 
-            $belongsToTenant = Product::query()
+            $productBelongsToTenant = Product::query()
                 ->whereKey($item->product_id)
                 ->where('tenant_id', $item->tenant_id)
                 ->exists();
 
-            if (! $belongsToTenant) {
+            if (! $productBelongsToTenant) {
                 throw new InvalidArgumentException('El producto publicado debe pertenecer al tenant de la tienda.');
             }
         });
@@ -79,7 +83,7 @@ class SelfServiceShopItem extends Model
 
     public function shop(): BelongsTo
     {
-        return $this->belongsTo(SelfServiceShop::class, 'self_service_shop_id');
+        return $this->belongsTo(Shop::class, 'self_service_shop_id');
     }
 
     public function product(): BelongsTo
@@ -118,7 +122,7 @@ class SelfServiceShopItem extends Model
         return $this->product?->description;
     }
 
-    public function displayPrice(): ?string
+    public function displayPrice(): mixed
     {
         if ($this->usesProductPrice()) {
             return $this->product?->price;
@@ -129,7 +133,6 @@ class SelfServiceShopItem extends Model
 
     public function canBeShownInShop(): bool
     {
-        // Public catalog visibility is the intersection of item, shop, and product publication state.
         return $this->isPublished()
             && $this->isVisible()
             && $this->shop !== null
@@ -138,5 +141,18 @@ class SelfServiceShopItem extends Model
             && $this->product !== null
             && $this->product->tenant_id === $this->tenant_id
             && $this->product->is_active === true;
+    }
+
+    public function normalizePublicationState(): void
+    {
+        if ($this->status === self::STATUS_DRAFT || $this->status === self::STATUS_HIDDEN) {
+            $this->is_visible = false;
+
+            return;
+        }
+
+        if ($this->is_visible === true) {
+            $this->status = self::STATUS_PUBLISHED;
+        }
     }
 }

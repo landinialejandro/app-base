@@ -1,6 +1,6 @@
 <?php
 
-// FILE: routes/web.php | V5
+// FILE: routes/web.php | V6
 
 use App\Http\Controllers\AdminInvitationController;
 use App\Http\Controllers\AdminMetricsController;
@@ -18,18 +18,20 @@ use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PartyController;
-use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductComponentController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
+use App\Http\Controllers\SelfServiceCustomerIdentityCompletionController;
 use App\Http\Controllers\SelfServiceSalesAccessController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
 use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
-use App\Http\Controllers\SelfServiceCustomerIdentityCompletionController;
 use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
 use App\Http\Controllers\SelfServiceStoreCustomerOperationController;
 use App\Http\Controllers\ServiceDashboardController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\ShopItemController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TechnicalDocController;
@@ -278,6 +280,18 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+    // Shops
+    Route::get('shops/{shop}/preview', [ShopController::class, 'preview'])->name('shops.preview');
+    Route::resource('shops', ShopController::class);
+    Route::post('shops/{shop}/activate', [ShopController::class, 'activate'])->name('shops.activate');
+
+    Route::get('shops/{shop}/items/create', [ShopItemController::class, 'create'])->name('shops.items.create');
+    Route::post('shops/{shop}/items', [ShopItemController::class, 'store'])->name('shops.items.store');
+    Route::get('shops/{shop}/items/{item}/edit', [ShopItemController::class, 'edit'])->name('shops.items.edit');
+    Route::put('shops/{shop}/items/{item}', [ShopItemController::class, 'update'])->name('shops.items.update');
+    Route::delete('shops/{shop}/items/{item}', [ShopItemController::class, 'destroy'])->name('shops.items.destroy');
+
     // Assets
     Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
     Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');

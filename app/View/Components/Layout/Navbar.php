@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/View/Components/Layout/Navbar.php | V3
+// FILE: app/View/Components/Layout/Navbar.php | V4
 
 namespace App\View\Components\Layout;
 
@@ -49,7 +49,7 @@ class Navbar extends Component
                 return $resolver->canUseModule($link['module'], $tenant, $user);
             })
             ->map(function (array $link) {
-                if ($link['module'] === 'appointments') {
+                if ($link['module'] === ModuleCatalog::APPOINTMENTS) {
                     $link['label'] = 'Agenda';
                     $link['route'] = 'appointments.calendar';
                 }
@@ -69,16 +69,19 @@ class Navbar extends Component
         $this->activeModule = $context['active_module'] ?? null;
         $this->currentModule = $context['current_module'] ?? null;
 
-        $quickModules = ['appointments', 'parties', 'assets'];
+        $quickModules = [
+            ModuleCatalog::APPOINTMENTS,
+            ModuleCatalog::PARTIES,
+            ModuleCatalog::ASSETS,
+        ];
 
         $quickLinks = $this->orderedLinks($visibleLinks, $quickModules);
         $secondaryLinks = $visibleLinks
             ->reject(fn (array $link) => in_array($link['module'], $quickModules, true))
-            ->values()
-            ->all();
+            ->values();
 
         $this->quickLinks = $quickLinks->all();
-        $this->secondaryLinks = $secondaryLinks;
+        $this->secondaryLinks = $secondaryLinks->values()->all();
 
         $secondaryModules = collect($this->secondaryLinks)
             ->pluck('module')

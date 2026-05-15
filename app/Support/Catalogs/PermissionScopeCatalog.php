@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V13
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V14
 
 namespace App\Support\Catalogs;
 
@@ -53,6 +53,7 @@ class PermissionScopeCatalog
             ModuleCatalog::PARTIES,
             ModuleCatalog::ASSETS,
             ModuleCatalog::PRODUCTS,
+            ModuleCatalog::SHOPS,
             ModuleCatalog::DOCUMENTS,
             ModuleCatalog::ORDERS,
             ModuleCatalog::INVENTORY => static::sharedModuleOptionsFor($capability),

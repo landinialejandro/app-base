@@ -1,19 +1,19 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceShopCatalogReader.php | V2
+// FILE: app/Support/Shops/ShopPublishedCatalogReader.php | V1
 
-namespace App\Support\SelfServiceSales;
+namespace App\Support\Shops;
 
-use App\Models\SelfServiceShop;
-use App\Models\SelfServiceShopItem;
+use App\Models\Shop;
+use App\Models\ShopItem;
 use App\Models\Tenant;
 use Illuminate\Support\Collection;
 
-class SelfServiceShopCatalogReader
+class ShopPublishedCatalogReader
 {
-    public function activeShopForTenant(Tenant $tenant): ?SelfServiceShop
+    public function activeShopForTenant(Tenant $tenant): ?Shop
     {
-        return SelfServiceShop::query()
+        return Shop::query()
             ->where('tenant_id', $tenant->id)
             ->active()
             ->orderByDesc('published_at')
@@ -32,13 +32,13 @@ class SelfServiceShopCatalogReader
         return $this->visibleItemsForShop($shop);
     }
 
-    public function visibleItemsForShop(SelfServiceShop $shop): Collection
+    public function visibleItemsForShop(Shop $shop): Collection
     {
-        return SelfServiceShopItem::query()
+        return ShopItem::query()
             ->with('product')
             ->where('tenant_id', $shop->tenant_id)
             ->where('self_service_shop_id', $shop->id)
-            ->where('status', SelfServiceShopItem::STATUS_PUBLISHED)
+            ->where('status', ShopItem::STATUS_PUBLISHED)
             ->where('is_visible', true)
             ->whereHas('product', function ($query) use ($shop) {
                 $query

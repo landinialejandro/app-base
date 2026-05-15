@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V4
+// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V5
 
 namespace App\Http\Controllers;
 
@@ -11,7 +11,7 @@ use App\Models\Tenant;
 use App\Support\SelfServiceSales\SelfServiceCustomerConfirmer;
 use App\Support\SelfServiceSales\SelfServiceCustomerRegistrar;
 use App\Support\SelfServiceSales\SelfServiceExternalSession;
-use App\Support\SelfServiceSales\SelfServiceShopCatalogReader;
+use App\Support\Shops\ShopPublishedCatalogReader;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -20,9 +20,8 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
     public function shop(
         Request $request,
         Tenant $tenant,
-        SelfServiceShopCatalogReader $shopCatalogReader
-    )
-    {
+        ShopPublishedCatalogReader $shopCatalogReader
+    ) {
         $externalCustomer = null;
         $activeShop = null;
         $shopItems = collect();

@@ -284,6 +284,23 @@ protected function matrix(): array
             ],
         ],
 
+        ModuleCatalog::SHOPS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+        ],
+
         ModuleCatalog::INVENTORY => [
             RoleCatalog::OWNER => [
                 CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],

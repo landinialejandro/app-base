@@ -1,24 +1,23 @@
 <?php
 
-// FILE: database/seeders/LavaderoProductionDemoSeeder.php | V1
+// FILE: database/seeders/LavaderoProductionDemoSeeder.php | V2
 
 namespace Database\Seeders;
 
 use App\Events\OperationalRecordCreated;
 use App\Events\OperationalRecordUpdated;
-use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use App\Models\SelfServiceShop;
-use App\Models\SelfServiceShopItem;
+use App\Models\Shop;
+use App\Models\ShopItem;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\OrderInventoryOperationService;
 use App\Support\Inventory\OrderItemStatusService;
-use App\Support\SelfServiceSales\SelfServiceShopPublisher;
+use App\Support\Shops\ShopPublisher;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -132,23 +131,23 @@ class LavaderoProductionDemoSeeder extends Seeder
 
     private function ensureActiveShopCatalog(Tenant $tenant, Product $ficha): void
     {
-        $shop = SelfServiceShop::query()->firstOrCreate(
+        $shop = Shop::query()->firstOrCreate(
             [
                 'tenant_id' => $tenant->id,
                 'name' => 'Autoservicio '.$tenant->name,
             ],
             [
                 'description' => 'Catálogo publicado inicial para clientes habilitados.',
-                'status' => SelfServiceShop::STATUS_DRAFT,
+                'status' => Shop::STATUS_DRAFT,
                 'meta' => [
                     'source' => 'LavaderoProductionDemoSeeder',
                 ],
             ]
         );
 
-        app(SelfServiceShopPublisher::class)->activate($shop);
+        app(ShopPublisher::class)->activate($shop);
 
-        SelfServiceShopItem::query()->updateOrCreate(
+        ShopItem::query()->updateOrCreate(
             [
                 'tenant_id' => $tenant->id,
                 'self_service_shop_id' => $shop->id,
@@ -161,7 +160,7 @@ class LavaderoProductionDemoSeeder extends Seeder
                 'display_name' => null,
                 'display_description' => null,
                 'sort_order' => 10,
-                'status' => SelfServiceShopItem::STATUS_PUBLISHED,
+                'status' => ShopItem::STATUS_PUBLISHED,
                 'meta' => [
                     'source' => 'LavaderoProductionDemoSeeder',
                 ],
@@ -298,7 +297,7 @@ class LavaderoProductionDemoSeeder extends Seeder
             ->firstOrFail();
     }
 
-private function executeProductionIfPending(Order $order, OrderItem $item, int $ownerUserId): void
+    private function executeProductionIfPending(Order $order, OrderItem $item, int $ownerUserId): void
     {
         $item->loadMissing('product');
 

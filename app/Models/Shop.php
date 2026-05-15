@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/SelfServiceShop.php | V1
+// FILE: app/Models/Shop.php | V1
 
 namespace App\Models;
 
@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SelfServiceShop extends Model
+class Shop extends Model
 {
     use SoftDeletes;
     use TenantScoped;
@@ -19,6 +19,8 @@ class SelfServiceShop extends Model
     public const STATUS_DRAFT = 'draft';
     public const STATUS_ACTIVE = 'active';
     public const STATUS_INACTIVE = 'inactive';
+
+    protected $table = 'self_service_shops';
 
     protected $fillable = [
         'tenant_id',
@@ -41,7 +43,7 @@ class SelfServiceShop extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(SelfServiceShopItem::class, 'self_service_shop_id')
+        return $this->hasMany(ShopItem::class, 'self_service_shop_id')
             ->orderBy('sort_order')
             ->orderBy('id');
     }

@@ -65,6 +65,12 @@ class TenantProfileAccess
             || $this->isAdmin($actor);
     }
 
+    public function canManageSelfServiceSales(?Membership $actor): bool
+    {
+        return $this->isOwner($actor)
+            || $this->isAdmin($actor);
+    }
+
     public function canEditGeneral(?Membership $actor): bool
     {
         return $this->isOwner($actor);

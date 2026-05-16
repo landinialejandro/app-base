@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/ModuleCatalog.php | V10
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V12
 
 namespace App\Support\Catalogs;
 
@@ -228,6 +228,16 @@ class ModuleCatalog
     public static function surfaceService(string $module): ?string
     {
         return static::$definitions[$module]['surface_service'] ?? null;
+    }
+
+    public static function activityContextService(string $module): ?string
+    {
+        return static::$definitions[$module]['activity_context'] ?? null;
+    }
+
+    public static function activityRecordSetService(string $module): ?string
+    {
+        return static::$definitions[$module]['activity_record_set'] ?? null;
     }
 
     public static function navDefinitions(): array

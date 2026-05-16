@@ -1,15 +1,20 @@
+{{-- FILE: documentos/varios/esquemaShow.blade.php | V1 --}}
+
 <x-page>
     <x-breadcrumb :items="$breadcrumbItems" />
 
     <x-page-header :title="$pageTitle">
         {{-- loop: header_actions --}}
+        {{-- loop: surfaces.header_actions --}}
     </x-page-header>
 
     <x-show-summary details-id="{{ $detailsId }}">
         {{-- loop: summary_items --}}
+        {{-- loop: surfaces.summary_items --}}
 
         <x-slot:details>
             {{-- loop: detail_items --}}
+            {{-- loop: surfaces.detail_items --}}
         </x-slot:details>
     </x-show-summary>
 
@@ -25,6 +30,7 @@
             </x-tab-toolbar>
 
             {{-- loop: tab_items as tab panels --}}
+            {{-- tab_items and tab panels must share key/id --}}
         </div>
     @endif
 </x-page>

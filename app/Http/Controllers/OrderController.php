@@ -19,6 +19,7 @@ use App\Support\Modules\SurfaceHostContextBuilder;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
 use App\Support\Numbering\RecordNumberGenerator;
+use App\Support\Orders\OrderIndexContext;
 use App\Support\Orders\OrdersHooks;
 use App\Support\Orders\OrderSurfaceService;
 use App\Support\Parties\PartyOrderSelector;
@@ -74,179 +75,181 @@ class OrderController extends Controller
             ->values();
 
         $canCreateOrders = $allowedCreateGroups->isNotEmpty();
-        $defaultCreateKind = $this->isServiceUniverse($request)
-            ? OrderCatalog::GROUP_SERVICE
-            : $allowedCreateGroups->first();
 
-        $isServiceUniverse = $this->isServiceUniverse($request);
+        $defaultCreateGroup = match (true) {
+            $this->isServiceUniverse($request) => OrderCatalog::GROUP_SERVICE,
+            $this->isProductionUniverse($request) => OrderCatalog::GROUP_PRODUCTION,
+            default => $allowedCreateGroups->first(),
+        };
+
+        $indexContext = OrderIndexContext::fromRequest($request, $defaultCreateGroup);
 
         return view('orders.index', compact(
             'orders',
             'canCreateOrders',
-            'defaultCreateKind',
-            'isServiceUniverse',
+            'indexContext',
         ));
     }
 
-public function create(Request $request)
-{
-    $this->authorizeServiceUniverse($request);
-    $this->authorizeProductionUniverse($request);
-
-    $security = app(Security::class);
-    $user = auth()->user();
-
-    $prefilledGroup = old('group', OrderCatalog::GROUP_SALE);
-    $prefilledKind = old('kind', OrderCatalog::KIND_STANDARD);
-
-    $requestedGroup = $this->orderGroupFromRequest($request);
-    $requestedKind = (string) $request->get('kind', '');
-
-    if ($requestedGroup !== null) {
-        $prefilledGroup = $requestedGroup;
-    }
-
-    if ($requestedKind !== '' && in_array($requestedKind, array_keys(OrderCatalog::kindLabels()), true)) {
-        $prefilledKind = $requestedKind;
-    }
-
-    $security->authorize(
-        $user,
-        'orders.create',
-        Order::class,
-        ['kind' => $prefilledGroup]
-    );
-
-    $navigationTrail = OrderNavigationTrail::create($request);
-
-    $relationshipBoundary = $this->relationshipBoundaryForOrderForm(
-        request: $request,
-        order: null,
-        mode: 'create',
-        fieldDefaults: [
-            'party_id' => '',
-            'asset_id' => '',
-            'counterparty_reference' => '',
-            'group' => $prefilledGroup,
-            'kind' => $prefilledKind,
-        ],
-    );
-
-    $groupLocked = $this->isServiceUniverse($request) || $this->isProductionUniverse($request);
-
-    return view('orders.create', compact(
-        'prefilledGroup',
-        'prefilledKind',
-        'navigationTrail',
-        'relationshipBoundary',
-        'groupLocked',
-    ));
-}
-
-public function store(Request $request)
-{
-    $this->authorizeServiceUniverse($request);
+    public function create(Request $request)
+    {
+        $this->authorizeServiceUniverse($request);
         $this->authorizeProductionUniverse($request);
 
-    if ($this->isServiceUniverse($request)) {
-        $request->merge([
-            'group' => OrderCatalog::GROUP_SERVICE,
-            'kind' => $request->input('kind', OrderCatalog::KIND_STANDARD),
-        ]);
-    }
+        $security = app(Security::class);
+        $user = auth()->user();
 
-    $tenant = app('tenant');
-    $security = app(Security::class);
-    $user = auth()->user();
+        $prefilledGroup = old('group', OrderCatalog::GROUP_SALE);
+        $prefilledKind = old('kind', OrderCatalog::KIND_STANDARD);
 
-    $data = $request->validate([
-        'party_id' => ['nullable', 'integer'],
-        'counterparty_reference' => ['nullable', 'string', 'max:255'],
-        'asset_id' => ['nullable', 'integer'],
-        'asset_reference' => ['nullable', 'string', 'max:255'],
-        'group' => [
-            'required',
-            Rule::in(array_keys(OrderCatalog::groups())),
-        ],
-        'kind' => [
-            'required',
-            Rule::in(array_keys(OrderCatalog::kindLabels())),
-        ],
-        'status' => [
-            'required',
-            Rule::in(OrderCatalog::statuses()),
-        ],
-        'ordered_at' => ['nullable', 'date'],
-        'notes' => ['nullable', 'string'],
-    ]);
+        $requestedGroup = $this->orderGroupFromRequest($request);
+        $requestedKind = (string) $request->get('kind', '');
 
-    $security->authorize(
-        $user,
-        'orders.create',
-        Order::class,
-        ['kind' => $data['group']]
-    );
+        if ($requestedGroup !== null) {
+            $prefilledGroup = $requestedGroup;
+        }
 
-    $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
+        if ($requestedKind !== '' && in_array($requestedKind, array_keys(OrderCatalog::kindLabels()), true)) {
+            $prefilledKind = $requestedKind;
+        }
 
-    if ($data['counterparty_reference'] === '') {
-        return back()
-            ->withErrors([
-                'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
-            ])
-            ->withInput();
-    }
-
-    $orderedAt = $data['ordered_at'] ?? now()->toDateString();
-    $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
-    $maxFutureDate = now()->startOfDay()->addDays(30);
-
-    if ($orderedAtDate->gt($maxFutureDate)) {
-        return back()
-            ->withErrors([
-                'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
-            ])
-            ->withInput();
-    }
-
-    $data['ordered_at'] = $orderedAtDate->toDateString();
-
-    $order = DB::transaction(function () use ($tenant, $data) {
-        $sequenceDefinition = OrderCatalog::sequenceDefinitionForGroup($data['group']);
-
-        $sequence = RecordNumberGenerator::generate(
-            tenantId: $tenant->id,
-            kind: $sequenceDefinition['kind'],
-            defaultPrefix: $sequenceDefinition['prefix'],
-            pointOfSale: '0001',
+        $security->authorize(
+            $user,
+            'orders.create',
+            Order::class,
+            ['kind' => $prefilledGroup]
         );
 
-        $payload = array_merge($data, [
-            'number' => $sequence['number'],
-            'sequence_prefix' => $sequence['prefix'],
-            'point_of_sale' => $sequence['point_of_sale'],
-            'sequence_number' => $sequence['sequence_number'],
-            'created_by' => auth()->id(),
+        $navigationTrail = OrderNavigationTrail::create($request);
+
+        $relationshipBoundary = $this->relationshipBoundaryForOrderForm(
+            request: $request,
+            order: null,
+            mode: 'create',
+            fieldDefaults: [
+                'party_id' => '',
+                'asset_id' => '',
+                'counterparty_reference' => '',
+                'group' => $prefilledGroup,
+                'kind' => $prefilledKind,
+            ],
+        );
+
+        $groupLocked = $this->isServiceUniverse($request) || $this->isProductionUniverse($request);
+
+        return view('orders.create', compact(
+            'prefilledGroup',
+            'prefilledKind',
+            'navigationTrail',
+            'relationshipBoundary',
+            'groupLocked',
+        ));
+    }
+
+    public function store(Request $request)
+    {
+        $this->authorizeServiceUniverse($request);
+        $this->authorizeProductionUniverse($request);
+
+        if ($this->isServiceUniverse($request)) {
+            $request->merge([
+                'group' => OrderCatalog::GROUP_SERVICE,
+                'kind' => $request->input('kind', OrderCatalog::KIND_STANDARD),
+            ]);
+        }
+
+        $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $data = $request->validate([
+            'party_id' => ['nullable', 'integer'],
+            'counterparty_reference' => ['nullable', 'string', 'max:255'],
+            'asset_id' => ['nullable', 'integer'],
+            'asset_reference' => ['nullable', 'string', 'max:255'],
+            'group' => [
+                'required',
+                Rule::in(array_keys(OrderCatalog::groups())),
+            ],
+            'kind' => [
+                'required',
+                Rule::in(array_keys(OrderCatalog::kindLabels())),
+            ],
+            'status' => [
+                'required',
+                Rule::in(OrderCatalog::statuses()),
+            ],
+            'ordered_at' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string'],
         ]);
 
-        return Order::create($payload);
-    });
+        $security->authorize(
+            $user,
+            'orders.create',
+            Order::class,
+            ['kind' => $data['group']]
+        );
 
-    event(new OperationalRecordCreated(
-        record: $order,
-        actorUserId: auth()->id(),
-    ));
+        $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
 
-    $navigationTrail = OrderNavigationTrail::show($request, $order);
+        if ($data['counterparty_reference'] === '') {
+            return back()
+                ->withErrors([
+                    'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
+                ])
+                ->withInput();
+        }
 
-    $showRouteName = $this->isServiceUniverse($request)
-        ? 'service.orders.show'
-        : 'orders.show';
+        $orderedAt = $data['ordered_at'] ?? now()->toDateString();
+        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+        $maxFutureDate = now()->startOfDay()->addDays(30);
 
-    return redirect()
-        ->route($showRouteName, ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', "Orden creada correctamente con número {$order->number}.");
-}
+        if ($orderedAtDate->gt($maxFutureDate)) {
+            return back()
+                ->withErrors([
+                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+                ])
+                ->withInput();
+        }
+
+        $data['ordered_at'] = $orderedAtDate->toDateString();
+
+        $order = DB::transaction(function () use ($tenant, $data) {
+            $sequenceDefinition = OrderCatalog::sequenceDefinitionForGroup($data['group']);
+
+            $sequence = RecordNumberGenerator::generate(
+                tenantId: $tenant->id,
+                kind: $sequenceDefinition['kind'],
+                defaultPrefix: $sequenceDefinition['prefix'],
+                pointOfSale: '0001',
+            );
+
+            $payload = array_merge($data, [
+                'number' => $sequence['number'],
+                'sequence_prefix' => $sequence['prefix'],
+                'point_of_sale' => $sequence['point_of_sale'],
+                'sequence_number' => $sequence['sequence_number'],
+                'created_by' => auth()->id(),
+            ]);
+
+            return Order::create($payload);
+        });
+
+        event(new OperationalRecordCreated(
+            record: $order,
+            actorUserId: auth()->id(),
+        ));
+
+        $navigationTrail = OrderNavigationTrail::show($request, $order);
+
+        $showRouteName = $this->isServiceUniverse($request)
+            ? 'service.orders.show'
+            : 'orders.show';
+
+        return redirect()
+            ->route($showRouteName, ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', "Orden creada correctamente con número {$order->number}.");
+    }
 
     public function show(Request $request, Order $order)
     {
@@ -303,213 +306,213 @@ public function store(Request $request)
         ));
     }
 
-public function update(Request $request, Order $order)
-{
-    $this->authorize('update', $order);
+    public function update(Request $request, Order $order)
+    {
+        $this->authorize('update', $order);
 
-    abort_if(
-        OrderCatalog::isReadonlyStatus($order->status),
-        422,
-        'No se puede editar una orden en estado readonly.'
-    );
+        abort_if(
+            OrderCatalog::isReadonlyStatus($order->status),
+            422,
+            'No se puede editar una orden en estado readonly.'
+        );
 
-    $tenant = app('tenant');
-    $security = app(Security::class);
-    $user = auth()->user();
+        $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
-    $data = $request->validate([
-        'party_id' => ['nullable', 'integer'],
-        'counterparty_reference' => ['nullable', 'string', 'max:255'],
-        'asset_id' => ['nullable', 'integer'],
-        'asset_reference' => ['nullable', 'string', 'max:255'],
-        'group' => [
-            'required',
-            Rule::in(array_keys(OrderCatalog::groups())),
-        ],
-        'kind' => [
-            'required',
-            Rule::in(array_keys(OrderCatalog::kindLabels())),
-        ],
-        'status' => [
-            'required',
-            Rule::in(OrderCatalog::statuses()),
-        ],
-        'ordered_at' => ['nullable', 'date'],
-        'notes' => ['nullable', 'string'],
-    ]);
+        $data = $request->validate([
+            'party_id' => ['nullable', 'integer'],
+            'counterparty_reference' => ['nullable', 'string', 'max:255'],
+            'asset_id' => ['nullable', 'integer'],
+            'asset_reference' => ['nullable', 'string', 'max:255'],
+            'group' => [
+                'required',
+                Rule::in(array_keys(OrderCatalog::groups())),
+            ],
+            'kind' => [
+                'required',
+                Rule::in(array_keys(OrderCatalog::kindLabels())),
+            ],
+            'status' => [
+                'required',
+                Rule::in(OrderCatalog::statuses()),
+            ],
+            'ordered_at' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string'],
+        ]);
 
-    if ($order->number) {
-        $data['group'] = $order->group;
-        $data['kind'] = $order->kind;
-    }
+        if ($order->number) {
+            $data['group'] = $order->group;
+            $data['kind'] = $order->kind;
+        }
 
-    $security->authorize(
-        $user,
-        'orders.update',
-        $order,
-        ['kind' => $order->group]
-    );
+        $security->authorize(
+            $user,
+            'orders.update',
+            $order,
+            ['kind' => $order->group]
+        );
 
-    $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
+        $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
 
-    if (! OrderCatalog::canTransition($order->status, $data['status'])) {
-        return back()
-            ->withErrors([
-                'status' => 'La transición de estado solicitada no es válida.',
-            ])
-            ->withInput();
-    }
-
-    $hasExternalMovements = app(OrdersHooks::class)
-        ->hasExternalMovements($order);
-
-    if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
-        return back()
-            ->withErrors([
-                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-            ])
-            ->withInput();
-    }
-
-    if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
-        if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
+        if (! OrderCatalog::canTransition($order->status, $data['status'])) {
             return back()
                 ->withErrors([
-                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    'status' => 'La transición de estado solicitada no es válida.',
                 ])
                 ->withInput();
         }
-    }
 
-    if ($data['counterparty_reference'] === '') {
-        return back()
-            ->withErrors([
-                'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
-            ])
-            ->withInput();
-    }
+        $hasExternalMovements = app(OrdersHooks::class)
+            ->hasExternalMovements($order);
 
-    $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
-    $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
-    $maxFutureDate = now()->startOfDay()->addDays(30);
-
-    if ($orderedAtDate->gt($maxFutureDate)) {
-        return back()
-            ->withErrors([
-                'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
-            ])
-            ->withInput();
-    }
-
-    $data['ordered_at'] = $orderedAtDate->toDateString();
-    $data['updated_by'] = auth()->id();
-
-    $beforeAttributes = $order->getAttributes();
-
-    $order->update($data);
-
-    event(new OperationalRecordUpdated(
-        record: $order,
-        beforeAttributes: $beforeAttributes,
-        actorUserId: auth()->id(),
-    ));
-
-    $navigationTrail = OrderNavigationTrail::show($request, $order);
-
-    return redirect()
-        ->route(
-            OrderNavigationTrail::showRouteName($request, $navigationTrail),
-            ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
-        )
-        ->with('success', 'Orden actualizada.');
-}
-
-public function updateStatus(Request $request, Order $order)
-{
-    $this->authorize('changeStatus', $order);
-
-    $data = $request->validate([
-        'status' => ['required', Rule::in(OrderCatalog::statuses())],
-    ]);
-
-    $newStatus = $data['status'];
-
-    if (! OrderCatalog::canTransition($order->status, $newStatus)) {
-        return back()
-            ->withErrors([
-                'status' => 'La transición de estado solicitada no es válida.',
-            ]);
-    }
-
-    $hasExternalMovements = app(OrdersHooks::class)
-        ->hasExternalMovements($order);
-
-    if ($newStatus === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
-        return back()
-            ->withErrors([
-                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-            ]);
-    }
-
-    if ($newStatus === OrderCatalog::STATUS_CLOSED) {
-        if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
+        if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
             return back()
                 ->withErrors([
-                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+                ])
+                ->withInput();
+        }
+
+        if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
+            if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
+                return back()
+                    ->withErrors([
+                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    ])
+                    ->withInput();
+            }
+        }
+
+        if ($data['counterparty_reference'] === '') {
+            return back()
+                ->withErrors([
+                    'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
+                ])
+                ->withInput();
+        }
+
+        $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
+        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+        $maxFutureDate = now()->startOfDay()->addDays(30);
+
+        if ($orderedAtDate->gt($maxFutureDate)) {
+            return back()
+                ->withErrors([
+                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+                ])
+                ->withInput();
+        }
+
+        $data['ordered_at'] = $orderedAtDate->toDateString();
+        $data['updated_by'] = auth()->id();
+
+        $beforeAttributes = $order->getAttributes();
+
+        $order->update($data);
+
+        event(new OperationalRecordUpdated(
+            record: $order,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: auth()->id(),
+        ));
+
+        $navigationTrail = OrderNavigationTrail::show($request, $order);
+
+        return redirect()
+            ->route(
+                OrderNavigationTrail::showRouteName($request, $navigationTrail),
+                ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
+            )
+            ->with('success', 'Orden actualizada.');
+    }
+
+    public function updateStatus(Request $request, Order $order)
+    {
+        $this->authorize('changeStatus', $order);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::in(OrderCatalog::statuses())],
+        ]);
+
+        $newStatus = $data['status'];
+
+        if (! OrderCatalog::canTransition($order->status, $newStatus)) {
+            return back()
+                ->withErrors([
+                    'status' => 'La transición de estado solicitada no es válida.',
                 ]);
         }
-    }
 
-    $beforeAttributes = $order->getAttributes();
+        $hasExternalMovements = app(OrdersHooks::class)
+            ->hasExternalMovements($order);
 
-    $order->update([
-        'status' => $newStatus,
-        'updated_by' => auth()->id(),
-    ]);
+        if ($newStatus === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+                ]);
+        }
 
-    event(new OperationalRecordUpdated(
-        record: $order,
-        beforeAttributes: $beforeAttributes,
-        actorUserId: auth()->id(),
-    ));
+        if ($newStatus === OrderCatalog::STATUS_CLOSED) {
+            if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
+                return back()
+                    ->withErrors([
+                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    ]);
+            }
+        }
 
-    $navigationTrail = OrderNavigationTrail::show($request, $order);
+        $beforeAttributes = $order->getAttributes();
 
-    return redirect()
-        ->route(
-            OrderNavigationTrail::showRouteName($request, $navigationTrail),
-            ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
-        )
-        ->with('success', 'Estado de la orden actualizado.');
-}
-
-public function destroy(Request $request, Order $order)
-{
-    $this->authorize('delete', $order);
-
-    if ($order->documents()->exists()) {
-        return back()->withErrors([
-            'delete' => 'No se puede eliminar una orden vinculada a documentos.',
+        $order->update([
+            'status' => $newStatus,
+            'updated_by' => auth()->id(),
         ]);
+
+        event(new OperationalRecordUpdated(
+            record: $order,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: auth()->id(),
+        ));
+
+        $navigationTrail = OrderNavigationTrail::show($request, $order);
+
+        return redirect()
+            ->route(
+                OrderNavigationTrail::showRouteName($request, $navigationTrail),
+                ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
+            )
+            ->with('success', 'Estado de la orden actualizado.');
     }
 
-    if (app(OrdersHooks::class)->hasExternalMovements($order)) {
-        return back()->withErrors([
-            'delete' => 'No se puede eliminar una orden con movimientos registrados.',
-        ]);
+    public function destroy(Request $request, Order $order)
+    {
+        $this->authorize('delete', $order);
+
+        if ($order->documents()->exists()) {
+            return back()->withErrors([
+                'delete' => 'No se puede eliminar una orden vinculada a documentos.',
+            ]);
+        }
+
+        if (app(OrdersHooks::class)->hasExternalMovements($order)) {
+            return back()->withErrors([
+                'delete' => 'No se puede eliminar una orden con movimientos registrados.',
+            ]);
+        }
+
+        $order->delete();
+
+        $navigationTrail = OrderNavigationTrail::index($request);
+
+        return redirect()
+            ->route(
+                OrderNavigationTrail::indexRouteName($request, $navigationTrail),
+                NavigationTrail::toQuery($navigationTrail)
+            )
+            ->with('success', 'Orden eliminada.');
     }
-
-    $order->delete();
-
-    $navigationTrail = OrderNavigationTrail::index($request);
-
-    return redirect()
-        ->route(
-            OrderNavigationTrail::indexRouteName($request, $navigationTrail),
-            NavigationTrail::toQuery($navigationTrail)
-        )
-        ->with('success', 'Orden eliminada.');
-}
 
     public function print(Order $order)
     {
@@ -792,44 +795,44 @@ public function destroy(Request $request, Order $order)
         ];
     }
 
-private function isServiceUniverse(Request $request): bool
-{
-    return $request->routeIs('service.orders.*');
-}
-
-private function authorizeServiceUniverse(Request $request): void
-{
-    if (! $this->isServiceUniverse($request)) {
-        return;
+    private function isServiceUniverse(Request $request): bool
+    {
+        return $request->routeIs('service.orders.*');
     }
 
-    $tenant = app('tenant');
-    $user = auth()->user();
-    $security = app(Security::class);
+    private function authorizeServiceUniverse(Request $request): void
+    {
+        if (! $this->isServiceUniverse($request)) {
+            return;
+        }
 
-    abort_unless(
-        TenantModuleAccess::isEnabled(ModuleCatalog::SERVICE_MAINTENANCE, $tenant)
-            && $security->allows($user, ModuleCatalog::SERVICE_MAINTENANCE.'.viewAny'),
-        403
-    );
-}
+        $tenant = app('tenant');
+        $user = auth()->user();
+        $security = app(Security::class);
 
-private function orderGroupFromRequest(Request $request): ?string
-{
-    if ($this->isServiceUniverse($request)) {
-        return OrderCatalog::GROUP_SERVICE;
+        abort_unless(
+            TenantModuleAccess::isEnabled(ModuleCatalog::SERVICE_MAINTENANCE, $tenant)
+                && $security->allows($user, ModuleCatalog::SERVICE_MAINTENANCE.'.viewAny'),
+            403
+        );
     }
 
-    if ($this->isProductionUniverse($request)) {
-        return OrderCatalog::GROUP_PRODUCTION;
+    private function orderGroupFromRequest(Request $request): ?string
+    {
+        if ($this->isServiceUniverse($request)) {
+            return OrderCatalog::GROUP_SERVICE;
+        }
+
+        if ($this->isProductionUniverse($request)) {
+            return OrderCatalog::GROUP_PRODUCTION;
+        }
+
+        $group = (string) $request->get('group', '');
+
+        return $group !== '' && array_key_exists($group, OrderCatalog::groups())
+            ? $group
+            : null;
     }
-
-    $group = (string) $request->get('group', '');
-
-    return $group !== '' && array_key_exists($group, OrderCatalog::groups())
-        ? $group
-        : null;
-}
 
     private function abortUnlessServiceOrder(Request $request, Order $order): void
     {
@@ -840,35 +843,32 @@ private function orderGroupFromRequest(Request $request): ?string
         abort_unless($order->group === OrderCatalog::GROUP_SERVICE, 404);
     }
 
-
     private function isProductionUniverse(Request $request): bool
     {
         return $request->routeIs('production.orders.*');
     }
-
 
     private function authorizeProductionUniverse(Request $request): void
     {
         if (! $this->isProductionUniverse($request)) {
             return;
         }
-    
+
         $user = auth()->user();
         $security = app(Security::class);
-    
+
         abort_unless(
             $security->allows($user, ModuleCatalog::ORDERS.'.viewAny'),
             403
         );
     }
 
-
     private function abortUnlessProductionOrder(Request $request, Order $order): void
     {
         if (! $this->isProductionUniverse($request)) {
             return;
         }
-    
+
         abort_unless($order->group === OrderCatalog::GROUP_PRODUCTION, 404);
     }
 }

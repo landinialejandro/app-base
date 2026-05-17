@@ -23,6 +23,29 @@ class ProjectLab
         'js',
     ];
 
+    private const LAB_PATCH_CODE_EXTENSIONS = [
+        'php',
+        'blade.php',
+        'js',
+        'css',
+        'tpl',
+        'sh',
+        'md',
+        'json',
+        'xml',
+        'yml',
+        'yaml',
+        'env.example',
+    ];
+
+    private const LAB_PATCH_FORBIDDEN_DOCUMENT_SUBDIRS = [
+        'tools/project-lab/documentos/auditoria/',
+        'tools/project-lab/documentos/baks/',
+        'tools/project-lab/documentos/log/',
+        'tools/project-lab/documentos/graficos/',
+        'tools/project-lab/documentos/varios/',
+    ];
+
     private const REGEX_TARGET_OPERATION = '/^\/\/\s*(?:TARGET|FILE):\s*(.+?)\s*(::|\+\+)\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\|\s*V\d+)?\s*$/';
 
     private const REGEX_PHP_FILE_HEADER = '/^\/\/\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.php)(?:\s*\|\s*(V\d+))?\s*$/';
@@ -844,12 +867,618 @@ class ProjectLab
         exit;
     }
 
+    public function runLabPatchTool(string $input): string
+    {
+        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
+
+        if ($input === '') {
+            return '[ERROR] No se recibió contenido LAB_PATCH.';
+        }
+
+        $blocks = $this->parseLabPatchBlocks($input);
+
+        if (isset($blocks['error'])) {
+            return $blocks['error'];
+        }
+
+        $patches = $blocks['patches'] ?? [];
+        $total = count($patches);
+
+        if ($total < 1) {
+            return '[ERROR] No se encontraron bloques LAB_PATCH.';
+        }
+
+        $output = "[OK] Modo: lab_patch\n";
+
+        foreach ($patches as $index => $patch) {
+            $patchNumber = $index + 1;
+            $result = $this->applyLabPatch($patch, $patchNumber, $total);
+            $output .= $result['output'];
+
+            if (! ($result['ok'] ?? false)) {
+                $output .= "[ERROR] Proceso detenido en patch {$patchNumber}/{$total}. No se aplican patches siguientes.";
+                $this->log('LAB_PATCH_ERROR', $patch['file'] ?? 'sin-archivo', $output);
+
+                return $output;
+            }
+        }
+
+        $output .= "[OK] Proceso finalizado. Patches aplicados: {$total}";
+        $this->log('LAB_PATCH', 'lab-patch', $output);
+
+        return $output;
+    }
+
+    private function parseLabPatchBlocks(string $input): array
+    {
+        preg_match_all('/(?:^|\n)LAB_PATCH\s*\n(.*?)\nEND_LAB_PATCH(?=\n|$)/su', $input, $matches, PREG_SET_ORDER);
+
+        if (empty($matches)) {
+            return ['error' => '[ERROR] No se encontraron bloques LAB_PATCH ... END_LAB_PATCH.'];
+        }
+
+        $patches = [];
+
+        foreach ($matches as $index => $match) {
+            $patchNumber = $index + 1;
+            $block = $match[1] ?? '';
+            $anchorMarker = "\nANCHOR:\n";
+            $textMarker = "\nTEXT:\n";
+            $anchorPosition = strpos("\n".$block, $anchorMarker);
+
+            if ($anchorPosition === false) {
+                return ['error' => "[ERROR] Patch {$patchNumber}: falta bloque ANCHOR."];
+            }
+
+            $header = substr("\n".$block, 0, $anchorPosition);
+            $afterAnchor = substr("\n".$block, $anchorPosition + strlen($anchorMarker));
+            $textPosition = strpos($afterAnchor, $textMarker);
+
+            if ($textPosition === false) {
+                return ['error' => "[ERROR] Patch {$patchNumber}: falta bloque TEXT."];
+            }
+
+            $anchor = substr($afterAnchor, 0, $textPosition);
+            $text = substr($afterAnchor, $textPosition + strlen($textMarker));
+            $fields = [];
+
+            foreach (explode("\n", trim($header)) as $line) {
+                if (trim($line) === '') {
+                    continue;
+                }
+
+                if (! preg_match('/^([A-Z_]+):\s*(.*)$/', $line, $fieldMatch)) {
+                    return ['error' => "[ERROR] Patch {$patchNumber}: línea de campo inválida: {$line}"];
+                }
+
+                $fieldName = strtoupper(trim($fieldMatch[1]));
+
+                if (isset($fields[$fieldName])) {
+                    return ['error' => "[ERROR] Patch {$patchNumber}: campo duplicado: {$fieldName}"];
+                }
+
+                $fields[$fieldName] = trim($fieldMatch[2]);
+            }
+
+            foreach (['FILE', 'OP'] as $requiredField) {
+                if (! array_key_exists($requiredField, $fields) || $fields[$requiredField] === '') {
+                    return ['error' => "[ERROR] Patch {$patchNumber}: falta campo obligatorio {$requiredField}."];
+                }
+            }
+
+            if ($anchor === '') {
+                return ['error' => "[ERROR] Patch {$patchNumber}: ANCHOR no puede estar vacío."];
+            }
+
+            $patches[] = [
+                'file' => $fields['FILE'],
+                'type' => strtolower($fields['TYPE'] ?? ''),
+                'op' => strtolower($fields['OP']),
+                'position' => strtolower($fields['POSITION'] ?? ''),
+                'match' => strtolower($fields['MATCH'] ?? 'one'),
+                'anchor' => $anchor,
+                'text' => $text,
+            ];
+        }
+
+        return ['patches' => $patches];
+    }
+
+    private function applyLabPatch(array $patch, int $patchNumber, int $total): array
+    {
+        $file = (string) ($patch['file'] ?? '');
+        $typeResult = $this->inferLabPatchType($file, (string) ($patch['type'] ?? ''));
+
+        if (! ($typeResult['ok'] ?? false)) {
+            return [
+                'ok' => false,
+                'output' => "[OK] Patch: {$patchNumber}/{$total}\n[ERROR] Archivo: {$file}\n".$typeResult['error']."\n",
+            ];
+        }
+
+        $patch['type'] = $typeResult['type'];
+
+        $validation = $this->validateLabPatchTarget($patch);
+
+        if (! ($validation['ok'] ?? false)) {
+            return [
+                'ok' => false,
+                'output' => "[OK] Patch: {$patchNumber}/{$total}\n[ERROR] Archivo: {$file}\n".$validation['error']."\n",
+            ];
+        }
+
+        return $patch['type'] === 'docs'
+            ? $this->applyLabPatchDocs($patch, $patchNumber, $total)
+            : $this->applyLabPatchCode($patch, $patchNumber, $total);
+    }
+
+    private function inferLabPatchType(string $relativePath, string $declaredType): array
+    {
+        $normalizedPath = str_replace('\\', '/', trim($relativePath));
+        $inferredType = null;
+
+        if (str_starts_with($normalizedPath, self::LAB_DOCUMENTS_DIR.'/') && str_ends_with($normalizedPath, '.txt')) {
+            $inferredType = 'docs';
+        } elseif (in_array($this->labPatchExtension($normalizedPath), self::LAB_PATCH_CODE_EXTENSIONS, true)) {
+            $inferredType = 'code';
+        }
+
+        if ($declaredType !== '' && ! in_array($declaredType, ['code', 'docs'], true)) {
+            return ['ok' => false, 'error' => "[ERROR] TYPE inválido: {$declaredType}"];
+        }
+
+        if ($inferredType === null) {
+            return ['ok' => false, 'error' => "[ERROR] No se pudo inferir TYPE para: {$relativePath}"];
+        }
+
+        if ($declaredType !== '' && $declaredType !== $inferredType) {
+            return ['ok' => false, 'error' => "[ERROR] TYPE declarado no coincide con ruta/extensión permitida. Declarado: {$declaredType}. Inferido: {$inferredType}"];
+        }
+
+        return ['ok' => true, 'type' => $inferredType];
+    }
+
+    private function validateLabPatchTarget(array $patch): array
+    {
+        $file = (string) ($patch['file'] ?? '');
+        $op = (string) ($patch['op'] ?? '');
+        $position = (string) ($patch['position'] ?? '');
+        $match = (string) ($patch['match'] ?? 'one');
+
+        if (! in_array($op, ['insert', 'replace'], true)) {
+            return ['ok' => false, 'error' => "[ERROR] OP inválido: {$op}"];
+        }
+
+        if (! in_array($match, ['one', 'all'], true)) {
+            return ['ok' => false, 'error' => "[ERROR] MATCH inválido: {$match}"];
+        }
+
+        if ($match === 'all' && $op === 'insert') {
+            return ['ok' => false, 'error' => '[ERROR] MATCH=all con OP=insert no está permitido.'];
+        }
+
+        if ($op === 'insert' && ! in_array($position, ['before', 'after'], true)) {
+            return ['ok' => false, 'error' => '[ERROR] POSITION debe ser before o after cuando OP=insert.'];
+        }
+
+        if ($op === 'replace' && $position !== '') {
+            return ['ok' => false, 'error' => '[ERROR] POSITION no aplica con OP=replace.'];
+        }
+
+        if ($file === '' || str_starts_with($file, '/') || preg_match('#(^|/)\.\.(/|$)#', $file) || str_contains($file, "\0")) {
+            return ['ok' => false, 'error' => "[ERROR] Ruta inválida para LAB_PATCH: {$file}"];
+        }
+
+        $normalizedPath = str_replace('\\', '/', $file);
+
+        foreach (self::LAB_PATCH_FORBIDDEN_DOCUMENT_SUBDIRS as $forbiddenDir) {
+            if (str_starts_with($normalizedPath, $forbiddenDir)) {
+                return ['ok' => false, 'error' => "[ERROR] LAB_PATCH no puede modificar carpeta protegida: {$forbiddenDir}"];
+            }
+        }
+
+        if (($patch['type'] ?? '') === 'docs') {
+            if (! preg_match('#^tools/project-lab/documentos/[^/]+\.txt$#', $normalizedPath)) {
+                return ['ok' => false, 'error' => '[ERROR] TYPE=docs solo permite tools/project-lab/documentos/*.txt'];
+            }
+        }
+
+        return ['ok' => true];
+    }
+
+    private function applyLabPatchDocs(array $patch, int $patchNumber, int $total): array
+    {
+        $file = $patch['file'];
+        $targetPath = $this->resolveProjectPath($file, false);
+
+        if ($targetPath === null || ! is_file($targetPath)) {
+            return ['ok' => false, 'output' => "[OK] Patch: {$patchNumber}/{$total}\n[ERROR] Archivo: {$file}\n[ERROR] Archivo docs no existe.\n"];
+        }
+
+        $content = file_get_contents($targetPath);
+
+        if ($content === false) {
+            return ['ok' => false, 'output' => "[OK] Patch: {$patchNumber}/{$total}\n[ERROR] Archivo: {$file}\n[ERROR] No se pudo leer archivo docs.\n"];
+        }
+
+        $balanceBefore = $this->validateDocSectionsBalanced($content);
+
+        if ($balanceBefore !== true) {
+            return ['ok' => false, 'output' => "[OK] Patch: {$patchNumber}/{$total}\n[ERROR] Archivo: {$file}\n[ERROR] Documento inválido antes del patch: {$balanceBefore}\n"];
+        }
+
+        if (! preg_match('/^DOC_SLUG:\s*([a-z0-9_]+)\s*$/mu', $content, $slugMatch)) {
+            return ['ok' => false, 'output' => "[OK] Patch: {$patchNumber}/{$total}\n[ERROR] Archivo: {$file}\n[ERROR] El documento no contiene DOC_SLUG válido.\n"];
+        }
+
+        $docSlugLine = $slugMatch[0];
+        $applyResult = $this->applyTextPatch($content, $patch);
+
+        if (! ($applyResult['ok'] ?? false)) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, $applyResult['error'] ?? '[ERROR] No se pudo aplicar patch.')];
+        }
+
+        $affectedSections = [];
+
+        foreach ($applyResult['offsets'] as $offset) {
+            $section = $this->detectDocSectionForOffset($content, $offset);
+
+            if ($section !== null) {
+                $affectedSections[$section['name']] = $section;
+            }
+        }
+
+        $newContent = $applyResult['content'];
+
+        if (! preg_match('/^DOC_SLUG:\s*([a-z0-9_]+)\s*$/mu', $newContent, $newSlugMatch) || $newSlugMatch[0] !== $docSlugLine) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, '[ERROR] LAB_PATCH docs no puede modificar DOC_SLUG.')];
+        }
+
+        $sectionVersionLines = [];
+
+        foreach ($affectedSections as $sectionName => $section) {
+            $versionResult = $this->incrementDocSectionVersion($newContent, $sectionName);
+
+            if (! ($versionResult['ok'] ?? false)) {
+                return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, $versionResult['error'] ?? '[ERROR] No se pudo actualizar SECTION_VERSION.')];
+            }
+
+            $newContent = $versionResult['content'];
+            $sectionVersionLines[] = "[OK] SECTION_VERSION actualizado: {$sectionName} {$versionResult['old']} -> {$versionResult['new']}";
+        }
+
+        $balanceAfter = $this->validateDocSectionsBalanced($newContent);
+
+        if ($balanceAfter !== true) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, "[ERROR] Documento inválido después del patch: {$balanceAfter}")];
+        }
+
+        $timestamp = date('Ymd_His');
+        $backupRelativePath = self::LAB_BACKUP_DIR.'/'.pathinfo($targetPath, PATHINFO_FILENAME)."_lab_patch_{$timestamp}.bak";
+        $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
+
+        if ($backupResult !== true) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, "[ERROR] No se pudo guardar backup: {$backupResult}")];
+        }
+
+        $writeResult = $this->writeProjectFile($file, $newContent, false);
+
+        if ($writeResult !== true) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, "[ERROR] No se pudo escribir documento: {$writeResult}")];
+        }
+
+        $output = $this->formatLabPatchOkHeader($patch, $patchNumber, $total, $applyResult['count']);
+        $output .= "[OK] Backup: {$backupRelativePath}\n";
+        $output .= empty($sectionVersionLines)
+            ? "[WARN] SECTION_VERSION no actualizado: ANCHOR fuera de sección detectada.\n"
+            : implode("\n", $sectionVersionLines)."\n";
+        $output .= "[OK] Validación: DOC_SLUG y balance de secciones válidos.\n";
+
+        return ['ok' => true, 'output' => $output];
+    }
+
+    private function applyLabPatchCode(array $patch, int $patchNumber, int $total): array
+    {
+        $file = $patch['file'];
+        $targetPath = $this->resolveProjectPath($file, false);
+
+        if ($targetPath === null || ! is_file($targetPath)) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, '[ERROR] Archivo code no existe o está fuera del proyecto.')];
+        }
+
+        $content = file_get_contents($targetPath);
+
+        if ($content === false) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, '[ERROR] No se pudo leer archivo code.')];
+        }
+
+        $applyResult = $this->applyTextPatch($content, $patch);
+
+        if (! ($applyResult['ok'] ?? false)) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, $applyResult['error'] ?? '[ERROR] No se pudo aplicar patch.')];
+        }
+
+        $writeResult = $this->writeProjectFile($file, $applyResult['content'], false);
+
+        if ($writeResult !== true) {
+            return ['ok' => false, 'output' => $this->formatLabPatchErrorOutput($patch, $patchNumber, $total, "[ERROR] No se pudo escribir archivo code: {$writeResult}")];
+        }
+
+        $validation = $this->validateCodePatchResult($file);
+        $rolledBack = false;
+
+        if (! ($validation['ok'] ?? false)) {
+            $rollbackResult = $this->writeProjectFile($file, $content, false);
+            $rolledBack = $rollbackResult === true;
+            $output = $this->formatLabPatchErrorOutput(
+                $patch,
+                $patchNumber,
+                $total,
+                ($validation['output'] ?? '[ERROR] Validación code falló.')."\n".($rolledBack ? '[OK] Rollback: contenido anterior restaurado.' : "[ERROR] Rollback falló: {$rollbackResult}")
+            );
+
+            return ['ok' => false, 'output' => $output];
+        }
+
+        $output = $this->formatLabPatchOkHeader($patch, $patchNumber, $total, $applyResult['count']);
+        $output .= '[OK] Validación: '.$validation['output']."\n";
+        $output .= '[OK] Rollback: no requerido'."\n";
+
+        return ['ok' => true, 'output' => $output];
+    }
+
+    private function applyTextPatch(string $content, array $patch): array
+    {
+        $anchor = $patch['anchor'];
+        $text = $patch['text'];
+        $op = $patch['op'];
+        $match = $patch['match'];
+        $count = $this->countExactOccurrences($content, $anchor);
+
+        if ($count < 1) {
+            return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
+        }
+
+        if ($match === 'one' && $count > 1) {
+            return ['ok' => false, 'error' => "[ERROR] ANCHOR ambiguo: ocurrencias encontradas {$count} con MATCH=one."];
+        }
+
+        if ($op === 'insert') {
+            $offset = strpos($content, $anchor);
+
+            if ($offset === false) {
+                return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
+            }
+
+            $insertOffset = $patch['position'] === 'before' ? $offset : $offset + strlen($anchor);
+            $newContent = substr($content, 0, $insertOffset).$text.substr($content, $insertOffset);
+
+            return ['ok' => true, 'content' => $newContent, 'count' => 1, 'offsets' => [$offset]];
+        }
+
+        $offsets = [];
+        $searchOffset = 0;
+
+        while (($offset = strpos($content, $anchor, $searchOffset)) !== false) {
+            $offsets[] = $offset;
+            $searchOffset = $offset + strlen($anchor);
+
+            if ($match === 'one') {
+                break;
+            }
+        }
+
+        if ($match === 'all') {
+            $newContent = str_replace($anchor, $text, $content, $affected);
+
+            return ['ok' => true, 'content' => $newContent, 'count' => $affected, 'offsets' => $offsets];
+        }
+
+        $offset = $offsets[0] ?? null;
+
+        if ($offset === null) {
+            return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
+        }
+
+        $newContent = substr($content, 0, $offset).$text.substr($content, $offset + strlen($anchor));
+
+        return ['ok' => true, 'content' => $newContent, 'count' => 1, 'offsets' => [$offset]];
+    }
+
+    private function countExactOccurrences(string $content, string $anchor): int
+    {
+        return $anchor === '' ? 0 : substr_count($content, $anchor);
+    }
+
+    private function detectDocSectionForOffset(string $content, int $offset): ?array
+    {
+        preg_match_all('/<<SECTION:\s*(.*?)\s*>>.*?<<END SECTION>>/su', $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+
+        foreach ($matches as $match) {
+            $block = $match[0][0] ?? '';
+            $start = $match[0][1] ?? null;
+            $name = trim($match[1][0] ?? '');
+
+            if ($start === null || $name === '') {
+                continue;
+            }
+
+            $end = $start + strlen($block);
+
+            if ($offset >= $start && $offset < $end) {
+                return [
+                    'name' => $name,
+                    'start' => $start,
+                    'end' => $end,
+                    'block' => $block,
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    private function incrementDocSectionVersion(string $content, string $sectionName): array
+    {
+        $pattern = '/(<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?)(SECTION_VERSION:\s*)(\d{5})(.*?<<END SECTION>>)/su';
+        $count = preg_match_all($pattern, $content);
+
+        if ($count < 1) {
+            return ['ok' => false, 'error' => "[ERROR] No se encontró SECTION_VERSION para sección afectada: {$sectionName}"];
+        }
+
+        if ($count > 1) {
+            return ['ok' => false, 'error' => "[ERROR] Sección ambigua al actualizar SECTION_VERSION: {$sectionName}"];
+        }
+
+        $oldVersion = null;
+        $newVersion = null;
+        $newContent = preg_replace_callback(
+            $pattern,
+            function (array $matches) use (&$oldVersion, &$newVersion): string {
+                $oldVersion = $matches[3];
+                $newVersion = str_pad((string) (((int) $oldVersion) + 1), 5, '0', STR_PAD_LEFT);
+
+                return $matches[1].$matches[2].$newVersion.$matches[4];
+            },
+            $content,
+            1,
+            $replaceCount
+        );
+
+        if ($newContent === null || $replaceCount !== 1 || $oldVersion === null || $newVersion === null) {
+            return ['ok' => false, 'error' => "[ERROR] No se pudo actualizar SECTION_VERSION: {$sectionName}"];
+        }
+
+        return [
+            'ok' => true,
+            'content' => $newContent,
+            'old' => $oldVersion,
+            'new' => $newVersion,
+        ];
+    }
+
+    private function validateDocSectionsBalanced(string $content): true|string
+    {
+        preg_match_all('/<<SECTION:\s*.*?>>|<<END SECTION>>/su', $content, $matches);
+
+        $depth = 0;
+
+        foreach ($matches[0] ?? [] as $token) {
+            if (str_starts_with($token, '<<SECTION:')) {
+                if ($depth !== 0) {
+                    return 'sección anidada o delimitador <<END SECTION>> faltante.';
+                }
+
+                $depth++;
+            } else {
+                if ($depth !== 1) {
+                    return 'delimitador <<END SECTION>> sin apertura.';
+                }
+
+                $depth--;
+            }
+        }
+
+        return $depth === 0 ? true : 'delimitador <<END SECTION>> faltante.';
+    }
+
+    private function validateCodePatchResult(string $relativePath): array
+    {
+        $extension = $this->labPatchExtension($relativePath);
+
+        if ($extension === 'php') {
+            $lintResult = $this->runPhpLint($relativePath);
+
+            return str_starts_with($lintResult, '[OK]')
+                ? ['ok' => true, 'output' => $lintResult]
+                : ['ok' => false, 'output' => $lintResult];
+        }
+
+        if ($extension === 'js') {
+            $targetPath = $this->resolveProjectPath($relativePath, false);
+            $nodePath = trim((string) shell_exec('command -v node 2>/dev/null'));
+
+            if ($nodePath === '' || $targetPath === null) {
+                return ['ok' => true, 'output' => 'node --check omitido: node no disponible.'];
+            }
+
+            $command = 'cd '.escapeshellarg($this->projectRoot)
+                .' && node --check '.escapeshellarg($targetPath).' 2>&1';
+            $output = trim((string) shell_exec($command));
+
+            return str_contains($output, 'SyntaxError')
+                ? ['ok' => false, 'output' => "[ERROR] node --check falló: {$relativePath}\n".$output]
+                : ['ok' => true, 'output' => 'node --check OK: '.$relativePath.($output !== '' ? "\n".$output : '')];
+        }
+
+        if ($extension === 'json') {
+            $targetPath = $this->resolveProjectPath($relativePath, false);
+            $content = $targetPath !== null ? file_get_contents($targetPath) : false;
+
+            if ($content === false) {
+                return ['ok' => false, 'output' => "[ERROR] No se pudo leer JSON para validar: {$relativePath}"];
+            }
+
+            json_decode($content, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return ['ok' => false, 'output' => '[ERROR] json_decode falló: '.json_last_error_msg()];
+            }
+
+            return ['ok' => true, 'output' => 'json_decode OK: '.$relativePath];
+        }
+
+        return ['ok' => true, 'output' => 'escritura verificada: '.$relativePath];
+    }
+
+    private function labPatchExtension(string $relativePath): string
+    {
+        $path = strtolower(str_replace('\\', '/', trim($relativePath)));
+
+        foreach (['blade.php', 'env.example'] as $compoundExtension) {
+            if (str_ends_with($path, '.'.$compoundExtension)) {
+                return $compoundExtension;
+            }
+        }
+
+        return strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    }
+
+    private function formatLabPatchOkHeader(array $patch, int $patchNumber, int $total, int $affected): string
+    {
+        return implode("\n", [
+            "[OK] Patch: {$patchNumber}/{$total}",
+            '[OK] Archivo: '.$patch['file'],
+            '[OK] Tipo: '.$patch['type'],
+            '[OK] Operación: '.$patch['op'],
+            '[OK] Match: '.$patch['match'],
+            "[OK] Ocurrencias afectadas: {$affected}",
+        ])."\n";
+    }
+
+    private function formatLabPatchErrorOutput(array $patch, int $patchNumber, int $total, string $error): string
+    {
+        return implode("\n", [
+            "[OK] Patch: {$patchNumber}/{$total}",
+            '[ERROR] Archivo: '.($patch['file'] ?? '-'),
+            '[ERROR] Tipo: '.($patch['type'] ?? '-'),
+            '[ERROR] Operación: '.($patch['op'] ?? '-'),
+            '[ERROR] Match: '.($patch['match'] ?? '-'),
+            rtrim($error),
+        ])."\n";
+    }
+
     private function runEmbeddedCodeTool(string $input): string
     {
         $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
         if ($input === '') {
             return '[ERROR] No se recibió contenido para actualizar código.';
+        }
+
+        if (str_contains($input, 'LAB_PATCH')) {
+            return $this->runLabPatchTool($input);
         }
 
         if (preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input)) {
@@ -1077,6 +1706,10 @@ class ProjectLab
 
         if ($input === '') {
             return '[ERROR] No se recibió contenido para actualizar documentos.';
+        }
+
+        if (str_contains($input, 'LAB_PATCH')) {
+            return $this->runLabPatchTool($input);
         }
 
         $replaceMatches = [];

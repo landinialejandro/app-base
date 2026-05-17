@@ -117,6 +117,7 @@
                             <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [contexto_fijo_proyecto_app_base]\n\n<<SECTION: NOMBRE EXACTO>>\nSECTION_VERSION: 00001\n\nContenido\n<<END SECTION>>')">DOC SECTION</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [tools/project-lab/documentos/log/test-sections.css]\n\n<<SECTION: COLORS>>\nbody {\n    color: red;\n}\n<<END SECTION>>')">CSS SECTION</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [tools/project-lab/documentos/log/test-sections.js]\n\n<<SECTION: INIT>>\nconsole.log(\'section updated\');\n<<END SECTION>>')">JS SECTION</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('LAB_PATCH\n\nFILE: tools/project-lab/documentos/convenciones_proyecto_app_base.txt\nTYPE: docs\nOP: insert\nPOSITION: after\nMATCH: one\n\nANCHOR:\nProject Lab = herramienta local de evidencia, auditoría, código y documentación.\n\nTEXT:\nProject Lab no forma parte del producto app-base.\n\nEND_LAB_PATCH')">LAB PATCH</span>
                         </div>
                     </details>
 

@@ -174,7 +174,7 @@ Toda modificación persistente debe ejecutarse mediante contratos explícitos de
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 HERRAMIENTAS DISPONIBLES
 
@@ -184,9 +184,79 @@ code
 docs
 audit
 
+También dispone de una capacidad transversal de patch textual puntual:
+
+lab_patch
+
 También dispone de asistencia IA operativa como apoyo técnico desde el botón IA existente.
 
 La asistencia IA no reemplaza las herramientas Lab principales.
+
+LAB_PATCH
+
+LAB_PATCH es un contrato fino transversal para aplicar cambios textuales puntuales por ancla exacta sobre archivos de código o documentación.
+
+Puede ejecutarse desde Código o Docs.
+
+No reemplaza code.
+
+No reemplaza docs.
+
+No reemplaza audit.
+
+No reemplaza Tinker.
+
+No reemplaza Artisan.
+
+No reemplaza IA.
+
+No reemplaza FILE completo.
+
+No reemplaza TARGET :: ni TARGET ++.
+
+No reemplaza REEMPLAZAR EN ni AGREGAR EN.
+
+No reemplaza secciones CSS/JS actuales.
+
+Uso esperado:
+
+agregar una línea
+agregar una frase
+modificar una línea
+reemplazar un bloque exacto pequeño
+insertar texto antes o después de un ancla textual
+
+Reglas:
+
+debe usar FILE relativo al proyecto
+puede declarar TYPE code o docs
+si TYPE no está presente, Project Lab debe inferirlo solo cuando la ruta y extensión sean compatibles
+debe declarar OP insert o replace
+debe declarar ANCHOR exacto
+debe declarar TEXT
+MATCH omitido equivale a one
+POSITION solo aplica con OP insert
+MATCH all solo se permite con OP replace en la versión vigente
+MATCH all no se permite con OP insert
+
+Si MATCH es one:
+
+0 ocurrencias = ERROR
+más de 1 ocurrencia = ERROR
+1 ocurrencia = aplica
+
+Si MATCH es all:
+
+0 ocurrencias = ERROR
+1 o más ocurrencias = reemplaza todas las apariciones exactas
+
+Regla:
+
+LAB_PATCH no aplica por aproximación.
+
+Si hay ambigüedad, debe devolver ERROR.
+
+Si falla validación posterior, debe hacer rollback cuando corresponda.
 
 CODE
 
@@ -430,7 +500,7 @@ guardado de consola como auditoría
 <<END SECTION>>
 
 <<SECTION: REGLA ESTRICTA DE FORMATOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLA ESTRICTA DE FORMATOS
 
@@ -451,6 +521,7 @@ reemplazo de función JS
 reemplazo de sección CSS o JS
 reemplazo de sección documental
 alta controlada de sección documental nueva
+patch textual puntual mediante LAB_PATCH
 
 Regla crítica:
 
@@ -515,12 +586,14 @@ Formato operativo:
 
 REEMPLAZAR EN: [doc_slug]
 
-seguido de un bloque completo:
+seguido de un bloque completo expresado mediante metarrepresentación:
 
-<<SECTION: NOMBRE EXACTO>>
+INICIO_DE_SECCION: NOMBRE EXACTO
 SECTION_VERSION: 00000
 
 contenido
+FIN_DE_SECCION
+
 <<END SECTION>>
 
 <<SECTION: CONTRATOS DE CÓDIGO SOPORTADOS>>

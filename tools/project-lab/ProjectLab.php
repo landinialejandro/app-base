@@ -1833,13 +1833,14 @@ class ProjectLab
         try {
             $repository = app(\App\Support\Docs\TechnicalDocRepository::class);
             $documents = [];
+            $recentSectionChangesFromLogs = $this->parseRecentlyChangedSectionsFromLogs(12);
 
             foreach ($repository->all() as $document) {
                 if (! $this->hasExplicitTechnicalDocSlug($document)) {
                     continue;
                 }
 
-                $documents[] = $this->formatTechnicalDocumentForLab($document);
+                $documents[] = $this->formatTechnicalDocumentForLab($document, $recentSectionChangesFromLogs);
             }
         } catch (\Throwable) {
             return [];
@@ -1861,7 +1862,7 @@ class ProjectLab
         return is_string($content) && preg_match('/^DOC_SLUG:\s*[a-z0-9_]+\s*$/mu', $content) === 1;
     }
 
-    private function formatTechnicalDocumentForLab(\App\Support\Docs\TechnicalDoc $document): array
+    private function formatTechnicalDocumentForLab(\App\Support\Docs\TechnicalDoc $document, array $recentSectionChangesFromLogs = []): array
     {
         $projectRoot = realpath($this->projectRoot) ?: $this->projectRoot;
         $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
@@ -1870,23 +1871,383 @@ class ProjectLab
             ? ltrim(substr($sourcePath, strlen($projectRoot)), DIRECTORY_SEPARATOR)
             : $sourcePath;
 
+        $parsedSections = $this->parseDocumentSections((string) @file_get_contents($sourcePath));
+        $recentSectionChanges = $this->detectRecentlyChangedSections($sourcePath, 12, $recentSectionChangesFromLogs);
         $sections = array_map(
-            fn (\App\Support\Docs\TechnicalDocSection $section) => [
+            function (\App\Support\Docs\TechnicalDocSection $section) use ($parsedSections, $recentSectionChanges): array {
+                $sectionName = $section->name;
+
+                return [
                 'name' => $section->name,
+                'version' => $parsedSections[$sectionName]['version'] ?? null,
+                'recent_change' => $recentSectionChanges[$sectionName] ?? null,
                 'body' => $section->rawBody,
                 'chars' => mb_strlen($section->rawBody),
-            ],
+                ];
+            },
             $document->sections
         );
+        $structure = $this->analyzeDocumentStructure($sourcePath);
+        $recentlyUpdated = $this->isRecentlyUpdated($sourcePath, 12)
+            && $this->isProjectLabActiveDocumentPath($sourcePath);
 
         return [
             'title' => $document->title,
             'slug' => $document->slug,
             'version' => $document->version,
             'path' => str_replace(DIRECTORY_SEPARATOR, '/', $relativePath),
-            'section_count' => count($sections),
+            'section_count' => $structure['section_count'],
+            'end_section_count' => $structure['end_section_count'],
+            'structure' => $structure,
+            'recently_updated' => $recentlyUpdated,
+            'recent_section_changes' => $recentSectionChanges,
             'sections' => array_values($sections),
         ];
+    }
+
+    private function parseDocumentSections(string $content): array
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content);
+        preg_match_all('/^<<SECTION:\s*(.*?)\s*>>\n?(.*?)(?:\n)?^<<END SECTION>>$/msu', $content, $matches, PREG_SET_ORDER);
+
+        $sections = [];
+
+        foreach ($matches as $match) {
+            $name = trim((string) ($match[1] ?? ''));
+
+            if ($name === '') {
+                continue;
+            }
+
+            $block = (string) ($match[0] ?? '');
+            $body = (string) ($match[2] ?? '');
+            $version = null;
+
+            if (preg_match('/^SECTION_VERSION:\s*(\d{5})\s*$/mu', $block, $versionMatch)) {
+                $version = $versionMatch[1];
+            }
+
+            $sections[$name] = [
+                'name' => $name,
+                'version' => $version,
+                'content' => $block,
+                'body' => $body,
+            ];
+        }
+
+        return $sections;
+    }
+
+    private function findRecentProjectLabAuditFiles(int $hours = 12): array
+    {
+        $auditDir = $this->resolveProjectPath(self::LAB_AUDIT_DIR, false);
+
+        if ($auditDir === null || ! is_dir($auditDir)) {
+            return [];
+        }
+
+        $cutoff = time() - ($hours * 3600);
+        $files = [];
+
+        foreach (glob($auditDir.'/{auditoria_*.txt,consola_project_lab_*.txt}', GLOB_BRACE) ?: [] as $filePath) {
+            if (! is_file($filePath)) {
+                continue;
+            }
+
+            $modifiedAt = filemtime($filePath);
+
+            if ($modifiedAt !== false && $modifiedAt >= $cutoff) {
+                $files[] = $filePath;
+            }
+        }
+
+        usort($files, fn (string $a, string $b): int => (filemtime($b) ?: 0) <=> (filemtime($a) ?: 0));
+
+        return $files;
+    }
+
+    private function parseRecentlyChangedSectionsFromLogs(int $hours = 12): array
+    {
+        $changes = [];
+
+        foreach ($this->findRecentProjectLabAuditFiles($hours) as $auditFile) {
+            $content = file_get_contents($auditFile);
+
+            if (! is_string($content)) {
+                continue;
+            }
+
+            $currentDocumentPath = null;
+
+            foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $content)) as $line) {
+                if (preg_match('/^\[OK\]\s+Archivo:\s+(tools\/project-lab\/documentos\/[^[:cntrl:]]+\.txt)\s*$/u', trim($line), $fileMatch)) {
+                    $candidatePath = $fileMatch[1];
+                    $absolutePath = $this->resolveProjectPath($candidatePath, false);
+                    $currentDocumentPath = (
+                        $absolutePath !== null
+                        && is_file($absolutePath)
+                        && $this->isProjectLabActiveDocumentPath($absolutePath)
+                        && $this->documentHasExplicitSlug($absolutePath)
+                    ) ? $candidatePath : null;
+
+                    continue;
+                }
+
+                if (
+                    $currentDocumentPath !== null
+                    && preg_match('/^\[OK\]\s+SECTION_VERSION actualizado:\s+(.+?)\s+\d{5}\s+(?:->|→)\s+\d{5}\s*$/u', trim($line), $sectionMatch)
+                ) {
+                    $sectionName = trim($sectionMatch[1]);
+
+                    if ($sectionName === '') {
+                        continue;
+                    }
+
+                    $changes[$currentDocumentPath][$sectionName] = [
+                        'status' => 'modified',
+                        'label' => 'MODIFICADA < 12H',
+                        'source' => 'log',
+                    ];
+                }
+            }
+        }
+
+        return $changes;
+    }
+
+    private function findLatestDocumentBackup(string $documentPath, int $hours = 12): ?string
+    {
+        if (! $this->isRecentlyUpdated($documentPath, $hours)) {
+            return null;
+        }
+
+        $backupDir = $this->resolveProjectPath(self::LAB_BACKUP_DIR, false);
+
+        if ($backupDir === null || ! is_dir($backupDir)) {
+            return null;
+        }
+
+        $baseName = pathinfo($documentPath, PATHINFO_FILENAME);
+        $cutoff = time() - ($hours * 3600);
+        $backups = [];
+
+        foreach (glob($backupDir.'/'.$baseName.'_*.bak') ?: [] as $backupPath) {
+            if (! is_file($backupPath)) {
+                continue;
+            }
+
+            $modifiedAt = filemtime($backupPath);
+
+            if ($modifiedAt !== false && $modifiedAt >= $cutoff) {
+                $backups[] = $backupPath;
+            }
+        }
+
+        if (empty($backups)) {
+            return null;
+        }
+
+        usort($backups, fn (string $a, string $b): int => (filemtime($b) ?: 0) <=> (filemtime($a) ?: 0));
+
+        return $backups[0];
+    }
+
+    private function detectRecentlyChangedSectionsFromBackup(string $documentPath, int $hours = 12): array
+    {
+        $backupPath = $this->findLatestDocumentBackup($documentPath, $hours);
+
+        if ($backupPath === null || ! is_file($backupPath) || ! is_file($documentPath)) {
+            return [];
+        }
+
+        $currentContent = file_get_contents($documentPath);
+        $backupContent = file_get_contents($backupPath);
+
+        if (! is_string($currentContent) || ! is_string($backupContent)) {
+            return [];
+        }
+
+        $currentSections = $this->parseDocumentSections($currentContent);
+        $backupSections = $this->parseDocumentSections($backupContent);
+        $changes = [];
+
+        foreach ($currentSections as $sectionName => $section) {
+            if (! isset($backupSections[$sectionName])) {
+                $changes[$sectionName] = [
+                    'status' => 'new',
+                    'label' => 'NUEVA < 12H',
+                    'source' => 'backup',
+                ];
+
+                continue;
+            }
+
+            if (($section['content'] ?? '') !== ($backupSections[$sectionName]['content'] ?? '')) {
+                $changes[$sectionName] = [
+                    'status' => 'modified',
+                    'label' => 'MODIFICADA < 12H',
+                    'source' => 'backup',
+                ];
+            }
+        }
+
+        return $changes;
+    }
+
+    private function detectRecentlyChangedSections(string $documentPath, int $hours = 12, array $recentSectionChangesFromLogs = []): array
+    {
+        $relativePath = $this->projectRelativePath($documentPath);
+
+        if ($relativePath !== null && ! empty($recentSectionChangesFromLogs[$relativePath])) {
+            return $recentSectionChangesFromLogs[$relativePath];
+        }
+
+        return $this->detectRecentlyChangedSectionsFromBackup($documentPath, $hours);
+    }
+
+    private function projectRelativePath(string $path): ?string
+    {
+        $projectRoot = realpath($this->projectRoot);
+        $realPath = realpath($path);
+
+        if ($projectRoot === false || $realPath === false) {
+            return null;
+        }
+
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+
+        if (! str_starts_with($realPath, $projectRoot.DIRECTORY_SEPARATOR)) {
+            return null;
+        }
+
+        return str_replace(DIRECTORY_SEPARATOR, '/', ltrim(substr($realPath, strlen($projectRoot)), DIRECTORY_SEPARATOR));
+    }
+
+    private function documentHasExplicitSlug(string $path): bool
+    {
+        if (! is_file($path)) {
+            return false;
+        }
+
+        $content = file_get_contents($path);
+
+        return is_string($content) && preg_match('/^DOC_SLUG:\s*[a-z0-9_]+\s*$/mu', $content) === 1;
+    }
+
+    private function analyzeDocumentStructure(string $path): array
+    {
+        $result = [
+            'section_count' => 0,
+            'end_section_count' => 0,
+            'balanced' => true,
+            'has_nested_sections' => false,
+            'has_end_without_open' => false,
+            'has_unclosed_sections' => false,
+            'errors' => [],
+        ];
+
+        if (! is_file($path)) {
+            $result['balanced'] = false;
+            $result['errors'][] = 'archivo no encontrado';
+
+            return $result;
+        }
+
+        $content = file_get_contents($path);
+
+        if (! is_string($content)) {
+            $result['balanced'] = false;
+            $result['errors'][] = 'no se pudo leer archivo';
+
+            return $result;
+        }
+
+        preg_match_all('/^<<SECTION:\s+.+>>$/mu', $content, $openMatches);
+        preg_match_all('/^<<END SECTION>>$/mu', $content, $endMatches);
+
+        $result['section_count'] = count($openMatches[0] ?? []);
+        $result['end_section_count'] = count($endMatches[0] ?? []);
+
+        $openDepth = 0;
+
+        foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $content)) as $line) {
+            if (preg_match('/^<<SECTION:\s+.+>>$/u', $line) === 1) {
+                if ($openDepth > 0) {
+                    $result['has_nested_sections'] = true;
+                }
+
+                $openDepth++;
+                continue;
+            }
+
+            if (preg_match('/^<<END SECTION>>$/u', $line) === 1) {
+                if ($openDepth < 1) {
+                    $result['has_end_without_open'] = true;
+                    continue;
+                }
+
+                $openDepth--;
+            }
+        }
+
+        if ($openDepth > 0) {
+            $result['has_unclosed_sections'] = true;
+        }
+
+        if ($result['has_nested_sections']) {
+            $result['errors'][] = 'secciones anidadas';
+        }
+
+        if ($result['has_end_without_open']) {
+            $result['errors'][] = 'END SECTION sin apertura';
+        }
+
+        if ($result['has_unclosed_sections']) {
+            $result['errors'][] = 'secciones sin cierre';
+        }
+
+        if ($result['section_count'] !== $result['end_section_count']) {
+            $result['errors'][] = 'cantidad de aperturas y cierres no coincide';
+        }
+
+        $result['balanced'] = empty($result['errors']);
+
+        return $result;
+    }
+
+    private function isRecentlyUpdated(string $path, int $hours = 12): bool
+    {
+        if (! is_file($path)) {
+            return false;
+        }
+
+        $modifiedAt = filemtime($path);
+
+        if ($modifiedAt === false) {
+            return false;
+        }
+
+        return $modifiedAt >= time() - ($hours * 3600);
+    }
+
+    private function isProjectLabActiveDocumentPath(string $path): bool
+    {
+        $projectRoot = realpath($this->projectRoot);
+        $realPath = realpath($path);
+
+        if ($projectRoot === false || $realPath === false) {
+            return false;
+        }
+
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+
+        if (! str_starts_with($realPath, $projectRoot.DIRECTORY_SEPARATOR)) {
+            return false;
+        }
+
+        $relativePath = str_replace(DIRECTORY_SEPARATOR, '/', ltrim(substr($realPath, strlen($projectRoot)), DIRECTORY_SEPARATOR));
+
+        return preg_match('#^tools/project-lab/documentos/[^/]+\.txt$#', $relativePath) === 1;
     }
 
     private function buildDocumentAuditPrompt(

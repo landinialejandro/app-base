@@ -568,7 +568,7 @@ Un bloque de alta documental no debe usarse para reemplazar secciones existentes
 <<END SECTION>>
 
 <<SECTION: CONTRATOS DOCUMENTALES SOPORTADOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 CONTRATOS DOCUMENTALES SOPORTADOS
 
@@ -589,10 +589,39 @@ REEMPLAZAR EN: [doc_slug]
 seguido de un bloque completo expresado mediante metarrepresentación:
 
 INICIO_DE_SECCION: NOMBRE EXACTO
-SECTION_VERSION: 00000
+LINEA_SECTION_VERSION: 00000
 
 contenido
 FIN_DE_SECCION
+ALTA CONTROLADA DE SECCIÓN NUEVA
+
+Uso:
+
+agregar una sección documental nueva completa dentro de un documento activo.
+
+Formatos vigentes:
+
+AGREGAR EN: [doc_slug]
+
+NUEVA SECCIÓN PROPUESTA EN: [doc_slug]
+
+Debe incluir:
+
+doc_slug existente
+sección nueva completa
+SECTION_VERSION
+ancla exacta existente
+ubicación explícita mediante UBICAR DESPUÉS DE
+
+Reglas:
+
+no debe crear secciones sin ancla
+no debe crear secciones por aproximación
+no debe crear secciones ya existentes
+no debe usar ubicación implícita
+no debe aplicar bloques sin SECTION_VERSION
+debe generar backup documental antes de escribir
+debe devolver OK o ERROR explícito
 
 <<END SECTION>>
 
@@ -869,7 +898,7 @@ No debe normalizar silenciosamente un formato ambiguo si puede provocar creació
 <<END SECTION>>
 
 <<SECTION: ERRORES OBLIGATORIOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ERRORES OBLIGATORIOS
 
@@ -906,6 +935,27 @@ intento de escritura fuera del projectRoot
 falla al crear backup documental antes de escribir
 falla al escribir el archivo destino
 falla de lint PHP posterior a una escritura PHP validable
+errores propios de LAB_PATCH:
+FILE faltante
+OP faltante
+ANCHOR faltante
+TEXT faltante
+TYPE inválido
+TYPE incompatible con ruta o extensión
+OP inválido
+POSITION inválida
+POSITION faltante cuando OP=insert
+MATCH inválido
+MATCH=all usado con OP=insert
+ANCHOR inexistente
+ANCHOR duplicado con MATCH=one
+documento inválido antes del patch
+intento de modificar carpeta documental protegida
+intento de modificar DOC_SLUG mediante patch
+falla de validación documental posterior al patch
+falla de validación PHP posterior al patch
+falla de validación JS posterior al patch
+falla de validación JSON posterior al patch
 
 Regla:
 
@@ -2037,7 +2087,7 @@ la herramienta facilita la operación técnica, pero no elimina la obligación d
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CON LA DOCUMENTACIÓN DEL PROYECTO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 RELACIÓN CON LA DOCUMENTACIÓN DEL PROYECTO
 
@@ -2064,6 +2114,14 @@ Documentos especialmente relacionados:
 <DOC_REF slug="decisiones_vivas_app_base">Decisiones vivas del proyecto</DOC_REF>
 
 <DOC_REF slug="plantilla_inicio_chats_proyecto_app_base">Plantilla de inicio de chats del proyecto</DOC_REF>
+
+Lectura vigente de la plantilla:
+
+la plantilla de inicio no reemplaza esta guía.
+
+La plantilla ordena el inicio de nuevos chats técnicos.
+
+La guía de Project Lab documenta el uso operativo de la herramienta.
 
 Reglas:
 

@@ -39,16 +39,32 @@ if (! is_string($technicalDocumentsJson)) {
 
                     <div style="display:flex; flex-direction:column; gap:8px; max-height:420px; overflow:auto; padding-right:4px;">
                         <?php foreach ($technicalDocuments as $document) { ?>
+                            <?php
+                            $structure = is_array($document['structure'] ?? null) ? $document['structure'] : [];
+                            $isBalanced = (bool) ($structure['balanced'] ?? true);
+                            $sectionCount = (int) ($structure['section_count'] ?? ($document['section_count'] ?? 0));
+                            $endSectionCount = (int) ($structure['end_section_count'] ?? ($document['end_section_count'] ?? 0));
+                            $isRecent = (bool) ($document['recently_updated'] ?? false);
+                            $documentTitle = (string) ($document['title'] ?? 'Documento sin título');
+                            $documentSlug = (string) ($document['slug'] ?? '');
+                            ?>
                             <button
                                 type="button"
                                 class="tab-btn project-doc-item"
-                                data-doc-slug="<?= htmlspecialchars((string) $document['slug'], ENT_QUOTES, 'UTF-8') ?>"
-                                onclick="selectProjectDocument(<?= htmlspecialchars(json_encode((string) $document['slug']), ENT_QUOTES, 'UTF-8') ?>)"
+                                data-doc-slug="<?= htmlspecialchars($documentSlug, ENT_QUOTES, 'UTF-8') ?>"
+                                onclick="selectProjectDocument(<?= htmlspecialchars(json_encode($documentSlug), ENT_QUOTES, 'UTF-8') ?>)"
                                 style="margin:0;"
                             >
-                                <strong><?= htmlspecialchars((string) $document['title']) ?></strong><br>
-                                <code><?= htmlspecialchars((string) $document['slug']) ?></code><br>
-                                <span class="table-meta"><?= (int) ($document['section_count'] ?? 0) ?> secciones</span>
+                                <strong><?= htmlspecialchars($documentTitle) ?></strong><br>
+                                <code><?= htmlspecialchars($documentSlug !== '' ? $documentSlug : 'sin_doc_slug') ?></code><br>
+                                <?php if ($isBalanced) { ?>
+                                    <span class="table-meta doc-balance-ok">Secciones: <?= $sectionCount ?></span>
+                                <?php } else { ?>
+                                    <span class="table-meta doc-balance-bad">Secciones: <?= $sectionCount ?> / END: <?= $endSectionCount ?> <span class="doc-balance-badge">DESBALANCEADO</span></span>
+                                <?php } ?>
+                                <?php if ($isRecent) { ?>
+                                    <span class="doc-recent-badge doc-recent-glow">RECIENTE</span>
+                                <?php } ?>
                             </button>
                         <?php } ?>
                     </div>

@@ -615,6 +615,25 @@ function selectProjectDocument(slug) {
         .map((section) => {
             const name = String(section.name || "");
             const chars = Number.parseInt(section.chars || 0, 10);
+            const version = String(section.version || "");
+            const recentChange =
+                section.recent_change && typeof section.recent_change === "object"
+                    ? section.recent_change
+                    : null;
+            const recentStatus = String(recentChange?.status || "");
+            const recentLabel = String(recentChange?.label || "");
+            const recentClass =
+                recentStatus === "new" ? "doc-section-new" : "doc-section-modified";
+            const recentBadge =
+                recentLabel !== ""
+                    ? [
+                          '<span class="doc-section-recent-badge doc-section-recent-glow ',
+                          recentClass,
+                          '">',
+                          escapeHtml(recentLabel),
+                          "</span>",
+                      ].join("")
+                    : "";
 
             return [
                 '<button type="button" class="tab-btn project-doc-section-item"',
@@ -624,8 +643,10 @@ function selectProjectDocument(slug) {
                 escapeHtml(name),
                 "</strong><br>",
                 '<span class="table-meta">',
+                version !== "" ? "SECTION_VERSION: " + escapeHtml(version) + " · " : "",
                 Number.isFinite(chars) ? chars : 0,
                 " caracteres</span>",
+                recentBadge,
                 "</button>",
             ].join("");
         })

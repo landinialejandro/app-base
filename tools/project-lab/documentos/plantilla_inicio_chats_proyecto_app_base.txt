@@ -1,1529 +1,398 @@
 <<SECTION: METADATOS>>
 TÍTULO: Plantilla de inicio de chats del proyecto
 DOC_SLUG: plantilla_inicio_chats_proyecto_app_base
-DOC_VERSION: 00001
+DOC_VERSION: 00002
 
 METODOLOGÍA DE EDICIÓN:
-Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Este archivo define la plantilla compacta para iniciar nuevos chats técnicos del proyecto app-base.
+
+No reemplaza documentos rectores ni especializados.
+
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
 <<END SECTION>>
 
 <<SECTION: PROYECTO>>
-PROYECTO app-base
+SECTION_VERSION: 00002
+
+PROYECTO
+
+app-base
+
+Laravel multi-tenant
+
+Proyecto técnico en evolución controlada.
+
+El objetivo de esta plantilla es iniciar nuevos chats sin perder continuidad, pero sin duplicar doctrina que pertenece a documentos especializados.
+<<END SECTION>>
+
+<<SECTION: ORDEN OBLIGATORIO DE LECTURA>>
+SECTION_VERSION: 00001
+
+ORDEN OBLIGATORIO DE LECTURA
+
+Antes de responder, proponer cambios, auditar, generar código o generar documentación, leer en este orden:
+
+1. contexto_fijo_proyecto_app_base
+
+2. seguridad_acceso_proyecto_app_base
+
+3. plantilla_inicio_chats_proyecto_app_base
+
+4. documento especializado correspondiente al frente activo
+
+5. código real, runtime o evidencia Project Lab cuando corresponda
+
+Regla:
+
+la plantilla no contiene toda la doctrina del proyecto.
+
+La plantilla ordena qué doctrina leer y cómo iniciar el trabajo.
+
+El contexto estructural estable vive en contexto_fijo_proyecto_app_base.
+
+La doctrina de autorización, acceso y restricciones críticas vive en seguridad_acceso_proyecto_app_base.
+
+La doctrina específica de cada frente vive en su documento especializado.
+
+Si falta documentación, código, esquema, ruta, clase, método, permiso, contrato o evidencia runtime, se debe pedir el dato exacto antes de avanzar.
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00028
+SECTION_VERSION: 00029
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
-Proyecto: app-base (Laravel multi-tenant)
-
-Idioma de trabajo: español
+Idioma de trabajo: español.
 
 Regla máxima permanente:
 
-NO SE ASUME
-NO SE SUPONE
+NO SE ASUME.
 
-Antes de proponer cambios:
+NO SE SUPONE.
+
+Antes de intervenir:
 
 leer contexto vigente
+respetar el orden obligatorio de lectura
+identificar el frente activo
+consultar el documento especializado correspondiente
 trabajar sobre código real
 pedir evidencia mínima necesaria
 no inventar estructura
 no inferir APIs
-no suponer tablas, rutas o contratos
-
-Regla adicional consolidada:
-
-ante integraciones entre users, memberships y parties, separar siempre:
-
-identidad global
-pertenencia operativa
-ficha ampliada opcional
-
-users mantiene identidad global.
-
-memberships resuelve pertenencia operativa al tenant.
-
-party puede funcionar como ficha ampliada tenant-scoped solo cuando exista vínculo explícito.
-
-No debe asumirse creación automática ni edición libre de datos identitarios.
-
-Regla específica para shops y self_service_sales:
-
-distinguir siempre:
-
-shops = módulo interno estándar del tenant
-
-self_service_sales = capa satélite comercial externa/customer
-
-shops configura catálogo interno publicable.
-
-self_service_sales consume catálogo publicado por shops.
-
-No crear administración interna bajo:
-
-self_service_sales.shops.*
-
-No usar como administración interna vigente:
-
-/self-service/shops
-
-Usar:
-
-/shops
-shops.*
-
-Modelos vigentes para administración interna:
-
-Shop
-ShopItem
-
-No usar como lectura vigente de administración interna:
-
-SelfServiceShop
-SelfServiceShopItem
-
-Tablas vigentes:
-
-self_service_shops
-self_service_shop_items
+no suponer tablas
+no suponer rutas
+no suponer permisos
+no suponer componentes
+no suponer contratos
+no proponer código legacy
+no aplicar parches por conveniencia
 
 Regla:
 
-el nombre físico de tabla no define ownership conceptual.
+si la información disponible no alcanza para responder con seguridad, no se completa por intuición.
 
-Regla específica para self_service_sales:
+Se debe pedir exactamente el dato faltante o solicitar una auditoría Project Lab.
 
-en tareas de Shopping Autoservicio distinguir siempre:
+Regla adicional:
 
-plano interno User/Membership
+no rehacer auditorías generales al retomar un chat si el contexto ya está disponible.
 
-plano externo customer
-
-cuenta externa customer
-
-relación customer-tienda
-
-credencial externa propia
-
-token temporal de selección
-
-sesión externa mínima namespaced
-
-middleware externo pasivo
-
-tienda tenant-scoped
-
-entrada pública general /tienda
-
-selector externo /tienda/seleccionar
-
-salida externa /tienda/salir
-
-registro liviano
-
-confirmación de email
-
-finalización de registro externo
-
-identidad operativa completa
-
-creación de contraseña externa
-
-operación habilitada
-
-catálogo publicado inicial
-
-consumo externo de shops
-
-publicación de productos
-
-operación comercial real futura
-
-Relaciones vigentes:
-
-/shops = administración interna estándar de tiendas
-
-/shops/{shop}/preview = vista previa interna autorizada
-
-/shop/{tenant:slug} = tienda pública tenant-scoped
-
-/tienda = entrada pública general externa
-
-/tienda/seleccionar = selector externo temporal de tiendas
-
-/tienda/salir = salida externa de self_service_sales
-
-/login = acceso interno para User
-
-/solicitar-empresa = alta o solicitud de acceso de empresas
-
-Shop = cabecera/configuración interna de tienda
-
-ShopItem = producto publicado en tienda
-
-SelfServiceCustomerAccount = cuenta externa customer
-
-SelfServiceStoreCustomer = relación customer-tienda
-
-SelfServiceStoreSelectionToken = token temporal de selección
-
-SelfServiceExternalSession = sesión externa mínima namespaced
-
-Product = catálogo maestro
-
-Reglas:
-
-/shops no es tienda pública
-
-/shops/{shop}/preview no es tienda pública
-
-/shops/{shop}/preview no debe requerir sesión externa customer
-
-/shop/{tenant:slug} no es vista previa interna
-
-/tienda no es login interno
-
-/tienda/seleccionar no es tenants/select
-
-/tienda/salir no es logout interno
-
-/shop/{tenant:slug} no habilita panel interno
-
-/shop/{tenant:slug} no es administración interna
-
-customer externo no administra tienda
-
-customer externo no administra shops
-
-customer externo no es User
-
-customer externo no es Membership
-
-customer externo no recibe roles internos
-
-customer externo no accede al panel interno
-
-SelfServiceCustomerAccount no es User
-
-SelfServiceStoreCustomer no es Membership
-
-SelfServiceStoreSelectionToken no es sesión interna
-
-SelfServiceExternalSession no es sesión interna
-
-SelfServiceExternalSession no es guard externo definitivo
-
-SelfServiceExternalSession no es tenant activo interno
-
-SelfServiceExternalSession no autoriza administración interna
-
-ResolveSelfServiceExternalCustomer no es middleware de autorización obligatoria
-
-ResolveSelfServiceExternalCustomer no autoriza administración interna
-
-Shop no reemplaza Tenant
-
-ShopItem no reemplaza Product
-
-publicar producto no equivale a vender
-
-publicar producto no mueve stock
-
-tienda activa no habilita operación comercial completa
-
-catálogo publicado no habilita operación comercial completa
-
-confirmar email no habilita operación comercial completa
-
-completar identidad operativa no habilita operación comercial completa
-
-crear contraseña externa no habilita operación comercial completa
-
-validar credencial externa no habilita operación comercial completa
-
-seleccionar tienda no habilita operación comercial completa
-
-iniciar sesión externa mínima no habilita operación comercial completa
-
-redirigir a /shop/{tenant:slug} no habilita operación comercial completa
-
-operation_enabled = false bloquea operación comercial
-
-La sesión externa mínima de self_service_sales:
-
-usa namespace propio self_service_sales.*
-
-no usa Auth::login()
-
-no usa Fortify interno
-
-no crea User
-
-no crea Membership
-
-no escribe session('tenant_id')
-
-no habilita dashboard
-
-no habilita tenant/profile
-
-no habilita parties.show
-
-no habilita operación comercial real
-
-no habilita administración interna de tienda
-
-no habilita /shops
-
-La salida externa:
-
-POST /tienda/salir
-
-limpia solo claves self_service_sales.*
-
-no invalida toda la sesión Laravel
-
-no cierra sesión interna si existiera
-
-no limpia session('tenant_id') por reflejo
-
-Estado base reciente de self_service_sales:
-
-registro externo pendiente validado
-
-confirmación por token validada
-
-creación de Party person + PartyRole customer validada
-
-cuenta externa customer implementada
-
-relación customer-tienda implementada
-
-credencial externa propia implementada
-
-token temporal de selección implementado
-
-selector externo de tiendas implementado
-
-POST /tienda/seleccionar consume token mediante used_at
-
-POST /tienda/seleccionar redirige a /shop/{tenant:slug}
-
-SelfServiceExternalSession implementa sesión externa mínima namespaced
-
-/shop/{tenant:slug} puede mostrar customer externo activo si la sesión externa corresponde al tenant de la ruta
-
-ResolveSelfServiceExternalCustomer implementado como middleware externo pasivo para /shop/{tenant:slug}
-
-finalización de registro externo implementada
-
-creación de contraseña externa implementada
-
-identity_stage operational_identity_completed implementado
-
-access_enabled implementado
-
-operation_enabled false hasta habilitación manual
-
-habilitación manual desde tenant/profile implementada
-
-canOperate true con operation_enabled true
-
-shops implementado como módulo interno estándar
-
-Shop implementado
-
-ShopItem implementado
-
-catálogo publicado inicial consumido desde shops
-
-/shops implementado como administración interna estándar
-
-/shops/{shop}/preview implementado como vista previa interna
-
-/shop/{tenant:slug} muestra catálogo publicado inicial
-
-El middleware externo pasivo:
-
-resuelve contexto customer externo cuando la sesión corresponde al tenant público de la ruta
-
-comparte payload externo en request
-
-no bloquea visitantes públicos
-
-no exige login externo para ver /shop/{tenant:slug}
-
-no convierte /shop/{tenant:slug} en ruta privada
-
-no habilita operación comercial
-
-no reemplaza guard externo definitivo
-
-no reemplaza middleware externo definitivo de autorización obligatoria
-
-no toca session('tenant_id')
-
-no usa Auth
-
-no crea User
-
-no crea Membership
-
-si la sesión externa corresponde a otro tenant, la tienda se muestra como visitante
-
-si no existe sesión externa, la tienda se muestra como visitante
-
-cambio de tienda o cuenta externa disponible desde tienda pública
-
-POST /tienda/salir limpia la sesión externa
-
-Lavadero SA queda como tenant demo/base para pruebas reales de este frente
-
-cuenta demo multi-tienda disponible para validar selección/cambio de tienda
-
-Estado todavía no implementado en self_service_sales:
-
-middleware externo definitivo de autorización obligatoria
-
-guard externo definitivo
-
-remember token externo
-
-recuperación real de contraseña
-
-cambio real de contraseña externa
-
-saldo operativo real
-
-fichas operativas
-
-QR operativo
-
-pagos reales
-
-movimientos comerciales reales
-
-Mercado Pago real
-
-facturación/comprobantes reales
-
-carrito
-
-compra
-
-operación comercial real
-
-Ante problemas para ver tienda o catálogo, distinguir:
-
-preview interna de Shop
-
-visibilidad pública efectiva del item
-
-Shop activa
-
-ShopItem publicado
-
-ShopItem visible
-
-producto activo
-
-producto del mismo tenant
-
-sesión/customer externo
-
-operation_enabled
-
-plano interno vs plano externo
-
-No asumir automáticamente problema de permisos.
-
-Antes de modificar landing pública:
-
-no asumir que welcome.blade.php es la landing real
-
-auditar routes/web.php
-
-auditar resources/views/landing
-
-verificar qué vista resuelve la raíz pública
-
-Estado base reciente a considerar:
-
-Orders y Documents comparten lifecycle persistido:
-
-draft
-pending_approval
-approved
-closed
-cancelled
-
-La primera línea válida promueve automáticamente:
-
-draft → pending_approval
-
-Inventory ya opera integrado con Orders y Documents mediante surfaces oficiales y mantiene ownership funcional propio.
-
-Inventory cuenta con inventory_operations como capa interna de agrupación operativa contextual.
-
-InventoryOperation representa la acción operativa agrupada.
-
-InventoryMovement conserva la trazabilidad fina y atómica de stock.
-
-Estado base reciente de contrato material Inventory:
-
-Inventory incorpora contrato material formal mínimo mediante InventoryMaterialFlow.
-
-InventoryMovement conserva el libro físico de stock.
-
-InventoryMaterialFlow clasifica el subcontrato material formal.
-
-Tipos formales vigentes:
-
-formal_delivery
-formal_application
-formal_return
-
-InventoryMaterialFlow no reemplaza InventoryMovement.
-
-InventoryMaterialFlow no mueve stock por sí mismo.
-
-InventoryMaterialFlowService crea y valida flows formales.
-
-InventoryMaterialBalanceService lee saldos formales y conserva lectura ambigua para movimientos anteriores o no formalizados.
-
-InventorySurfaceService publica payload de Material formal para surfaces embebidas.
-
-InventoryOrderItemHooks bloquea cierre si queda saldo material formal pendiente.
-
-ProductionOrderInventoryOperationService soporta producción instantánea y producción formal por etapas.
-
-Producción instantánea sigue vigente cuando no existen flows formales pendientes.
-
-Producción instantánea debe bloquearse si existen entregas formales pendientes de componentes físicos contra la misma orden/línea.
-
-La entrega formal puede crear movimiento físico de salida y flow formal_delivery.
-
-La aplicación formal crea flow formal_application y no crea InventoryMovement.
-
-La aplicación formal no descuenta stock físico dos veces.
-
-La devolución formal puede crear movimiento físico de ingreso y flow formal_return.
-
-Aplicación y devolución no pueden superar saldo entregado disponible.
-
-Inventory conserva ownership material.
-
-Orders conserva ownership de orden, líneas y lifecycle.
-
-Orders no calcula saldos materiales.
-
-Orders no administra ledger material formal.
-
-Orders no reconstruye lógica de stock.
-
-Orders no decide consumos ni aplicaciones materiales.
-
-No usar InventoryMovement.kind ni metadata como sustituto del subcontrato material formal cuando se requiere saldo trazable.
-
-Modelo mental validado:
-
-el depósito entrega.
-
-la orden consume o aplica.
-
-el cierre regulariza.
-
-Fase 1 cerrada:
-
-lectura consolidada inicial + guard defensivo contra doble consumo.
-
-Fase 2 cerrada:
-
-ledger material formal InventoryMaterialFlow + InventoryMaterialFlowService.
-
-Fase 3 operativa mínima cerrada:
-
-acciones internas y UI mínima de entrega, aplicación y devolución formal.
-
-Producción formal por etapas cerrada en corte funcional inicial:
-
-con entregas formales, ingresa producto terminado y aplica componentes previamente entregados.
-
-No crea consumo físico doble de componentes ya entregados.
-
-Los componentes service no participan en consumo ni aplicación material física.
-
-La cantidad producible se limita por el componente físico entregado disponible más restrictivo.
-
-Caso validado:
-
-si se entregan 50 franelas y 40 siliconas, producir 50 bloquea por silicona.
-
-producir 40 ingresa terminado, aplica 40 componentes y deja 10 franelas disponibles.
-
-Cierre material vigente:
-
-el cierre de orden consulta blockers materiales de Inventory.
-
-si queda saldo formal pendiente, el cierre se bloquea.
-
-la acción Devolver debe permanecer disponible aunque la línea esté completed si la orden está operable y existe saldo formal disponible.
-
-Caso funcional validado:
-
-OPR-0001-00000002
-
-se produjo formalmente
-
-quedó sobrante
-
-se corrigió payload para mostrar Devolver en línea completed
-
-se devolvió sobrante
-
-se pudo cerrar la orden
-
-Advertencia para futuros chats:
-
-no reabrir debate sobre metadata vs operation_type vs entidad satélite para el contrato formal mínimo.
-
-La decisión vigente es InventoryMaterialFlow.
-
-La convergencia reusable de line items quedó avanzada y validada en múltiples capas.
-
-Las show pages principales ya cuentan con patrón común para tabs host mediante x-host-tabs y helper HostTabs.
-
-return_tab se usa como contexto interno del host para preservar el panel activo cuando corresponde.
-
-trail continúa representando contexto externo entre recursos.
-
-Parties fue reconvertido conceptualmente y en seguridad.
-
-Lectura vigente:
-
-party.kind = tipo de contacto
-
-Valores:
-
-person
-company
-
-party_roles.role = relación con la empresa
-
-Valores:
-
-customer
-supplier
-employee
-other
-
-Seguridad vigente de parties:
-
-parties usa allowed_party_roles como constraint funcional.
-
-allowed_party_roles se evalúa contra party_roles.role.
-
-orders conserva allowed_kinds.
-
-allowed_kinds no aplica a parties.
-
-Reglas de continuidad para parties:
-
-no usar customer, supplier ni employee como parties.kind
-
-no reintroducir KIND_CUSTOMER, KIND_SUPPLIER ni KIND_EMPLOYEE como valores de kind
-
-no usar allowed_kinds como permiso o constraint funcional de parties
-
-no usar helpers legacy basados en kind como permiso de parties
-
-no usar rol en UI de parties si puede confundirse con roles de permisos o memberships
-
-usar preferentemente:
-
-Tipo de contacto
-Relación con la empresa
-
-Lectura vigente de employee:
-
-colaborador con membership activa → ficha bloqueada parcialmente
-
-colaborador manual sin user → contacto común con relación employee, solo gestionable por usuarios autorizados
-
-La autorización sensible de employee está centralizada en:
-
-app/Support/Parties/PartyEmployeeContactAuthorization.php
-
-El formulario progresivo de parties ya está implementado y funcionando.
-
-No debe revertirse a formulario plano sin justificación basada en código real y necesidad validada.
-
-OperationalActivity quedó incorporado como capacidad transversal tenant-scoped de trazabilidad operativa.
-
-Lectura vigente:
-
-no es CRUD ordinario
-no es navegación principal
-no autoriza operaciones
-no reemplaza Security
-no reemplaza policies
-no valida la operación original
-no debe bloquear el flujo principal si falla el registro del log
-
-La secuencia correcta es:
-
-módulo dueño autoriza
-módulo dueño valida
-módulo dueño ejecuta
-módulo dueño emite evento operativo liviano
-OperationalActivity registra si corresponde
-
-La escritura del log es system-owned y append-only.
-
-No debe proponerse create manual, edit, update, delete, destroy ni carga manual desde UI para OperationalActivity.
-
-Módulos actualmente integrados con OperationalActivity:
-
-appointments
-tasks
-orders
-documents
-projects
-assets
-products
-attachments
-parties
-inventory
-
-Regla vigente para inventory:
-
-OperationalActivity registra InventoryOperation.
-
-InventoryMovement no se registra como actividad principal cuando InventoryOperation representa la acción operativa agrupada.
-
-Regla vigente para parties:
-
-OperationalActivity registra Party.
-
-Los cambios de party_roles pueden registrarse como metadata operativa de Party.
-
-party_roles no se convierte en módulo propio ni abre navegación propia.
-
-Lectura general vigente de OperationalActivity:
-
-OperationalActivity ya tiene contrato inicial de lectura general:
-
-operational_activity.view_any
-
-Esta capability es tenant no modular.
-
-Se resuelve desde Security sin incorporar OperationalActivity a ModuleCatalog.
-
-Lectura visual general inicial:
-
-tenant/profile
-tab Actividad
-últimos 50 registros del tenant
-
-Estado vigente de tenant/profile:
-
-tenant/profile es accesible por owner y admin según contrato vigente.
-
-owner gobierna.
-
-admin opera fuerte con restricciones.
-
-admin no edita General.
-
-admin no modifica rol admin.
-
-admin no asigna ni delega admin.
-
-admin no autogestiona su autoridad.
-
-admin no puede vaciar sus propios roles.
-
-La autoridad del frente tenant/profile está centralizada en:
-
-app/Support/Tenants/TenantProfileAccess.php
-
-La edición de funciones de memberships se realiza mediante modal y roles.sync.
-
-Caso vigente:
-
-TenantMembershipRoleController::sync
-
-Regla:
-
-la UI expresa disponibilidad, readonly o bloqueo.
-
-El backend autoriza o bloquea.
-
-La tab Actividad general usa OperationalActivityLinkResolver.
-
-OperationalActivityLinkResolver resuelve:
-
-label del registro asociado
-URL canónica cuando existe show seguro
-fallback textual cuando no existe ruta segura
-trail contextual
-
-Trail vigente desde actividad general:
-
-Inicio
-Perfil de empresa · Actividad
-Registro destino
-
-Casos actuales sin link seguro:
-
-InventoryOperation
-Attachment
-
-Lectura contextual heredada vigente de OperationalActivity:
-
-si el usuario puede ver el registro host, puede ver actividad contextual autorizada del registro host según contrato vigente.
-
-<<END SECTION>>
-
-<<SECTION: ESTADO RECIENTE — CAPAS SATÉLITE>>
-SECTION_VERSION: 00001
-
-ESTADO RECIENTE — CAPAS SATÉLITE
-
-Este bloque resume el estado reciente de frentes satélite para continuidad entre chats técnicos.
-
-Regla máxima:
-
-NO SE ASUME
-NO SE SUPONE
-
-Antes de continuar cualquiera de estos frentes:
-
-leer documentación vigente
-trabajar sobre código real
-pedir evidencia mínima necesaria
-validar runtime cuando corresponda
-no inventar rutas, tablas, permisos, APIs ni contratos
-no abrir piezas nuevas sin auditar si la necesidad se resuelve con contratos existentes
-
-SERVICIO Y MANTENIMIENTO
-
-Servicio y mantenimiento ya posee universo semántico implementado y validado:
-
-/service
-
-Lectura vigente:
-
-/service es frente operativo mínimo de Servicio y mantenimiento
-
-/service no es CRUD nuevo
-
-/service no reemplaza Orders
-
-/service no absorbe ownership de Orders
-
-Orders conserva ownership de órdenes de servicio
-
-Rutas vigentes:
-
-service.index
-service.orders.index
-service.orders.create
-service.orders.store
-service.orders.show
-
-Reglas vigentes:
-
-POST /service/orders fuerza group = service desde backend
-
-la navegación contextual se conserva mediante OrderNavigationTrail::showRouteName()
-
-orders.show contiene lectura contextual no invasiva para órdenes de servicio
-
-no se implementaron estados técnicos satélite todavía
-
-no se implementó CMMS completo todavía
-
-no crear rutas duplicadas ni piezas satélite nuevas sin auditar primero si la necesidad se resuelve mediante Orders, trails, surfaces o lectura contextual
-
-SHOPPING AUTOSERVICIO
-
-Existe una nueva capacidad documentada e iniciada:
-
-Shopping Autoservicio / self_service_sales
-
-Lectura vigente:
-
-self_service_sales es capa satélite comercial autogestiva por tenant
-
-no es módulo CRUD ordinario
-
-no es panel interno del tenant
-
-no reemplaza Parties
-
-no reemplaza Products
-
-no reemplaza Inventory
-
-no reemplaza Documents
-
-no reemplaza Security
-
-Universo público vigente:
-
-/shop/{tenant:slug}
-
-Label visible:
-
-Tienda
-
-Primera fase implementada y validada:
-
-/shop/{tenant:slug}
-registro externo de customer
-self_service_customer_registrations
-confirmación por token
-creación de Party kind = person
-PartyRole role = customer
-sin User
-sin Membership
-sin acceso interno
-
-Reglas vigentes:
-
-no reutilizar PartyController para el flujo externo de customer
-
-no reutilizar TenantMembershipPartyController para el flujo externo de customer
-
-no reutilizar InvitationAcceptanceController para el flujo externo de customer
-
-no reutilizar Fortify interno para el flujo externo de customer
-
-no usar invitations para registro externo de customer
-
-invitations fue descartada para este flujo y se creó tabla propia por claridad semántica de largo plazo
-
-antes de continuar con saldo, ficha, QR, email real o Mercado Pago, debe respetarse el corte actual y validar con código real
-
-Próximo frente probable:
-
-vista interna owner/admin para registros y customers de Shopping Autoservicio
-
-<<END SECTION>>
-
-<<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00015
-
-REGLAS OPERATIVAS DEL CHAT
-
-Trabajar siempre con foco en coherencia doctrinal del sistema.
-
-Preferencias operativas vigentes:
-
-auditar antes de modificar
-
-pedir solo el contexto faltante imprescindible
-
-no rehacer diagnósticos generales ya cerrados
-
-proponer cambios concretos y verificables
-
-priorizar bajo riesgo y alto impacto
-
-mantener seguridad y tenancy como núcleo no negociable
-
-si una capacidad pertenece a un módulo oferente, no mover ownership al consumidor
-
-si dos módulos comparten gramática equivalente, evaluar reutilización antes de duplicar
-
-validar con evidencia real cuando corresponda:
-
-syntax
-routes
-runtime
-browser informado por usuario
-
-Regla operativa adicional:
-
-ante mejoras UI o refactors visuales, no asumir estructura de archivos.
-
-Primero deben ubicarse archivos reales mediante CLI o evidencia equivalente.
-
-Regla operativa adicional:
-
-si un dato ya existe en un catálogo estructural, debe consumirse desde allí y no duplicarse localmente.
-
-Antes de modificar múltiples módulos, services o views por una misma necesidad, debe buscarse el punto común de normalización.
-
-Esto aplica especialmente cuando la necesidad pueda repetirse en el futuro.
-
-No declarar cierres por intuición.
-
-El cierre debe apoyarse en evidencia técnica suficiente.
-
-Regla operativa adicional para tenant/profile:
-
-no asumir que tenant/profile es owner-only.
-
-Lectura vigente:
-
-owner puede acceder como autoridad estructural de gobierno.
-
-admin puede acceder con restricciones.
-
-sales/operator no deben acceder si no poseen autorización efectiva.
-
-Regla vigente:
-
-admin opera fuerte
-
-owner gobierna
-
-La autoridad owner/admin del frente tenant/profile está centralizada en:
-
-TenantProfileAccess
-
-No duplicar reglas owner/admin en controllers, policies ni Blades si esa pieza aplica.
-
-Reglas vigentes:
-
-admin no edita General
-
-admin no modifica permisos del rol admin
-
-admin no asigna ni delega admin
-
-admin no autogestiona su autoridad
-
-admin no puede vaciar sus propios roles
-
-admin puede gestionar roles operativos cuando backend lo autorice
-
-La UI puede mostrar readonly, ocultar botones o abrir modal.
-
-La autorización final debe resolverse en backend.
-
-Regla operativa adicional para edición de funciones de membership:
-
-cuando se edite el conjunto completo de funciones, usar el patrón sync si corresponde al código vigente.
-
-Caso vigente:
-
-TenantMembershipRoleController::sync
-
-Validar siempre:
-
-agregados
-
-remociones
-
-combinaciones sensibles
-
-autogestión indebida
-
-persistencia final
-
-rollback o limpieza de prueba cuando corresponda
-
-Regla operativa adicional para parties:
-
-no asumir la semántica anterior de kind.
-
-Antes de tocar parties, verificar la lectura vigente:
-
-parties.kind = person/company
-
-party_roles.role = customer/supplier/employee/other
-
-allowed_party_roles = constraint funcional de parties sobre party_roles.role
-
-allowed_kinds no aplica a parties
-
-Si la tarea involucra employee, membership o ficha ampliada, distinguir siempre:
-
-employee con membership activa
-employee manual sin user del sistema
-
-No mezclar esa distinción con roles de permisos.
-
-Si la tarea involucra employee, consumir o preservar la autorización sensible desde:
-
-PartyEmployeeContactAuthorization
-
-No duplicar esa regla en controller, requests o vistas.
-
-La UI de parties expresa permisos resueltos, pero no autoriza.
-
-Regla operativa adicional para creación contextual de Party employee:
-
-si el flujo nace desde membership y crea una Party employee, la autorización de parties.create debe recibir employee como contexto funcional.
-
-No alcanza con informar solamente kind = person.
-
-Motivo:
-
-en parties, kind expresa tipo de contacto y party_roles.role expresa relación con la empresa.
-
-La autorización debe orientarse por allowed_party_roles cuando corresponda.
-
-Regla operativa adicional para OperationalActivity:
-
-no asumir integración automática de módulos por existir CRUD.
-
-no llamar directamente al logger desde controllers o services del módulo dueño.
-
-no registrar actividad técnica sin valor operativo.
-
-no registrar deletes, vistas, downloads, previews, prints ni PDFs salvo decisión explícita posterior.
-
-no implementar nuevas lecturas visuales del log sin contrato de autorización.
-
-validar siempre tenant activo, evento emitido, queue procesada, jobs vaciados, failed_jobs sin errores y persistencia final cuando corresponda.
-
-si hay jobs procesados sin failed_jobs pero no hay operational_activities persistidas, revisar primero el mapeo modelo → módulo y módulo → catálogo.
-
-Regla vigente de lectura general:
-
-la lectura general tenant-scoped de OperationalActivity se autoriza mediante:
-
-operational_activity.view_any
-
-Esta capability no convierte OperationalActivity en módulo funcional ordinario.
-
-No debe agregarse a ModuleCatalog por este motivo.
-
-No debe abrir navegación principal por mera existencia de la capability.
-
-Regla vigente de lectura contextual heredada:
-
-si el usuario puede ver el registro host, puede ver la actividad asociada a ese registro.
-
-Esta lectura no utiliza operational_activity.view_any.
-
-No habilita lectura general del log.
-
-No habilita acceso a otros registros.
-
-Regla vigente de lectura agregada:
-
-si la tab Actividad necesita mostrar actividad de más de un record explícito, el módulo dueño debe declarar activity_record_set.
-
-No hardcodear esa frontera en OperationalActivity.
-
-Caso vigente:
-
-ProjectActivityRecordSet.
-
-Regla vigente de lectura contextual especial:
-
-si la tab Actividad necesita ampliar dataset por un criterio contextual especial, el módulo dueño debe declarar activity_context.
-
-No hardcodear esa frontera en OperationalActivity.
-
-Caso vigente:
-
-PartyEmployeeActivityContext.
-
-Regla operativa adicional para seeders demo operativos:
-
-no asumir que migrate:fresh --seed OK alcanza como cierre cuando el seeder representa carga operativa real.
-
-Si el seeder emite eventos hacia OperationalActivity, validar también:
-
-eventos emitidos
-
-jobs generados
-
-queue:work --stop-when-empty --tries=1 ejecutado
-
-jobs = 0
-
-failed_jobs = 0
-
-operational_activities persistidas
-
-módulo correcto
-
-cantidades finales esperadas
-
-estados válidos contra catálogos vigentes
-
-ausencia de estados inválidos en DB
-
-ausencia de residuos legacy reales
-
-ciclo operativo testigo cuando exista
-
-Regla:
-
-los seeders demo no deben sostener compatibilidad legacy silenciosa.
-
-Si el contrato vigente exige otra estructura, debe corregirse el seeder.
-
-No debe agregarse un adaptador interno para que payloads viejos sigan pasando.
-
-Caso vigente:
-
-OrderModuleSeeder debe hablar directamente:
-
-group = sale|purchase|service
-kind = standard
-
-No debe reinterpretar kind = sale/purchase/service como entrada conceptual antigua.
-
-Regla:
-
-si un seeder usa servicios operativos que dependen de app('tenant'), debe preparar el contexto tenant de forma explícita en entorno CLI y restaurar o limpiar el binding al finalizar cuando corresponda.
-
-Regla:
-
-un grep de auditoría debe ser preciso.
-
-No declarar residuo legacy por coincidencia textual si el patrón no discrimina campo, valor o contexto.
-
-Caso detectado:
-
-issued_at no equivale al estado legacy issued.
-
-Regla operativa adicional para Project Lab/Tinker:
-
-si se prueba un controller con Request::create(...) y el controller usa $request->user(), definir:
-
-$request->setUserResolver(fn () => $user)
-
-si además usa $this->authorize(...), autenticar también con:
-
-Auth::login($user)
-
-No usar Tenant::first() para pruebas sensibles si existen múltiples tenants.
-
-Debe ubicarse tenant, actor y dataset reales.
-
-Si una prueba devuelve null por falta de actor real, no debe interpretarse como validación del contrato.
-
-Regla operativa adicional sobre capturas:
-
-si una captura se usa como evidencia visual para analizar UI existente, no corresponde generar imagen.
-
-Debe analizarse la captura como evidencia de interfaz real.
-
-<<END SECTION>>
-
-<<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00012
-
-OBJETIVO DE ESTE CHAT
-
-Retomar trabajo técnico del proyecto desde el estado vigente real y avanzar sobre el siguiente frente prioritario sin perder continuidad.
-
-Prioridades sugeridas actuales:
-
-auditoría de quick actions y transiciones válidas en show pages
-
-revisión de duplicaciones residuales en validaciones de line items
-
-auditoría de migración futura Orders hacia group + kind compatible
-
-mejoras pendientes de layout general, footer y vistas extensas
-
-mejoras móviles futuras en attachments para captura rápida de evidencias
-
-auditoría de nuevas mejoras sobre tabs host únicamente si existe evidencia real de necesidad
-
-análisis de parties.show y sus embebidos según party_roles.role
-
-evaluar extensión de la surface contextual de OperationalActivity a otros hosts
-
-revisar acceso futuro de admin a tenant/profile con visualización permitida y edición restringida
-
-definir links para InventoryOperation y Attachment desde actividad operativa
-
-revisar duplicación de extra_changes en metadata final, especialmente en parties
-
-definir estrategia de worker de cola para producción
-
-Estado reciente consolidado de parties:
-
-seguridad de parties reconvertida
-
-parties usa allowed_party_roles
-
-orders conserva allowed_kinds
-
-allowed_kinds no aplica a parties
-
-PartyEmployeeContactAuthorization centraliza autorización sensible de employee
-
-party vinculada a membership activa queda protegida parcialmente:
-
-kind person
-employee obligatorio
-email protegido respecto de edición libre desde parties
-
-Próximo frente sugerido de parties:
-
-analizar parties.show y sus embebidos según party_roles.role.
-
-Criterios para ese análisis:
-
-no decidir embebidos por parties.kind
-no inventar relaciones
-no agregar embebidos manuales
-consumir surfaces oficiales
-detectar brechas si un módulo oferente no publica una surface necesaria
-distinguir lectura para customer, supplier, employee y other
-
-Estado reciente consolidado de OperationalActivity:
-
-base técnica implementada y validada
-
-capacidad transversal tenant-scoped
-
-append-only
-
-system-owned
-
-listener queued
-
-eventos operativos livianos
-
-módulos integrados:
-
-appointments
-tasks
-orders
-documents
-projects
-assets
-products
-attachments
-parties
-inventory
-
-lectura general tenant-scoped desde tenant/profile mediante operational_activity.view_any
-
-lectura contextual heredada validada en tasks.show y parties.show
-
-surface contextual publicada mediante TenantSurfaceRegistry
-
-tab Actividad contextual con key activity
-
-Estado reciente consolidado de surfaces tenant/transversales:
-
-TenantSurfaceRegistry quedó validado como canal para publicar surfaces de capacidades tenant/transversales no modulares.
-
-ModuleSurfaceRegistry puede fusionar surfaces modulares y tenant/transversales.
-
-Regla vigente:
-
-no agregar capacidades transversales a ModuleCatalog solo para publicar UI.
-
-no usar pushes manuales permanentes en vistas host como cierre estable.
-
-Pendientes reales derivados de OperationalActivity:
-
-definir links para InventoryOperation y Attachment
-
-evaluar extensión de la surface contextual a otros hosts
-
-revisar extra_changes duplicado
-
-revisar acceso futuro de admin a tenant/profile
-
-definir worker supervisado para producción
-
+Pedir solo el contexto faltante imprescindible.
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00002
 
 ALCANCE
 
-Este inicio de chat sirve para retomar continuidad técnica del proyecto sin perder tiempo en reconstrucciones innecesarias.
+Esta plantilla sirve para iniciar chats técnicos del proyecto app-base.
 
-Incluye:
+Debe orientar:
 
-doctrina vigente
+cómo comenzar
+qué documentos leer primero
+cómo evitar suposiciones
+cómo pedir evidencia
+cómo decidir si corresponde código, auditoría o documentación
+cómo mantener continuidad sin duplicar doctrina
 
-estado funcional reciente
+No debe contener:
 
-frentes cerrados relevantes
+historial extenso del proyecto
+roadmap completo
+estado detallado de módulos
+doctrina de seguridad
+doctrina arquitectónica completa
+doctrina de módulos específicos
+detalle de self_service_sales
+detalle de contrato material Inventory
+detalle de OperationalActivity
+detalle de Project Lab
+inventario de rutas
+inventario de clases
+pendientes coyunturales extensos
 
-pendientes inmediatos
+Regla:
 
-criterios de trabajo compartidos
+si una información debe saberse en todos los chats, corresponde a contexto_fijo_proyecto_app_base o seguridad_acceso_proyecto_app_base.
 
-límites de seguridad y tenancy
+Si una información corresponde a un frente específico, corresponde al documento especializado de ese frente.
 
-patrón vigente de tabs host en show pages
+Si una información solo ordena cómo empezar un chat, corresponde a esta plantilla.
+<<END SECTION>>
 
-distinción entre trail y return_tab
+<<SECTION: DOCUMENTOS DE REFERENCIA>>
+SECTION_VERSION: 00001
 
-No reemplaza auditorías específicas.
+DOCUMENTOS DE REFERENCIA
 
-Cuando el frente lo requiera, debe inspeccionarse código real, rutas reales, runtime real o documentación puntual antes de intervenir.
+Documentos rectores iniciales:
 
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+Documento de convenciones:
+
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+
+Documento operativo de Project Lab:
+
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
+
+Documentos de control y continuidad:
+
+<DOC_REF slug="checklist_modulos_nuevos_app_base">Checklist oficial para crear módulos nuevos</DOC_REF>
+
+<DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
+
+<DOC_REF slug="decisiones_vivas_app_base">Decisiones vivas del proyecto</DOC_REF>
+
+<DOC_REF slug="patrones_validados_app_base">Patrones validados del proyecto</DOC_REF>
+
+<DOC_REF slug="errores_y_lecciones_app_base">Errores y lecciones del proyecto</DOC_REF>
+
+Documentos estructurales:
+
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
+
+<DOC_REF slug="mapa_navegacion_relaciones_app_base">Mapa de navegación y relaciones</DOC_REF>
+
+<DOC_REF slug="base_visual_proyecto_app_base">Base visual del proyecto</DOC_REF>
+
+<DOC_REF slug="mapa_componentes_app_base">Mapa de componentes del sistema</DOC_REF>
+
+Documentos especializados vigentes, si el frente los requiere:
+
+<DOC_REF slug="shopping_autoservicio_app_base">Shopping Autoservicio</DOC_REF>
+
+<DOC_REF slug="paquete_servicios_mantenimiento_app_base">Paquete de servicios y mantenimiento</DOC_REF>
+
+<DOC_REF slug="capa_ia_operativa_app_base">Capa IA operativa</DOC_REF>
+
+<DOC_REF slug="monetizacion_proyecto_app_base">Monetización del proyecto</DOC_REF>
+
+<DOC_REF slug="welcome_usuario_app_base">Bienvenida y guía de uso</DOC_REF>
+
+Regla:
+
+no todos los documentos deben leerse en todos los chats.
+
+Después de los dos rectores y esta plantilla, se deben leer solo los documentos especializados necesarios para el frente activo.
+<<END SECTION>>
+
+<<SECTION: IDENTIFICACIÓN DEL FRENTE ACTIVO>>
+SECTION_VERSION: 00001
+
+IDENTIFICACIÓN DEL FRENTE ACTIVO
+
+Antes de proponer una intervención, identificar el frente activo.
+
+Ejemplos de frentes posibles:
+
+Orders
+Documents
+Inventory
+Products
+Parties
+Assets
+Tasks
+Appointments
+OperationalActivity
+tenant/profile
+shops
+self_service_sales
+service
+Project Lab
+documentación
+seguridad
+UI
+navegación
+IA
+monetización
+landing o contenido usuario final
+
+Regla:
+
+cada frente debe leerse desde su documento especializado cuando exista.
+
+No trasladar reglas de un frente a otro por analogía.
+
+No asumir que una solución válida en un módulo aplica a otro.
+
+No confundir:
+
+módulo funcional
+capacidad transversal
+capa satélite
+subcapa interna
+universo semántico
+plano público externo
+plano interno autenticado
+herramienta local Project Lab
+documentación del proyecto
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS OPERATIVAS DISPONIBLES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00006
 
 HERRAMIENTAS OPERATIVAS DISPONIBLES
 
-El proyecto dispone de Project Lab como herramienta operativa local unificada para ejecutar pruebas, auditorías y actualizaciones técnicas.
+Project Lab es la herramienta operativa local principal del proyecto.
 
-Ubicación vigente:
+Antes de usarla o generar contenido para ella, consultar:
 
-tools/project-lab
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
-Project Lab permite:
-
-ejecutar Tinker sobre runtime real
-ejecutar Tinker desde textarea
-ejecutar Tinker desde clipboard del sistema mediante backend
-ejecutar comandos Artisan rápidos
-aplicar actualizaciones de código
-aplicar actualizaciones documentales
-ejecutar auditorías simples
-usar snippets rápidos
-ver salida en consola unificada
-copiar resultados para compartir en el chat
-ejecutar acciones operativas locales de soporte cuando correspondan al entorno de desarrollo
-
-Herramientas Lab disponibles:
+Capacidades operativas vigentes de Project Lab:
 
 code
 docs
 audit
-
-Criterios de uso:
-
-usar code para aplicar actualizaciones de código compatibles con el automatizador vigente
-usar docs para aplicar actualizaciones documentales por bloques completos de sección
-usar audit para ejecutar auditorías simples o comandos de inspección del proyecto
-
-Capacidades actuales del automatizador de código:
-
-creación o reemplazo de archivos completos PHP
-creación o reemplazo de archivos completos Blade
-creación o reemplazo de archivos completos CSS
-creación o reemplazo de archivos completos JS
-actualización parcial de métodos PHP existentes
-alta de métodos nuevos dentro de clases PHP
-actualización parcial de funciones JS
-actualización de secciones CSS/JS mediante bloques SECTION
-normalización automática de encabezado FILE y versión
-mantenimiento de log operativo de cambios
-salida de consola con estado y trazabilidad
-validaciones básicas de ruta para evitar escrituras accidentales
-
-Capacidades actuales del automatizador documental:
-
-actualización por DOC_SLUG
-reemplazo completo de secciones delimitadas
-validación de nombre exacto de sección
-rechazo de secciones inexistentes
-salida explícita OK o ERROR
-
-Reglas:
-
-la existencia de Project Lab no reemplaza auditoría técnica ni criterio arquitectónico
-
-la herramienta ejecuta cambios
-
-la decisión de usarlos sigue perteneciendo al proceso técnico
-
-si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con Project Lab antes que edición manual fragmentada
-
-si una prueba requiere runtime real, tenant activo, Security o contexto funcional, debe respetarse la guía operativa vigente de Project Lab
-
-si una prueba requiere eventos queued, debe validarse también cola, jobs, failed_jobs y persistencia final cuando corresponda
-
-si una intervención involucra OperationalActivity, no alcanza con disparar el evento: debe validarse procesamiento real, ausencia de duplicación de listeners y persistencia final
-
-la consola unificada de Project Lab es la salida operativa principal para compartir resultados, errores y auditorías durante el trabajo técnico
-
-Aclaración vigente sobre colas:
-
-en local, Project Lab puede procesar cola pendiente como acción externa al producto para validar eventos queued y persistencia final.
-
-Esto no forma parte del SaaS productivo.
-
-En producción debe definirse worker persistente supervisado por infraestructura.
+Tinker
+Artisan controlado
+macros audit
+asistencia IA operativa
+guardado de consola como auditoría
+LAB_PATCH
 
 Regla:
 
-no implementar queue:work como botón, menú ni acción dentro del producto SaaS.
+Project Lab valida evidencia real.
 
-Regla crítica de formatos:
+Project Lab no reemplaza criterio arquitectónico.
 
-FILE identifica archivo completo
+Project Lab no reemplaza documentación rectora.
 
-TARGET identifica operación parcial
+Project Lab no aplica snippets ambiguos.
 
-No deben mezclarse.
+Project Lab no convierte una propuesta en doctrina.
 
-Formatos correctos principales:
+LAB_PATCH debe usarse solo para cambios puntuales por ancla exacta.
 
-PHP completo:
+Para cambios amplios de documentación, usar reemplazo de sección completa cuando corresponda.
 
-<?php
+Para código, usar el contrato compatible vigente de Project Lab.
 
-// FILE: app/Support/Ejemplo.php | V1
+Para auditoría, entregar comandos ejecutables reales.
 
-Blade completo:
+Para Tinker, entregar solo código PHP interno compatible con el modo Tinker.
 
-{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}
-
-CSS completo:
-
-/* FILE: public/css/modules/ejemplo.css | V1 */
-
-JS completo:
-
-// FILE: public/js/ejemplo.js | V1
-
-Reemplazar método PHP:
-
-// TARGET: app/Support/Ejemplo.php :: metodoExistente
-
-Agregar método PHP:
-
-// TARGET: app/Support/Ejemplo.php ++ metodoNuevo
-
-No usar formatos mixtos o ambiguos como:
-
-// FILE: ruta :: metodo
-<?php // FILE: ruta | V1
-
-<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
-
+Para Artisan, entregar comandos Artisan sin envolverlos innecesariamente.
 <<END SECTION>>
 
-<<SECTION: RESTRICCIONES ESPECIALES>>
+<<SECTION: REGLAS PARA INTERVENCIONES TÉCNICAS>>
 SECTION_VERSION: 00001
 
-RESTRICCIONES ESPECIALES
+REGLAS PARA INTERVENCIONES TÉCNICAS
 
-Indicar aquí solo restricciones reales del caso.
+Toda intervención técnica debe respetar:
 
-Ejemplos válidos:
+documentación vigente
+código real
+tenant activo cuando corresponda
+permisos efectivos cuando corresponda
+módulos habilitados cuando corresponda
+runtime real cuando corresponda
+contratos de Project Lab cuando se use la herramienta
 
-backend ya validado
-solo falta UI
-no tocar migraciones
-usar dataset real existente
-trabajar sobre tenant específico
-solo entregar archivos completos
-respuesta breve
+No se debe:
 
-No incluir aquí contexto doctrinal general del proyecto ni ejemplos viejos que no apliquen al pedido actual.
+inventar rutas
+inventar métodos
+inventar clases
+inventar helpers
+inventar componentes
+inventar permisos
+inventar tablas
+inventar columnas
+inventar contratos
+inventar estados
+inventar relaciones
+proponer legacy
+crear parches innecesarios
+duplicar lógica de módulos dueños
+resolver por UI lo que debe resolver backend
+tratar una salida visual como autorización
 
+Regla:
+
+si una acción pertenece a un módulo dueño, el módulo dueño conserva el contrato final.
+
+Si una acción depende de otro módulo, debe usarse frontera explícita, hook, service, selector, helper, surface, catálogo o contrato oficial.
+<<END SECTION>>
+
+<<SECTION: REGLAS PARA DOCUMENTACIÓN>>
+SECTION_VERSION: 00001
+
+REGLAS PARA DOCUMENTACIÓN
+
+Las actualizaciones documentales deben respetar la función de cada documento.
+
+No todos los cambios requieren documentación.
+
+Documentar solo cuando el cambio afecte:
+
+doctrina
+arquitectura
+seguridad
+permisos
+navegación
+UI
+modelo de datos
+contrato operativo
+Project Lab
+patrones reutilizables
+errores aprendidos
+decisiones vivas
+pendientes reales
+continuidad futura
+
+No documentar:
+
+ruido operativo
+pruebas descartables
+detalles coyunturales sin valor futuro
+salidas temporales
+datos de fixtures
+datos de auditorías sin impacto doctrinal
+decisiones no tomadas
+ideas no validadas
+
+Regla:
+
+los cierres de sesión detectan impactos posibles.
+
+La auditoría documental posterior decide qué se actualiza, en qué documento y con qué formato.
+
+Para actualizaciones aplicables mediante Project Lab, usar el contrato vigente:
+
+REEMPLAZAR EN
+NUEVA SECCIÓN PROPUESTA EN
+LAB_PATCH
+
+según corresponda.
 <<END SECTION>>
 
 <<SECTION: SI NECESITÁS ARCHIVOS>>
@@ -1531,28 +400,31 @@ SECTION_VERSION: 00004
 
 SI NECESITÁS ARCHIVOS
 
-Pedir solo archivos mínimos necesarios.
+Si para responder hace falta revisar código o documentos reales, pedir exactamente los archivos necesarios.
 
-Usar formato claro y copiable.
+No pedir el proyecto completo si alcanza con archivos puntuales.
 
-Cuando se requiera auditoría masiva, solicitar salida ordenada hacia carpeta auditoria.
+No pedir evidencia genérica si se puede pedir una auditoría concreta.
 
-Ejemplo:
+Ejemplos válidos:
 
-(
-find app/Models -type f -name "*.php";
-find app/Http/Controllers -type f -name "*.php";
-find app/Http/Middleware -type f -name "*.php";
-find database/migrations -type f -name "*.php";
-find resources/views/orders -type f -name "*.blade.php";
-find resources/views/documents -type f -name "*.blade.php";
-) | sort | while read file; do
-echo "===== $file ====="
-cat "$file"
-echo
-echo
-done > documentos/auditoria/auditoria-modulo.txt
+Necesito ver routes/web.php.
 
+Necesito ver el controller involucrado.
+
+Necesito ver el modelo y la migración relacionada.
+
+Necesito un grep de esa clase o método.
+
+Necesito el listado exacto de secciones del documento.
+
+Necesito la salida de Project Lab con el error completo.
+
+Necesito confirmar el tenant, usuario o registro usado en la prueba.
+
+Regla:
+
+pedir la mínima evidencia suficiente para avanzar sin suponer.
 <<END SECTION>>
 
 <<SECTION: REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO>>
@@ -1560,68 +432,175 @@ SECTION_VERSION: 00003
 
 REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO
 
-Cuando devuelvas un archivo completo, la primera referencia del archivo debe usar siempre este formato:
+Cuando se entregue un archivo completo para Project Lab, usar el contrato vigente de code.
 
-FILE: ruta/del/archivo.ext | VX
+Para PHP completo:
+
+el archivo debe comenzar con apertura PHP válida.
+
+Formato conceptual:
+
+<?php
+// FILE: ruta/del/archivo.php | Vx
 
 Reglas:
 
-si el archivo es nuevo, usar V1
-si el archivo ya existe y no tiene comentario de versión, al devolverlo completo agregarlo como V2
-si el archivo ya tiene comentario de versión, incrementar en 1 la última versión existente
-esta regla aplica solo cuando se devuelve el archivo completo
-si se devuelve solo un fragmento o bloque parcial, no agregar ni modificar versión
-el comentario debe escribirse con la sintaxis correcta del archivo correspondiente
+no colocar FILE antes de <?php
+no mezclar FILE con TARGET
+no usar FILE para reemplazar métodos
+no usar TARGET para reemplazar archivos completos
+no crear archivos si la intención era operación parcial
+no incluir código legacy
+no omitir validaciones proporcionales
 
-Formato canónico adicional para PHP completo:
+Para operaciones parciales, usar TARGET o el contrato vigente que corresponda.
 
-la salida debe respetar esta estructura exacta:
+Para cambios textuales puntuales por ancla exacta, puede usarse LAB_PATCH si el caso es seguro y proporcional.
+<<END SECTION>>
 
-<?php
+<<SECTION: OBJETIVO DE ESTE CHAT>>
+SECTION_VERSION: 00012
 
-// FILE: ruta/del/archivo.php | VX
+OBJETIVO DE ESTE CHAT
 
-...resto del código...
+El objetivo específico del chat debe definirse al iniciar cada conversación.
 
-Es decir:
+Antes de trabajar, identificar:
 
-- apertura PHP en primera línea
-- una línea en blanco
-- comentario FILE con versión
-- una línea en blanco
-- resto del archivo
+frente activo
+alcance concreto
+documentos especializados necesarios
+archivos o evidencias mínimas
+tipo de salida esperada
 
+No asumir que el objetivo del chat anterior continúa vigente.
+
+No arrastrar pendientes por memoria si el usuario no los retoma o si no están en documentación vigente.
+
+Si el usuario pide continuar un frente anterior, usar el contexto disponible y pedir solo la evidencia faltante imprescindible.
+
+Formato recomendado de arranque:
+
+Frente activo:
+[definir]
+
+Objetivo:
+[definir]
+
+Evidencia disponible:
+[definir]
+
+Evidencia faltante:
+[definir]
+
+Salida esperada:
+[definir]
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00006
 
 FORMA DE RESPUESTA ESPERADA
 
-Responder con foco, precisión y utilidad inmediata.
+Responder en español.
 
-Preferencias:
+Ser preciso, crítico y operativo.
 
-* detectar primero la causa raíz probable
-* pedir evidencia mínima faltante
-* separar hechos de supuestos
-* proponer pasos concretos
-* usar lenguaje técnico claro
-* señalar si el problema es doctrinal, contractual, visual o de datos
-* priorizar soluciones que cierren el sistema y no solo el síntoma
+No ser condescendiente.
 
-Regla adicional:
+No inventar.
 
-cuando exista ambigüedad entre identidad global, pertenencia operativa y ficha ampliada tenant-scoped, detener el avance y separar los planos antes de proponer código.
+No completar por intuición.
 
-No asumir que party absorbe users.
+No proponer código legacy.
 
-No asumir creación automática de party desde membership.
+No aplicar parches si corresponde una reconversión limpia.
 
-No asumir edición libre de users.email, party.email o party.kind.
+No entregar bloques para Project Lab si no están listos para aplicar.
 
-Cuando corresponda, devolver código compatible con automatizador.
+No entregar secciones documentales con nombres aproximados.
 
-Cuando falte evidencia mínima, pedir exactamente esa evidencia y no más.
+No entregar LAB_PATCH con anchors no verificados.
 
+Cuando falte evidencia, pedir exactamente lo necesario.
+
+Cuando haya riesgo de ambigüedad, detenerse.
+
+Cuando se proponga una intervención, explicar brevemente:
+
+qué se modifica
+por qué corresponde
+qué archivo o documento afecta
+qué validación posterior se requiere
+
+Cuando se entregue contenido aplicable a Project Lab, no mezclarlo con explicación dentro del bloque aplicable.
+
+Regla final:
+
+priorizar continuidad, precisión, bajo ruido, evidencia real y coherencia con la documentación vigente.
+<<END SECTION>>
+
+<<SECTION: CIERRE DE SESIÓN>>
+SECTION_VERSION: 00001
+
+CIERRE DE SESIÓN
+
+Cuando el usuario solicite cierre de sesión o detección de actualizaciones documentales, no generar directamente bloques aplicables salvo que lo pida expresamente.
+
+Primero detectar impactos documentales posibles.
+
+Distinguir:
+
+documentos afectados
+documentos posiblemente afectados
+documentos no afectados cuando sea relevante
+secciones exactas si se conocen
+secciones aproximadas si no se conocen
+estado del cambio
+evidencia disponible
+validación faltante
+
+Regla:
+
+el cierre de sesión produce insumo.
+
+La auditoría documental posterior depura, valida secciones exactas y elige entre REEMPLAZAR EN, NUEVA SECCIÓN PROPUESTA EN o LAB_PATCH.
+<<END SECTION>>
+
+<<SECTION: REGLA FINAL>>
+SECTION_VERSION: 00001
+
+REGLA FINAL
+
+La plantilla de inicio no reemplaza el proyecto.
+
+La plantilla no contiene toda la doctrina.
+
+La plantilla ordena el inicio del trabajo.
+
+Primero:
+
+contexto_fijo_proyecto_app_base
+
+Después:
+
+seguridad_acceso_proyecto_app_base
+
+Luego:
+
+esta plantilla
+
+Después:
+
+documento especializado del frente activo
+
+Finalmente:
+
+código real, runtime, Project Lab o evidencia mínima necesaria
+
+Si falta evidencia:
+
+NO SE ASUME.
+
+NO SE SUPONE.
 <<END SECTION>>

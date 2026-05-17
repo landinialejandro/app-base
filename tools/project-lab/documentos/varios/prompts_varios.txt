@@ -5,18 +5,41 @@ OBJETIVO
 
 Detectar todos los cambios realizados en la sesión que puedan impactar en la documentación del proyecto.
 
+Este cierre no genera bloques aplicables.
+
+Su función es producir un insumo ordenado para una auditoría documental posterior.
+
 ALCANCE
 
-- considerar todo lo trabajado en la sesión
-- considerar decisiones explícitas e implícitas
-- considerar cambios de lógica, arquitectura, UI, navegación, permisos y modelo mental del sistema
-- considerar también acuerdos, criterios o reglas operativas que no necesariamente se hayan implementado aún
-- no limitarse solo a cambios en código
-- no descartar información por considerarla menor si afecta coherencia del sistema
+Considerar todo lo trabajado en la sesión:
+
+- decisiones explícitas
+- decisiones implícitas
+- cambios implementados
+- cambios validados
+- cambios descartados que dejan criterio vigente
+- cambios de lógica
+- cambios de arquitectura
+- cambios de UI
+- cambios de navegación
+- cambios de permisos
+- cambios de seguridad
+- cambios de modelo de datos
+- cambios de modelo mental del sistema
+- cambios de herramientas internas
+- cambios en Project Lab
+- acuerdos operativos
+- reglas nuevas
+- reglas corregidas
+- criterios que no necesariamente estén implementados todavía, si afectan doctrina o continuidad futura
+
+No limitarse solo a cambios en código.
+
+No descartar información menor si afecta coherencia futura del sistema.
 
 DOCUMENTOS BASE
 
-(ya disponibles en el contexto del chat)
+Considerar, según corresponda, los documentos vigentes del proyecto:
 
 - contexto_fijo_proyecto_app_base
 - convenciones_proyecto_app_base
@@ -26,21 +49,43 @@ DOCUMENTOS BASE
 - base_visual_proyecto_app_base
 - todo_proyecto_app_base
 - seguridad_acceso_proyecto_app_base
+- guia_project_lab_proyecto_app_base
 - plantilla_inicio_chats_proyecto_app_base
+
+DOCUMENTOS ESPECIALIZADOS Y DE MEMORIA TÉCNICA
+
+Considerar también, si el contenido de la sesión los afecta:
+
+- decisiones_vivas_app_base
+- patrones_validados_app_base
+- errores_y_lecciones_app_base
+- capa_ia_operativa_app_base
+- shopping_autoservicio_app_base
+- paquete_servicios_mantenimiento_app_base
+- monetizacion_proyecto_app_base
+- mapa_componentes_app_base
+- welcome_usuario_app_base
 
 REGLAS
 
 - no inventar información
-- no proponer mejoras futuras
-- incluir decisiones aunque no estén implementadas si afectan la arquitectura o la doctrina del sistema
-- no descartar información relevante por ambigüedad
-- no transformar esto en una auditoría
+- no proponer mejoras futuras como si fueran decisiones
+- incluir decisiones aunque no estén implementadas si afectan arquitectura, doctrina, contrato operativo o continuidad del sistema
+- distinguir claramente entre implementado, validado, decidido, pendiente, descartado y posible
+- si hay ambigüedad, conservar el hallazgo como posible impacto y marcar qué falta validar
+- no transformar esto en auditoría documental estricta
 - no devolver secciones completas todavía
-- no generar bloques REEMPLAZAR EN / AGREGAR EN
+- no generar bloques REEMPLAZAR EN
+- no generar bloques AGREGAR EN
+- no generar LAB_PATCH
 - agrupar por documento cuando sea posible
 - si una decisión impacta en múltiples documentos, indicarlo
 - distinguir documentos afectados, posiblemente afectados y no afectados cuando sea relevante
 - si no se conoce el nombre exacto de una sección, indicar sección aproximada y marcarla como aproximada
+- no usar esta salida como documentación final
+- no tratar memoria técnica como doctrina principal
+- no duplicar el mismo hallazgo innecesariamente en varios documentos
+- si un hallazgo corresponde mejor a un documento especializado que a un rector general, indicarlo
 
 FORMATO DE SALIDA
 
@@ -51,33 +96,55 @@ ESTADO DE IMPACTO:
 
 SECCIONES AFECTADAS:
 
-- [nombre de sección existente o aproximado]
-- [otra sección si aplica]
+- [nombre exacto si se conoce]
+- [nombre aproximado, marcado como aproximado, si no se conoce]
 
 CAMBIOS DETECTADOS:
 
 [descripción clara, concreta y completa del cambio]
 
+ESTADO DEL CAMBIO:
+
+[implementado / validado / decidido / pendiente / descartado / posible impacto]
+
+OBSERVACIONES DE VALIDACIÓN:
+
+[qué evidencia existe o qué falta validar antes de aplicar documentación]
+
 REGLA CLAVE
 
-Este prompt debe capturar TODO lo relevante.
+Este prompt debe capturar todo lo relevante como insumo de cierre.
 
-La depuración, validación estricta, decisión final de secciones y aplicación documental se realiza luego en Project Lab contra documentos reales.
------------------------------------------
-
+La depuración, validación estricta, decisión final de secciones, elección entre REEMPLAZAR EN o LAB_PATCH, y aplicación documental se realiza después en Project Lab contra documentos reales.
 
 
-AUDITORÍA Y GENERACIÓN DE SECCIONES DESDE CIERRES DE SESIÓN
+-------------------------------------------
+
+
+AUDITORÍA Y GENERACIÓN DE ACTUALIZACIONES DOCUMENTALES DESDE CIERRES DE SESIÓN
 
 OBJETIVO
 
-Auditar fragmentos de cierre de sesión provenientes de otros chats, contrastarlos contra los documentos vigentes del proyecto y volcar únicamente la información que corresponda en las secciones exactas de cada documento.
+Auditar fragmentos de cierre de sesión provenientes de otros chats, contrastarlos contra los documentos vigentes del proyecto app-base y generar únicamente las actualizaciones documentales que correspondan.
 
-La salida debe quedar lista para reemplazo automático mediante el automatizador documental.
+La salida debe quedar lista para aplicar mediante Project Lab.
+
+Project Lab puede actualizar documentación mediante dos vías:
+
+1. REEMPLAZAR EN
+   Para reemplazar secciones documentales completas.
+
+2. LAB_PATCH
+   Para cambios textuales puntuales por ancla exacta dentro de un documento.
+
+Elegir siempre la vía más segura y proporcional al cambio.
+
+NO SE ASUME.
+NO SE SUPONE.
 
 CONTEXTO DOCUMENTAL
 
-Los documentos del proyecto ya están divididos en secciones delimitadas por tags:
+Los documentos del proyecto están divididos en secciones delimitadas por tags:
 
 <<SECTION: NOMBRE EXACTO>>
 ...
@@ -86,13 +153,14 @@ Los documentos del proyecto ya están divididos en secciones delimitadas por tag
 Estos tags y los DOC_SLUG son críticos porque:
 
 - los documentos se usan también dentro del módulo de documentos del sistema
-- el automatizador depende de nombres exactos
+- Project Lab depende de nombres exactos
 - no deben modificarse slugs
 - no deben modificarse nombres de secciones existentes
 - no deben alterarse los tags de apertura o cierre
 - no deben usarse títulos humanos como identificadores técnicos
+- no deben inventarse secciones por aproximación
 
-DOCUMENTOS BASE
+DOCUMENTOS BASE VIGENTES
 
 Usar exclusivamente los documentos vigentes del proyecto:
 
@@ -104,24 +172,26 @@ Usar exclusivamente los documentos vigentes del proyecto:
 - base_visual_proyecto_app_base
 - todo_proyecto_app_base
 - seguridad_acceso_proyecto_app_base
-- guia_tinker_proyecto_app_base
+- guia_project_lab_proyecto_app_base
 - plantilla_inicio_chats_proyecto_app_base
 
-DOCUMENTOS DE MEMORIA TÉCNICA
+DOCUMENTOS ESPECIALIZADOS Y DE MEMORIA TÉCNICA
 
 Usar también, si existen como documentos vigentes del proyecto:
 
 - decisiones_vivas_app_base
 - patrones_validados_app_base
 - errores_y_lecciones_app_base
+- capa_ia_operativa_app_base
+- shopping_autoservicio_app_base
+- paquete_servicios_mantenimiento_app_base
+- monetizacion_proyecto_app_base
+- mapa_componentes_app_base
+- welcome_usuario_app_base
 
-Estos documentos no reemplazan la doctrina.
+Estos documentos no reemplazan la doctrina rectora.
 
-Solo deben recibir información cuando el cierre detecte:
-
-- decisiones que conviene recordar para no rediscutir
-- patrones ya validados y repetibles
-- errores, hallazgos o aprendizajes que evitan regresiones
+Solo deben recibir información cuando el cierre detecte contenido que corresponde específicamente a su función.
 
 REGLAS GENERALES
 
@@ -137,6 +207,10 @@ REGLAS GENERALES
 - no modificar DOC_SLUG
 - no alterar tags SECTION
 - no omitir cambios relevantes si impactan realmente en la documentación
+- no convertir memoria técnica en doctrina primaria
+- no convertir documentos rectores en historial
+- no convertir documentos rectores en roadmap
+- no convertir documentos especializados en depósitos generales
 
 REGLA CLAVE
 
@@ -144,20 +218,19 @@ Los fragmentos de cierre de sesión son insumos a auditar, no texto para copiar 
 
 Cada cambio detectado debe evaluarse contra:
 
-- doctrina vigente
+- documentación vigente
 - documento correcto
 - sección correcta
 - estado real de implementación o decisión
 - posible redundancia con otros documentos
-- impacto arquitectónico, funcional, visual, de navegación, seguridad, permisos, UI, modelo de datos o roadmap
+- impacto arquitectónico, funcional, visual, de navegación, seguridad, permisos, UI, modelo de datos, herramientas, documentación o roadmap
+- necesidad real de documentación
 
 Si corresponde documentarlo, debe volcarse en la sección adecuada.
 
 Si no corresponde, no debe incluirse.
 
-Los documentos de memoria técnica no son fuente primaria de doctrina.
-
-Funcionan como capa acumulativa de continuidad operativa.
+Los documentos de memoria técnica funcionan como capa acumulativa de continuidad operativa.
 
 No deben contradecir documentos rectores ni duplicarlos extensamente.
 
@@ -175,29 +248,77 @@ Para cada cambio detectado:
 - respetar el estilo del documento original
 - conservar la fuerza doctrinal de los documentos rectores
 - diferenciar estado vigente, pendiente real y línea futura
-- distinguir documentación doctrinal de memoria técnica viva
-- no volcar a memoria técnica información que ya esté suficientemente cubierta por documentos rectores
+- distinguir documentación doctrinal, operativa, técnica, visual, navegación, seguridad, roadmap y memoria técnica
+- no volcar a memoria técnica información ya cubierta suficientemente por documentos rectores
 - no usar memoria técnica para introducir doctrina nueva no validada
 - no usar memoria técnica como backlog
 - si una decisión afecta doctrina y memoria técnica, priorizar primero el documento doctrinal correspondiente y luego registrar una síntesis mínima en memoria técnica solo si aporta valor operativo
 
-REGLAS DE VERSIONADO DE SECCIONES
+SELECCIÓN DE FORMATO DE SALIDA
+
+Usar REEMPLAZAR EN cuando:
+
+- el cambio afecta una sección completa
+- hay que reorganizar contenido interno de una sección
+- hay que actualizar varias reglas conectadas dentro de la misma sección
+- el cambio requiere mantener coherencia completa de la sección
+- el contenido nuevo reemplaza doctrina o contrato ya existente
+
+Usar LAB_PATCH cuando:
+
+- el cambio es pequeño
+- solo hay que agregar una línea
+- solo hay que agregar una frase
+- solo hay que modificar una línea
+- solo hay que reemplazar un bloque exacto pequeño
+- existe un ANCHOR exacto, único y seguro
+- no se justifica devolver una sección completa
+
+No usar LAB_PATCH si:
+
+- no se conoce el ANCHOR exacto
+- el ANCHOR podría estar duplicado
+- el documento tiene estructura inválida
+- el cambio requiere reordenar toda una sección
+- el cambio afecta muchas partes conectadas de una misma sección
+- el patch puede degradar la coherencia interna de la sección
+
+REGLAS DE VERSIONADO DE SECCIONES PARA REEMPLAZAR EN
 
 - si la sección ya tiene SECTION_VERSION, incrementarla en 1
 - si la sección existe pero no tiene SECTION_VERSION, asignar SECTION_VERSION: 00002
 - si la sección es nueva, asignar SECTION_VERSION: 00001
 - no modificar versiones de secciones no alcanzadas
 
+REGLAS DE VERSIONADO PARA LAB_PATCH
+
+Si se entrega LAB_PATCH:
+
+- no modificar SECTION_VERSION manualmente dentro del TEXT salvo que el objetivo explícito sea corregir versionado
+- Project Lab debe incrementar SECTION_VERSION de la sección afectada cuando el ANCHOR caiga dentro de una sección
+- no modificar DOC_VERSION
+- no modificar DOC_SLUG
+- no tocar delimitadores SECTION
+- no usar delimitadores SECTION reales dentro del TEXT salvo que el objetivo sea crear una sección mediante contrato compatible
+
 REGLA SOBRE SECCIONES NUEVAS
 
 Crear una nueva sección solo cuando el contenido no encaje correctamente en ninguna sección existente.
 
-Si se propone una nueva sección:
+Si se propone una nueva sección, usar exclusivamente el formato:
 
-- devolverla como NUEVA SECCIÓN PROPUESTA
-- indicar ubicación sugerida
-- usar nombre claro, estable y coherente con el documento
-- no crear secciones por comodidad si existe una sección adecuada
+NUEVA SECCIÓN PROPUESTA EN: [DOC_SLUG]
+
+UBICAR DESPUÉS DE:
+<<SECTION: NOMBRE EXACTO DE SECCIÓN EXISTENTE>>
+
+<<SECTION: NOMBRE DE NUEVA SECCIÓN>>
+SECTION_VERSION: 00001
+
+[contenido completo de la nueva sección]
+<<END SECTION>>
+
+No crear secciones por comodidad si existe una sección adecuada.
 
 REGLA CRÍTICA SOBRE NOMBRES DE SECCIONES
 
@@ -228,23 +349,19 @@ Estos nombres son inválidos si no existen exactamente como tags en el documento
 
 Si el contenido corresponde conceptualmente a una sección existente, debe usarse el nombre exacto real de esa sección.
 
-Ejemplo:
-
-No usar:
-<<SECTION: CRITERIOS DE DISEÑO MODULAR>>
-
-Usar solo si existe exactamente:
-<<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-
 REGLA DE BLOQUEO
 
-Si en algún grupo posterior aparece duda sobre el nombre exacto de una sección, detener la generación de ese grupo y pedir:
+Si aparece duda sobre el nombre exacto de una sección, detener la generación de ese grupo y pedir:
 
-"Necesito el listado exacto de secciones de [DOC_SLUG] antes de continuar."
+Necesito el listado exacto de secciones de [DOC_SLUG] antes de continuar.
 
 No continuar por aproximación.
 
-FORMATO OBLIGATORIO DE SALIDA
+Si aparece duda sobre el ANCHOR exacto para LAB_PATCH, no generar LAB_PATCH y pedir:
+
+Necesito un grep o fragmento exacto de [DOC_SLUG] para confirmar el ANCHOR antes de continuar.
+
+FORMATO OBLIGATORIO DE SALIDA PARA REEMPLAZO DE SECCIÓN
 
 Agrupar las secciones por documento.
 
@@ -260,32 +377,75 @@ SECTION_VERSION: XXXXX
 [contenido completo actualizado de la sección]
 <<END SECTION>>
 
-FORMATO PARA SECCIÓN NUEVA
+FORMATO OBLIGATORIO DE SALIDA PARA LAB_PATCH
 
-NUEVA SECCIÓN PROPUESTA EN: [DOC_SLUG]
+Cuando el cambio sea puntual y exista ANCHOR exacto validado, usar este formato:
 
-UBICAR DESPUÉS DE:
-<<SECTION: NOMBRE EXACTO DE SECCIÓN EXISTENTE>>
+LAB_PATCH
 
-<<SECTION: NOMBRE DE NUEVA SECCIÓN>>
-SECTION_VERSION: 00001
+FILE: tools/project-lab/documentos/[archivo_real_del_documento].txt
+TYPE: docs
+OP: insert|replace
+POSITION: before|after
+MATCH: one
 
-[contenido completo de la nueva sección]
-<<END SECTION>>
+ANCHOR:
+[texto exacto existente]
+
+TEXT:
+[nuevo texto]
+
+END_LAB_PATCH
+
+Reglas para LAB_PATCH:
+
+- usar FILE real del documento
+- usar TYPE: docs
+- usar MATCH: one salvo decisión explícita y segura
+- usar MATCH: all solo con OP: replace
+- no usar MATCH: all con OP: insert
+- no aplicar por aproximación
+- no usar anchors genéricos
+- no usar anchors inventados
+- no usar placeholders
+- no entregar LAB_PATCH si no se verificó el ANCHOR exacto
+- no modificar DOC_SLUG
+- no modificar DOC_VERSION
+- no modificar nombres de secciones
+- no alterar tags SECTION
+
+MÚLTIPLES MODIFICACIONES
+
+Si hay varias modificaciones puntuales, usar varios bloques LAB_PATCH independientes.
+
+Criterio vigente:
+
+un LAB_PATCH = una operación puntual
+
+No usar todavía:
+
+PATCH / END_PATCH internos
+LAB_PATCH_GROUP
+subpatches dentro de un mismo LAB_PATCH
+
+Si hay muchas modificaciones en una misma sección, preferir REEMPLAZAR EN con la sección completa.
 
 RESTRICCIONES CRÍTICAS
 
-- no agregar texto fuera de los bloques solicitados
+- no agregar texto fuera de los bloques solicitados cuando se esté entregando contenido aplicable
 - no agregar explicaciones entre bloques
-- no usar markdown decorativo
-- no usar listas de análisis fuera de SECTION
+- no usar markdown decorativo dentro de la salida aplicable
+- no usar listas de análisis fuera de SECTION cuando la respuesta debe ser aplicable
 - cada bloque debe ser autónomo y completo
 - cada sección devuelta debe estar lista para reemplazo automático
-- usar exclusivamente DOC_SLUG como identificador del documento
+- cada LAB_PATCH debe estar listo para aplicación directa
+- usar exclusivamente DOC_SLUG como identificador en REEMPLAZAR EN
+- usar FILE real en LAB_PATCH
 - usar nombres exactos de secciones existentes
 - no usar nombres legacy
 - no usar títulos humanos como clave técnica
 - no devolver secciones que no tengan cambios reales
+- no devolver LAB_PATCH con anchors no verificados
 
 MODO DE ENTREGA
 
@@ -302,21 +462,39 @@ Cada grupo debe tratarse como una actualización independiente.
 Antes de generar un nuevo grupo, volver a verificar mentalmente:
 
 - DOC_SLUG exacto
+- documento correcto
 - nombre exacto de cada sección
-- SECTION_VERSION correspondiente
+- SECTION_VERSION correspondiente si se usa REEMPLAZAR EN
+- FILE real si se usa LAB_PATCH
+- ANCHOR exacto si se usa LAB_PATCH
 - que la sección exista realmente
 - que no se esté creando un título conceptual nuevo
+- que no haya duplicación innecesaria
+- que el cambio no pertenezca a otro documento especializado
 
 No arrastrar nombres creados en grupos anteriores.
 
 No variar nombres por estilo, síntesis o interpretación.
+
+MODO DE RESPUESTA CUANDO NO HAY INFORMACIÓN SUFICIENTE
+
+Si no se puede generar una actualización segura, responder solo con el pedido mínimo necesario.
+
+Ejemplos:
+
+Necesito el listado exacto de secciones de [DOC_SLUG] antes de continuar.
+
+Necesito un grep del fragmento donde debería insertarse el cambio en [DOC_SLUG].
+
+Necesito confirmar si este cambio está implementado o solo propuesto.
+
+Necesito el documento vigente actualizado antes de generar el bloque.
 
 ENTRADA
 
 CAMBIOS DETECTADOS:
 
 [pegar aquí la salida del cierre de sesión de otro chat]
-
 
 ----------------------------------
 

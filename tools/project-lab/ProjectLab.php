@@ -8,7 +8,15 @@
  */
 class ProjectLab
 {
-    private const CODE_LOG_FILE = 'documentos/log/code-updates.log';
+    private const LAB_DOCUMENTS_DIR = 'tools/project-lab/documentos';
+
+    private const LAB_LOG_DIR = self::LAB_DOCUMENTS_DIR.'/log';
+
+    private const LAB_AUDIT_DIR = self::LAB_DOCUMENTS_DIR.'/auditoria';
+
+    private const LAB_BACKUP_DIR = self::LAB_DOCUMENTS_DIR.'/baks';
+
+    private const CODE_LOG_FILE = self::LAB_LOG_DIR.'/code-updates.log';
 
     private const ASSET_SECTION_EXTENSIONS = [
         'css',
@@ -51,7 +59,7 @@ class ProjectLab
     {
         $this->projectRoot = $projectRoot;
         $this->labRoot = $labRoot;
-        $this->logFile = $projectRoot.'/documentos/log/project-lab.log';
+        $this->logFile = $projectRoot.'/'.self::LAB_LOG_DIR.'/project-lab.log';
         $this->rateLimitFile = sys_get_temp_dir().'/projectlab_ratelimit.json';
 
         $this->ensureDirectories();
@@ -61,9 +69,9 @@ class ProjectLab
     private function ensureDirectories()
     {
         $dirs = [
-            'documentos/log',
-            'documentos/auditoria',
-            'documentos/baks',
+            self::LAB_LOG_DIR,
+            self::LAB_AUDIT_DIR,
+            self::LAB_BACKUP_DIR,
             'storage/framework/cache',
         ];
 
@@ -216,6 +224,34 @@ class ProjectLab
                 'ok' => ! str_starts_with($aiOutput, '[ERROR]'),
                 'model' => $model,
                 'from_clipboard' => $fromClipboard,
+                'output' => $output,
+            ]);
+        }
+
+        if (isset($_POST['ajax_document_audit'])) {
+            $model = (string) ($_POST['model'] ?? '');
+            $fragments = (string) ($_POST['fragments'] ?? '');
+            $selectedSlug = (string) ($_POST['selected_doc_slug'] ?? '');
+            $selectedSection = (string) ($_POST['selected_section_name'] ?? '');
+            $consoleOutput = (string) ($_POST['console_output'] ?? '');
+
+            $documents = $this->getTechnicalDocumentsForLab();
+            $prompt = $this->buildDocumentAuditPrompt($fragments, $selectedSlug, $selectedSection, $documents, $consoleOutput);
+
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+
+            $aiOutput = $this->askAiPrompt($model, $prompt);
+
+            $output = implode("\n\n", [
+                $this->buildAiConsoleUserBlock($model, false, $prompt, $consoleOutput),
+                $this->buildAiConsoleAssistantBlock($aiOutput),
+            ]);
+
+            $this->jsonResponse([
+                'ok' => ! str_starts_with($aiOutput, '[ERROR]'),
+                'model' => $model,
                 'output' => $output,
             ]);
         }
@@ -497,7 +533,7 @@ class ProjectLab
         $content = "[{$timestamp}] {$type}: {$command}\n{$output}\n\n";
 
         $writeResult = $this->writeProjectFile(
-            'documentos/log/project-lab.log',
+            self::LAB_LOG_DIR.'/project-lab.log',
             $content,
             true,
             true
@@ -648,6 +684,7 @@ class ProjectLab
             'totalPackages' => $this->getPackagesCount(),
             'totalVendors' => $this->getVendorsCount(),
             'assetSectionsCatalog' => $this->getAssetSectionsCatalog(),
+            'technicalDocuments' => $this->getTechnicalDocumentsForLab(),
             'projectRoot' => $this->projectRoot,
             'labRoot' => $this->labRoot,
         ];
@@ -1108,7 +1145,7 @@ class ProjectLab
         $this->log('LAB_DOCS', 'embedded-docs', $output);
 
         $this->appendPipeLog(
-            'documentos/log/docs-updates.log',
+            self::LAB_LOG_DIR.'/docs-updates.log',
             ['DOCUMENTO', 'FECHA', 'SECCIONES', 'USUARIO', 'HOST', 'ORIGEN'],
             [
                 $lastSlug,
@@ -1125,7 +1162,7 @@ class ProjectLab
 
     private function indexEmbeddedDocuments(): array
     {
-        $baseDir = $this->resolveProjectPath('documentos', false);
+        $baseDir = $this->resolveProjectPath(self::LAB_DOCUMENTS_DIR, false);
 
         if ($baseDir === null || ! is_dir($baseDir)) {
             return [];
@@ -1152,6 +1189,182 @@ class ProjectLab
         }
 
         return $documents;
+    }
+
+    private function getTechnicalDocumentsForLab(): array
+    {
+        if (! class_exists(\App\Support\Docs\TechnicalDocRepository::class)) {
+            return [];
+        }
+
+        try {
+            $repository = app(\App\Support\Docs\TechnicalDocRepository::class);
+            $documents = [];
+
+            foreach ($repository->all() as $document) {
+                if (! $this->hasExplicitTechnicalDocSlug($document)) {
+                    continue;
+                }
+
+                $documents[] = $this->formatTechnicalDocumentForLab($document);
+            }
+        } catch (\Throwable) {
+            return [];
+        }
+
+        usort($documents, fn (array $a, array $b) => strcasecmp((string) $a['title'], (string) $b['title']));
+
+        return $documents;
+    }
+
+    private function hasExplicitTechnicalDocSlug(\App\Support\Docs\TechnicalDoc $document): bool
+    {
+        if (! is_file($document->sourcePath)) {
+            return false;
+        }
+
+        $content = file_get_contents($document->sourcePath);
+
+        return is_string($content) && preg_match('/^DOC_SLUG:\s*[a-z0-9_]+\s*$/mu', $content) === 1;
+    }
+
+    private function formatTechnicalDocumentForLab(\App\Support\Docs\TechnicalDoc $document): array
+    {
+        $projectRoot = realpath($this->projectRoot) ?: $this->projectRoot;
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+        $sourcePath = $document->sourcePath;
+        $relativePath = str_starts_with($sourcePath, $projectRoot.DIRECTORY_SEPARATOR)
+            ? ltrim(substr($sourcePath, strlen($projectRoot)), DIRECTORY_SEPARATOR)
+            : $sourcePath;
+
+        $sections = array_map(
+            fn (\App\Support\Docs\TechnicalDocSection $section) => [
+                'name' => $section->name,
+                'body' => $section->rawBody,
+                'chars' => mb_strlen($section->rawBody),
+            ],
+            $document->sections
+        );
+
+        return [
+            'title' => $document->title,
+            'slug' => $document->slug,
+            'version' => $document->version,
+            'path' => str_replace(DIRECTORY_SEPARATOR, '/', $relativePath),
+            'section_count' => count($sections),
+            'sections' => array_values($sections),
+        ];
+    }
+
+    private function buildDocumentAuditPrompt(
+        string $fragments,
+        string $selectedSlug,
+        string $selectedSection,
+        array $documents,
+        string $consoleOutput = ''
+    ): string {
+        $fragments = trim(str_replace(["\r\n", "\r"], "\n", $fragments));
+        $selectedSlug = strtolower(trim($selectedSlug));
+        $selectedSection = trim($selectedSection);
+        $consoleOutput = trim(str_replace(["\r\n", "\r"], "\n", $consoleOutput));
+        $documentAuditContext = $this->readProjectLabContextFile('document_audit_context.txt');
+
+        if ($documentAuditContext === '') {
+            $documentAuditContext = implode("\n", [
+                'IA actúa como auditor documental técnico de Project Lab.',
+                'No aplica cambios.',
+                'No modifica archivos.',
+                'Debe devolver propuestas compatibles con REEMPLAZAR EN / AGREGAR EN solo cuando corresponda.',
+            ]);
+        }
+
+        $selectedDocument = null;
+        $selectedSectionData = null;
+
+        foreach ($documents as $document) {
+            if (($document['slug'] ?? '') !== $selectedSlug) {
+                continue;
+            }
+
+            $selectedDocument = $document;
+
+            foreach (($document['sections'] ?? []) as $section) {
+                if (($section['name'] ?? '') === $selectedSection) {
+                    $selectedSectionData = $section;
+                    break;
+                }
+            }
+
+            break;
+        }
+
+        $documentsList = array_map(
+            fn (array $document) => '- '.$document['slug'].' | '.$document['title'],
+            $documents
+        );
+
+        $sectionList = [];
+
+        if ($selectedDocument !== null) {
+            $sectionList = array_map(
+                fn (array $section) => '- '.$section['name'].' | caracteres: '.$section['chars'],
+                $selectedDocument['sections'] ?? []
+            );
+        }
+
+        $sectionBody = (string) ($selectedSectionData['body'] ?? '');
+
+        $maxFragmentChars = 8000;
+        $maxSectionChars = 14000;
+        $maxConsoleChars = 4000;
+
+        if (mb_strlen($fragments) > $maxFragmentChars) {
+            $fragments = '[RECORTE AUTOMÁTICO: se conserva el final de los fragmentos]'."\n\n"
+                .mb_substr($fragments, -$maxFragmentChars);
+        }
+
+        if (mb_strlen($sectionBody) > $maxSectionChars) {
+            $sectionBody = '[RECORTE AUTOMÁTICO: se conserva el final de la sección seleccionada]'."\n\n"
+                .mb_substr($sectionBody, -$maxSectionChars);
+        }
+
+        if (mb_strlen($consoleOutput) > $maxConsoleChars) {
+            $consoleOutput = '[RECORTE AUTOMÁTICO: se conserva el final de la consola]'."\n\n"
+                .mb_substr($consoleOutput, -$maxConsoleChars);
+        }
+
+        return implode("\n", [
+            'AUDITORÍA DOCUMENTAL PROJECT LAB',
+            '',
+            'CONTEXTO DOCUMENTAL EXCLUSIVO:',
+            $documentAuditContext,
+            '',
+            'Documentos técnicos disponibles:',
+            implode("\n", $documentsList) ?: '[SIN DOCUMENTOS]',
+            '',
+            'Documento seleccionado:',
+            $selectedDocument !== null
+                ? ($selectedDocument['slug'].' | '.$selectedDocument['title'].' | '.$selectedDocument['path'])
+                : '[NINGUNO O NO RECONOCIDO]',
+            '',
+            'Secciones del documento seleccionado:',
+            implode("\n", $sectionList) ?: '[SIN DOCUMENTO SELECCIONADO]',
+            '',
+            'Sección seleccionada:',
+            $selectedSectionData !== null ? $selectedSectionData['name'] : '[NINGUNA O NO RECONOCIDA]',
+            '',
+            'Contenido completo de sección seleccionada:',
+            $sectionBody !== '' ? $sectionBody : '[SIN CONTENIDO DE SECCIÓN]',
+            '',
+            'Fragmentos o notas pegadas por el usuario:',
+            $fragments !== '' ? $fragments : '[VACÍO]',
+            '',
+            'Consola Project Lab incluida explícitamente:',
+            $consoleOutput !== '' ? $consoleOutput : '[NO INCLUIDA]',
+            '',
+            'Respuesta esperada:',
+            'Primero explicá brevemente el diagnóstico. Luego devolvé, si aplica, bloques listos para pegar en la herramienta Docs actual. No ejecutes ni simules aplicación automática.',
+        ]);
     }
 
     private function parseEmbeddedMethodOperation(string $input): ?array
@@ -1457,7 +1670,11 @@ class ProjectLab
 
         $inputPreview = $this->auditInputPreview($script);
 
-        $hasExplicitAuditOutput = str_contains($script, 'documentos/auditoria/');
+        if (preg_match('#(?<!tools/project-lab/)documentos/auditoria/#', $script)) {
+            return '[ERROR] La auditoría de Project Lab debe escribir en '.self::LAB_AUDIT_DIR.'/. La carpeta raíz documentos/ queda reservada para documentación funcional del producto.';
+        }
+
+        $hasExplicitAuditOutput = str_contains($script, self::LAB_AUDIT_DIR.'/');
 
         if ($hasExplicitAuditOutput) {
             $result = $this->executeAuditScript($script);
@@ -1468,7 +1685,7 @@ class ProjectLab
         }
 
         $timestamp = date('Ymd_His');
-        $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
+        $relativeOutput = self::LAB_AUDIT_DIR."/auditoria_{$timestamp}.txt";
 
         $wrapped = "{\n";
         $wrapped .= "echo \"[OK] Auditoría simple ejecutada.\";\n";
@@ -2057,7 +2274,7 @@ class ProjectLab
         }
 
         $timestamp = date('Ymd_His');
-        $relativeOutput = "documentos/auditoria/consola_project_lab_{$timestamp}.txt";
+        $relativeOutput = self::LAB_AUDIT_DIR."/consola_project_lab_{$timestamp}.txt";
 
         $header = "[OK] Consola Project Lab guardada como auditoría\n";
         $header .= "[OK] Archivo generado: {$relativeOutput}\n";
@@ -2326,7 +2543,7 @@ class ProjectLab
 
     private function ensureAuditDirectory(): true|string
     {
-        return $this->ensureProjectDirectory('documentos/auditoria');
+        return $this->ensureProjectDirectory(self::LAB_AUDIT_DIR);
     }
 
     private function normalizeScriptInput(string $script): string
@@ -3336,7 +3553,7 @@ class ProjectLab
         }
 
         $timestamp = date('Ymd_His');
-        $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
+        $backupRelativePath = self::LAB_BACKUP_DIR.'/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
         $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
 
         if ($backupResult !== true) {
@@ -3508,7 +3725,7 @@ class ProjectLab
             .substr($content, $insertPosition);
 
         $timestamp = date('Ymd_His');
-        $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
+        $backupRelativePath = self::LAB_BACKUP_DIR.'/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
         $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
 
         if ($backupResult !== true) {

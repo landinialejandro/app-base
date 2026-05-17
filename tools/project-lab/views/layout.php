@@ -93,6 +93,7 @@
                 <button type="button" class="tab-btn" onclick="showTab('icons')">🎨 Íconos</button>
                 <button type="button" class="tab-btn" onclick="showTab('components')">🧩 Componentes</button>
                 <button type="button" class="tab-btn" onclick="showTab('sections')">🧱 Secciones</button>
+                <button type="button" class="tab-btn" onclick="showTab('documents')">📚 Documentos</button>
             </div>
         </aside>
 
@@ -105,6 +106,7 @@
             <?php require __DIR__.'/components.php'; ?>
             <?php require __DIR__.'/monitor.php'; ?>
             <?php require __DIR__.'/sections.php'; ?>
+            <?php require __DIR__.'/documents.php'; ?>
 
             <div class="card output-card" id="projectConsoleCard">
                 <div class="output-header">

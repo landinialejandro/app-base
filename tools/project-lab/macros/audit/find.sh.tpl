@@ -21,8 +21,8 @@ find . \
   ! -path './storage/framework/cache/*' \
   ! -path './storage/logs/*' \
   ! -path './storage/app/private/*' \
-  ! -path './documentos/auditoria/*' \
-  ! -path './documentos/baks/*' \
+  ! -path './tools/project-lab/documentos/auditoria/*' \
+  ! -path './tools/project-lab/documentos/baks/*' \
   -print 2>/dev/null | while IFS= read -r FILE; do
   if [ "$FILE_PATTERN" != "*" ]; then
     echo "$FILE" | grep -Fqi -- "$FILE_PATTERN" || continue

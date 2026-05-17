@@ -27,3 +27,4 @@ Thumbs.db
 /documentos/auditoria/*.*
 /tools/project-lab/.secrets/*.*
 /tools/project-lab/.secrets/gemini_api_key
+tools/project-lab/documentos/auditoria/*.*

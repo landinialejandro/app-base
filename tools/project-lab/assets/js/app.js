@@ -504,6 +504,272 @@ function clearLabTools() {
     showNotification("Herramientas Lab borradas", "success");
 }
 
+// ==================== DOCUMENTOS TÉCNICOS ====================
+
+let projectDocumentSelection = {
+    slug: "",
+    section: "",
+};
+
+function getProjectTechnicalDocuments() {
+    return Array.isArray(window.projectLabTechnicalDocuments)
+        ? window.projectLabTechnicalDocuments
+        : [];
+}
+
+function findProjectDocument(slug) {
+    return getProjectTechnicalDocuments().find((documentItem) => {
+        return String(documentItem.slug || "") === String(slug || "");
+    });
+}
+
+function normalizeProjectDocumentSectionName(value) {
+    return String(value || "").trim();
+}
+
+function findProjectDocumentSection(documentItem, sectionName) {
+    const sections = Array.isArray(documentItem?.sections)
+        ? documentItem.sections
+        : [];
+
+    return sections.find((section) => {
+        return (
+            normalizeProjectDocumentSectionName(section.name) ===
+            normalizeProjectDocumentSectionName(sectionName)
+        );
+    });
+}
+
+function updateProjectDocumentSelectionLabel(documentItem = null, section = null) {
+    const label = document.getElementById("projectDocumentSelectionLabel");
+
+    if (!label) {
+        return;
+    }
+
+    if (!documentItem) {
+        label.textContent = "Sin selección";
+        return;
+    }
+
+    const sectionText = section ? " · " + section.name : "";
+
+    label.textContent = documentItem.slug + sectionText;
+}
+
+function selectProjectDocument(slug) {
+    const documentItem = findProjectDocument(slug);
+    const sectionsContainer = document.getElementById("projectDocumentSections");
+    const viewer = document.getElementById("projectDocumentSectionViewer");
+
+    projectDocumentSelection = {
+        slug: documentItem ? documentItem.slug : "",
+        section: "",
+    };
+
+    sessionStorage.setItem(
+        "projectLabSelectedDocumentSlug",
+        projectDocumentSelection.slug,
+    );
+    sessionStorage.removeItem("projectLabSelectedDocumentSection");
+
+    document.querySelectorAll(".project-doc-item").forEach((button) => {
+        button.classList.toggle(
+            "active",
+            button.dataset.docSlug === projectDocumentSelection.slug,
+        );
+    });
+
+    document.querySelectorAll(".project-doc-section-item").forEach((button) => {
+        button.classList.remove("active");
+    });
+
+    updateProjectDocumentSelectionLabel(documentItem, null);
+
+    if (viewer) {
+        viewer.textContent = "Seleccioná una sección.";
+        viewer.classList.add("project-console-empty");
+    }
+
+    if (!sectionsContainer) {
+        return;
+    }
+
+    if (!documentItem) {
+        sectionsContainer.innerHTML =
+            '<div class="empty-state" style="padding:14px;"><p>Documento no encontrado.</p></div>';
+        return;
+    }
+
+    const sections = Array.isArray(documentItem.sections)
+        ? documentItem.sections
+        : [];
+
+    if (sections.length === 0) {
+        sectionsContainer.innerHTML =
+            '<div class="empty-state" style="padding:14px;"><p>Este documento no tiene secciones parseables.</p></div>';
+        return;
+    }
+
+    sectionsContainer.innerHTML = sections
+        .map((section) => {
+            const name = String(section.name || "");
+            const chars = Number.parseInt(section.chars || 0, 10);
+
+            return [
+                '<button type="button" class="tab-btn project-doc-section-item"',
+                ' data-section-name="' + escapeHtml(name) + '"',
+                ' style="margin:0;">',
+                "<strong>",
+                escapeHtml(name),
+                "</strong><br>",
+                '<span class="table-meta">',
+                Number.isFinite(chars) ? chars : 0,
+                " caracteres</span>",
+                "</button>",
+            ].join("");
+        })
+        .join("");
+
+    sectionsContainer
+        .querySelectorAll(".project-doc-section-item")
+        .forEach((button) => {
+            button.addEventListener("click", () => {
+                selectProjectDocumentSection(
+                    documentItem.slug,
+                    button.dataset.sectionName || "",
+                );
+            });
+        });
+}
+
+function selectProjectDocumentSection(slug, sectionName) {
+    const documentItem = findProjectDocument(slug);
+    const section = findProjectDocumentSection(documentItem, sectionName);
+    const viewer = document.getElementById("projectDocumentSectionViewer");
+
+    projectDocumentSelection = {
+        slug: documentItem ? documentItem.slug : "",
+        section: section ? section.name : "",
+    };
+
+    sessionStorage.setItem(
+        "projectLabSelectedDocumentSlug",
+        projectDocumentSelection.slug,
+    );
+    sessionStorage.setItem(
+        "projectLabSelectedDocumentSection",
+        projectDocumentSelection.section,
+    );
+
+    document.querySelectorAll(".project-doc-section-item").forEach((button) => {
+        button.classList.toggle(
+            "active",
+            normalizeProjectDocumentSectionName(button.dataset.sectionName) ===
+                normalizeProjectDocumentSectionName(
+                    projectDocumentSelection.section,
+                ),
+        );
+    });
+
+    updateProjectDocumentSelectionLabel(documentItem, section);
+
+    if (!viewer) {
+        return;
+    }
+
+    if (!section) {
+        viewer.textContent = "Sección no encontrada: " + sectionName;
+        viewer.classList.add("project-console-empty");
+        return;
+    }
+
+    const sectionBody = String(
+        section.body ??
+            section.rawBody ??
+            section.content ??
+            section.html ??
+            "",
+    );
+
+    viewer.textContent =
+        sectionBody.trim() === "" ? "[SECCIÓN SIN CONTENIDO]" : sectionBody;
+    viewer.classList.remove("project-console-empty");
+}
+
+function clearProjectDocumentAuditFragments() {
+    const textarea = document.getElementById("projectDocumentAuditFragments");
+
+    if (textarea) {
+        textarea.value = "";
+    }
+
+    sessionStorage.removeItem("projectLabDocumentAuditFragments");
+    showNotification("Fragmentos documentales borrados", "success");
+}
+
+function auditProjectDocumentWithAi() {
+    const textarea = document.getElementById("projectDocumentAuditFragments");
+    const model = document.getElementById("localAiModel")?.value || "";
+    const includeConsole = Boolean(
+        document.getElementById("projectDocumentIncludeConsole")?.checked,
+    );
+    const consoleOutput = includeConsole
+        ? document.getElementById("projectConsoleOutput")?.innerText || ""
+        : "";
+    const fragments = textarea ? textarea.value : "";
+
+    if (textarea) {
+        sessionStorage.setItem("projectLabDocumentAuditFragments", fragments);
+    }
+
+    runProjectAction({
+        action: "ajax_document_audit",
+        loading: "⏳ Auditando documentación con IA activa...",
+        data: {
+            model,
+            fragments,
+            selected_doc_slug: projectDocumentSelection.slug || "",
+            selected_section_name: projectDocumentSelection.section || "",
+            console_output: consoleOutput,
+        },
+    });
+}
+
+function restoreProjectDocumentState() {
+    const textarea = document.getElementById("projectDocumentAuditFragments");
+
+    if (textarea) {
+        const savedFragments = sessionStorage.getItem(
+            "projectLabDocumentAuditFragments",
+        );
+
+        if (savedFragments !== null) {
+            textarea.value = savedFragments;
+        }
+
+        textarea.addEventListener("input", function () {
+            sessionStorage.setItem(
+                "projectLabDocumentAuditFragments",
+                this.value,
+            );
+        });
+    }
+
+    const savedSlug = sessionStorage.getItem("projectLabSelectedDocumentSlug");
+    const savedSection = sessionStorage.getItem(
+        "projectLabSelectedDocumentSection",
+    );
+
+    if (savedSlug && findProjectDocument(savedSlug)) {
+        selectProjectDocument(savedSlug);
+
+        if (savedSection) {
+            selectProjectDocumentSection(savedSlug, savedSection);
+        }
+    }
+}
+
 // ==================== BASE DE DATOS ====================
 
 function loadTableDetails(tableName, element) {
@@ -1066,6 +1332,7 @@ function findProjectMethodContext() {
 
 document.addEventListener("DOMContentLoaded", function () {
     bindArtisanAjaxButtons();
+    restoreProjectDocumentState();
 
     document.querySelectorAll('[data-danger="true"]').forEach((btn) => {
         btn.addEventListener("click", function (e) {

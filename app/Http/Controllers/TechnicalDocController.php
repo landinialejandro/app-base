@@ -101,7 +101,7 @@ class TechnicalDocController extends Controller
                     'focus_section' => $targetSection->anchor,
                 ])
                 ->withErrors([
-                    'section_body' => 'No se pudo guardar la sección. Verificá permisos de escritura sobre la carpeta documentos.',
+                    'section_body' => 'No se pudo guardar la sección. Verificá permisos de escritura sobre tools/project-lab/documentos.',
                 ])
                 ->withInput();
         }

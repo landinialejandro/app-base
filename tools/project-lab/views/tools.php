@@ -4,10 +4,11 @@
 
 ?>
 
-<div class="editor-container">
-    <form method="POST" id="labToolsForm">
-        <input type="hidden" name="from_clipboard" value="">
-        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+<div id="tab-tools" class="tab-content active">
+    <div class="editor-container">
+        <form method="POST" id="labToolsForm">
+            <input type="hidden" name="from_clipboard" value="">
+            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
 
         <div class="card">
             <div class="editor-header" style="margin-bottom:12px;">
@@ -109,13 +110,13 @@
                         <div class="quick-format-panel">
                             <span class="snippet-chip" onclick="insertLabSnippet('&lt;?php\n\n// FILE: app/Support/Ejemplo.php | V1\n\n')">PHP FILE</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}\n\n')">Blade FILE</span>
-                            <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.css | V1 */\n\n')">CSS FILE</span>
-                            <span class="snippet-chip" onclick="insertLabSnippet('// FILE: documentos/log/project-lab-test.js | V1\n\n')">JS FILE</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: tools/project-lab/documentos/log/project-lab-test.css | V1 */\n\n')">CSS FILE</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('// FILE: tools/project-lab/documentos/log/project-lab-test.js | V1\n\n')">JS FILE</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Http/Controllers/EjemploController.php :: show\n\npublic function show(): void\n{\n    // ...\n}')">PHP TARGET ::</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Support/Ejemplo.php ++ nuevoMetodo\n\nprivate function nuevoMetodo(): void\n{\n    // ...\n}')">PHP TARGET ++</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [contexto_fijo_proyecto_app_base]\n\n<<SECTION: NOMBRE EXACTO>>\nSECTION_VERSION: 00001\n\nContenido\n<<END SECTION>>')">DOC SECTION</span>
-                            <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.css]\n\n<<SECTION: COLORS>>\nbody {\n    color: red;\n}\n<<END SECTION>>')">CSS SECTION</span>
-                            <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.js]\n\n<<SECTION: INIT>>\nconsole.log(\'section updated\');\n<<END SECTION>>')">JS SECTION</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [tools/project-lab/documentos/log/test-sections.css]\n\n<<SECTION: COLORS>>\nbody {\n    color: red;\n}\n<<END SECTION>>')">CSS SECTION</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [tools/project-lab/documentos/log/test-sections.js]\n\n<<SECTION: INIT>>\nconsole.log(\'section updated\');\n<<END SECTION>>')">JS SECTION</span>
                         </div>
                     </details>
 
@@ -157,15 +158,16 @@
                 </div>
             </div>
         </div>
-    </form>
+        </form>
 
-    <?php if (! empty($labToolOutput) || ! empty($output)) { ?>
-        <div class="card output-card">
-            <div class="output-header">
-                <span>📤 Salida Project Lab</span>
-                <button onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
+        <?php if (! empty($labToolOutput) || ! empty($output)) { ?>
+            <div class="card output-card">
+                <div class="output-header">
+                    <span>📤 Salida Project Lab</span>
+                    <button onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
+                </div>
+                <pre id="labOutput"><?= htmlspecialchars($labToolOutput ?: $output) ?></pre>
             </div>
-            <pre id="labOutput"><?= htmlspecialchars($labToolOutput ?: $output) ?></pre>
-        </div>
-    <?php } ?>
+        <?php } ?>
+    </div>
 </div>

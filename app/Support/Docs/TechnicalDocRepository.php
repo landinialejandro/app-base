@@ -16,7 +16,7 @@ class TechnicalDocRepository
         protected ?string $basePath = null,
         protected ?TechnicalDocParser $parser = null,
     ) {
-        $this->basePath = $this->basePath ?: base_path('documentos');
+        $this->basePath = $this->basePath ?: base_path('tools/project-lab/documentos');
         $this->parser = $this->parser ?: app(TechnicalDocParser::class);
     }
 

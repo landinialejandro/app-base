@@ -122,7 +122,7 @@ AND UserPrompt starts "<?php"
 Meaning:
 PHP_FULL missing // FILE marker.
 Action:
-If test/example/no real path: use documentos/log/project-lab-test.php.
+If test/example/no real path: use tools/project-lab/documentos/log/project-lab-test.php.
 If production code/path unknown: ask exact target path.
 Return corrected PHP_FULL preserving PHP_RULE.
 

@@ -34,17 +34,24 @@ REGLAS
 - no proponer mejoras futuras
 - incluir decisiones aunque no estén implementadas si afectan la arquitectura o la doctrina del sistema
 - no descartar información relevante por ambigüedad
-- no transformar esto en una auditoría (no devolver secciones todavía)
+- no transformar esto en una auditoría
+- no devolver secciones completas todavía
+- no generar bloques REEMPLAZAR EN / AGREGAR EN
 - agrupar por documento cuando sea posible
 - si una decisión impacta en múltiples documentos, indicarlo
+- distinguir documentos afectados, posiblemente afectados y no afectados cuando sea relevante
+- si no se conoce el nombre exacto de una sección, indicar sección aproximada y marcarla como aproximada
 
 FORMATO DE SALIDA
 
 DOCUMENTO: [DOC_SLUG]
 
+ESTADO DE IMPACTO:
+[afectado / posiblemente afectado / no afectado]
+
 SECCIONES AFECTADAS:
 
-- [nombre de sección aproximado o existente]
+- [nombre de sección existente o aproximado]
 - [otra sección si aplica]
 
 CAMBIOS DETECTADOS:
@@ -55,9 +62,7 @@ REGLA CLAVE
 
 Este prompt debe capturar TODO lo relevante.
 
-La depuración, validación estricta y generación de secciones correctas se realiza en el prompt de auditoría posterior.
-
-
+La depuración, validación estricta, decisión final de secciones y aplicación documental se realiza luego en Project Lab contra documentos reales.
 -----------------------------------------
 
 

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/partials/shop-header.blade.php | V2 --}}
+{{-- FILE: resources/views/self-service-sales/partials/shop-header.blade.php | V3 --}}
 
 <header class="shop-hero">
     <div class="shop-hero__identity">
@@ -12,6 +12,5 @@
 
     <div class="shop-hero__actions">
         <button type="button" class="shop-header-action" data-cart-open>Carrito</button>
-        <button type="button" class="shop-header-action" data-profile-open>Perfil</button>
     </div>
 </header>

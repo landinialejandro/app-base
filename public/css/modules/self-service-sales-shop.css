@@ -1,4 +1,4 @@
-/* FILE: public/css/modules/self-service-sales-shop.css | V3 */
+/* FILE: public/css/modules/self-service-sales-shop.css | V4 */
 
 .shop-public-shell {
     width: min(100%, 72rem);
@@ -639,10 +639,17 @@
 }
 
 .shop-bottom-nav button span {
-    display: block;
+    display: flex;
+    justify-content: center;
     margin-bottom: 0.1rem;
     font-size: 0.82rem;
     line-height: 1;
+}
+
+.shop-bottom-nav svg {
+    width: 1.05rem;
+    height: 1.05rem;
+    display: block;
 }
 
 .shop-bottom-nav__primary {

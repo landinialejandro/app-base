@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Shops/ShopPublishedCatalogReader.php | V1
+// FILE: app/Support/Shops/ShopPublishedCatalogReader.php | V2
 
 namespace App\Support\Shops;
 
@@ -35,7 +35,18 @@ class ShopPublishedCatalogReader
     public function visibleItemsForShop(Shop $shop): Collection
     {
         return ShopItem::query()
-            ->with('product')
+            ->with([
+                'product' => function ($query) {
+                    $query->with([
+                        'attachments' => function ($query) {
+                            $query
+                                ->where('kind', 'shop')
+                                ->where('is_image', true)
+                                ->ordered();
+                        },
+                    ]);
+                },
+            ])
             ->where('tenant_id', $shop->tenant_id)
             ->where('self_service_shop_id', $shop->id)
             ->where('status', ShopItem::STATUS_PUBLISHED)

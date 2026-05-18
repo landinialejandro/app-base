@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V5
+// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -23,9 +23,13 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
         ShopPublishedCatalogReader $shopCatalogReader
     ) {
         $externalCustomer = null;
-        $activeShop = null;
-        $shopItems = collect();
-        $shopCatalogStatus = 'hidden_until_enabled';
+        $activeShop = $shopCatalogReader->activeShopForTenant($tenant);
+        $shopItems = $activeShop
+            ? $shopCatalogReader->visibleItemsForShop($activeShop)
+            : collect();
+        $shopCatalogStatus = ! $activeShop
+            ? 'without_active_shop'
+            : ($shopItems->isEmpty() ? 'active_shop_without_items' : 'available');
         $payload = $request->attributes->get('self_service_external_customer');
 
         if ($payload) {
@@ -50,16 +54,9 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
                 'can_operate' => $payload['can_operate'] === true,
             ];
 
-            if ($externalCustomer['can_operate']) {
-                $activeShop = $shopCatalogReader->activeShopForTenant($tenant);
-                $shopItems = $activeShop
-                    ? $shopCatalogReader->visibleItemsForShop($activeShop)
-                    : collect();
-                $shopCatalogStatus = ! $activeShop
-                    ? 'without_active_shop'
-                    : ($shopItems->isEmpty() ? 'active_shop_without_items' : 'available');
-            }
         }
+
+        $cartExperienceEnabled = (bool) ($externalCustomer['can_operate'] ?? false);
 
         return view('self-service-sales.shop', [
             'tenant' => $tenant,
@@ -67,6 +64,7 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
             'activeShop' => $activeShop,
             'shopItems' => $shopItems,
             'shopCatalogStatus' => $shopCatalogStatus,
+            'cartExperienceEnabled' => $cartExperienceEnabled,
         ]);
     }
 

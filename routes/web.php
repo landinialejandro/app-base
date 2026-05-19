@@ -25,6 +25,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SelfServiceCustomerIdentityCompletionController;
 use App\Http\Controllers\SelfServiceSalesAccessController;
+use App\Http\Controllers\SelfServiceSalesCartController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
 use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
 use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
@@ -187,6 +188,18 @@ Route::prefix('shop/{tenant:slug}')
             ->name('identity.edit');
         Route::post('/complete-identity', [SelfServiceCustomerIdentityCompletionController::class, 'update'])
             ->name('identity.update');
+        Route::get('/cart', [SelfServiceSalesCartController::class, 'show'])
+            ->name('cart.show');
+        Route::post('/cart/items', [SelfServiceSalesCartController::class, 'storeItem'])
+            ->name('cart.items.store');
+        Route::patch('/cart/items/{cartItem}', [SelfServiceSalesCartController::class, 'updateItem'])
+            ->name('cart.items.update');
+        Route::delete('/cart/items/{cartItem}', [SelfServiceSalesCartController::class, 'destroyItem'])
+            ->name('cart.items.destroy');
+        Route::delete('/cart', [SelfServiceSalesCartController::class, 'clear'])
+            ->name('cart.clear');
+        Route::post('/checkout', [SelfServiceSalesCartController::class, 'checkout'])
+            ->name('checkout.simulate');
     });
 
 // APP-BASE

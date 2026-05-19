@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/shop.blade.php | V13 --}}
+{{-- FILE: resources/views/self-service-sales/shop.blade.php | V14 --}}
 
 @php
     $publicPage = true;
@@ -9,6 +9,7 @@
 @section('title', 'Tienda')
 
 @push('head')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('css/modules/self-service-sales-shop.css') }}">
 @endpush
 
@@ -30,6 +31,10 @@
             data-shop-app
             data-cart-experience-enabled="{{ $cartExperienceEnabled ? 'true' : 'false' }}"
             data-operation-pending-message="Función no implementada todavía: operación comercial pendiente."
+            data-cart-show-url="{{ route('self_service_sales.cart.show', ['tenant' => $tenant]) }}"
+            data-cart-add-url="{{ route('self_service_sales.cart.items.store', ['tenant' => $tenant]) }}"
+            data-cart-clear-url="{{ route('self_service_sales.cart.clear', ['tenant' => $tenant]) }}"
+            data-checkout-url="{{ route('self_service_sales.checkout.simulate', ['tenant' => $tenant]) }}"
         >
             @include('self-service-sales.partials.shop-header', [
                 'tenant' => $tenant,

@@ -17,6 +17,7 @@
     ];
 
     $canUpdateShop = $canUpdateShop ?? false;
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($items->count())
@@ -37,7 +38,7 @@
                     <tr>
                         <td>
                             @include('products.components.linked-product', [
-                                'linked' => ProductLinked::forProduct($item->product, [], 'Producto'),
+                                'linked' => ProductLinked::forProduct($item->product, $trailQuery, 'Producto'),
                             ])
 
                             @if ($item->product?->sku)
@@ -73,7 +74,7 @@
                         <td class="table-actions">
                             @if ($canUpdateShop)
                                 <x-button-tool
-                                    :href="route('shops.items.edit', [$shop, $item])"
+                                    :href="route('shops.items.edit', ['shop' => $shop, 'item' => $item] + $trailQuery)"
                                     title="Editar artículo"
                                     label="Editar artículo"
                                 >
@@ -81,7 +82,7 @@
                                 </x-button-tool>
 
                                 <x-button-tool-submit
-                                    :action="route('shops.items.destroy', [$shop, $item])"
+                                    :action="route('shops.items.destroy', ['shop' => $shop, 'item' => $item] + $trailQuery)"
                                     method="DELETE"
                                     variant="danger"
                                     title="Ocultar artículo"

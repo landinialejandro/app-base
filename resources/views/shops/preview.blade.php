@@ -9,6 +9,7 @@
         use App\Models\Shop;
         use App\Models\ShopItem;
         use App\Support\Products\ProductLinked;
+        use App\Support\Navigation\NavigationTrail;
 
         $shopStatusLabels = [
             Shop::STATUS_DRAFT => 'Borrador',
@@ -35,19 +36,16 @@
         ];
 
         $publicVisibleItemsCount = $publicVisibleItemsCount ?? 0;
+        $navigationTrail = $navigationTrail ?? [];
+        $trailQuery = $trailQuery ?? NavigationTrail::toQuery($navigationTrail);
     @endphp
 
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Tiendas', 'url' => route('shops.index')],
-            ['label' => $shop->name, 'url' => route('shops.show', $shop)],
-            ['label' => 'Vista previa'],
-        ]" />
+        <x-breadcrumb :items="NavigationTrail::toBreadcrumbItems($navigationTrail)" />
 
         <x-page-header title="Vista previa de tienda">
-            <x-button-back :href="route('shops.show', $shop)" />
+            <x-button-back :href="route('shops.show', ['shop' => $shop, 'return_tab' => 'items'] + $trailQuery)" />
         </x-page-header>
 
         <x-card>
@@ -138,7 +136,7 @@
 
                                         <div class="table-cell-help">
                                             @include('products.components.linked-product', [
-                                                'linked' => ProductLinked::forProduct($product, [], 'Producto'),
+                                                'linked' => ProductLinked::forProduct($product, $trailQuery, 'Producto'),
                                             ])
 
                                             @if ($product?->sku)

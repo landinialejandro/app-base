@@ -8,6 +8,7 @@
     @php
         use App\Models\Shop;
         use App\Support\Ui\HostTabs;
+        use App\Support\Navigation\NavigationTrail;
 
         $statusLabels = [
             Shop::STATUS_DRAFT => 'Borrador',
@@ -23,6 +24,9 @@
 
         $items = $shop->items ?? collect();
 
+        $navigationTrail = $navigationTrail ?? [];
+        $trailQuery = $trailQuery ?? NavigationTrail::toQuery($navigationTrail);
+
         $tabItems = collect([
             [
                 'type' => 'embedded',
@@ -35,6 +39,7 @@
                 'data' => [
                     'shop' => $shop,
                     'items' => $items,
+                    'trailQuery' => $trailQuery,
                 ],
             ],
         ])->values();
@@ -44,11 +49,7 @@
 
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Tiendas', 'url' => route('shops.index')],
-            ['label' => $shop->name],
-        ]" />
+        <x-breadcrumb :items="NavigationTrail::toBreadcrumbItems($navigationTrail)" />
 
         <x-page-header title="Detalle de tienda">
             @if ($shop->status !== Shop::STATUS_ACTIVE)
@@ -62,12 +63,12 @@
                 @endcan
             @endif
 
-            <x-button-secondary :href="route('shops.preview', $shop)" target="_blank">
+            <x-button-secondary :href="route('shops.preview', ['shop' => $shop] + $trailQuery)" target="_blank">
                 Vista previa
             </x-button-secondary>
 
             @can('update', $shop)
-                <x-button-edit :href="route('shops.edit', $shop)" />
+                <x-button-edit :href="route('shops.edit', ['shop' => $shop] + $trailQuery)" />
             @endcan
 
             @can('delete', $shop)

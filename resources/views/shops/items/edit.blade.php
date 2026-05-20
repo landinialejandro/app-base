@@ -5,19 +5,20 @@
 @section('title', 'Editar artículo')
 
 @section('content')
+    @php
+        use App\Support\Navigation\NavigationTrail;
+
+        $navigationTrail = $navigationTrail ?? [];
+        $trailQuery = $trailQuery ?? NavigationTrail::toQuery($navigationTrail);
+    @endphp
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Tiendas', 'url' => route('shops.index')],
-            ['label' => $shop->name, 'url' => route('shops.show', $shop)],
-            ['label' => 'Editar artículo'],
-        ]" />
+        <x-breadcrumb :items="NavigationTrail::toBreadcrumbItems($navigationTrail)" />
 
         <x-page-header title="Editar artículo" />
 
         <x-card>
-            <form method="POST" action="{{ route('shops.items.update', [$shop, $item]) }}" class="form">
+            <form method="POST" action="{{ route('shops.items.update', ['shop' => $shop, 'item' => $item] + $trailQuery) }}" class="form">
                 @csrf
                 @method('PUT')
 
@@ -27,7 +28,7 @@
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    <a href="{{ route('shops.show', $shop) }}" class="btn btn-secondary">Cancelar</a>
+                    <a href="{{ route('shops.show', ['shop' => $shop, 'return_tab' => 'items'] + $trailQuery) }}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </x-card>

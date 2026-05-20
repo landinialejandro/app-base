@@ -4,6 +4,8 @@
     use App\Models\ShopItem;
     use App\Support\Products\ProductLinked;
 
+    $trailQuery = $trailQuery ?? [];
+
     $mode = $mode ?? 'create';
 
     $statusLabels = [
@@ -36,7 +38,7 @@
         <label class="form-label">Producto</label>
         <div class="form-control" aria-readonly="true">
             @include('products.components.linked-product', [
-                'linked' => ProductLinked::forProduct($item->product, [], 'Producto'),
+                'linked' => ProductLinked::forProduct($item->product, $trailQuery, 'Producto'),
             ])
 
             @if ($item->product?->sku)

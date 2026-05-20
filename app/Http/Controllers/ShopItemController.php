@@ -11,6 +11,8 @@ use App\Http\Requests\UpdateShopItemRequest;
 use App\Models\Shop;
 use App\Models\ShopItem;
 use App\Support\Products\ProductLineItemSelector;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\ShopNavigationTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,6 +29,9 @@ class ShopItemController extends Controller
             activeOnly: true,
         );
 
+        $navigationTrail = ShopNavigationTrail::itemCreate($request, $shop);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
         return view('shops.items.create', [
             'shop' => $shop,
             'item' => new ShopItem([
@@ -35,6 +40,8 @@ class ShopItemController extends Controller
                 'sort_order' => 0,
             ]),
             'products' => $products,
+            'navigationTrail' => $navigationTrail,
+            'trailQuery' => $trailQuery,
         ]);
     }
 
@@ -64,9 +71,14 @@ class ShopItemController extends Controller
 
         $item->loadMissing('product');
 
+        $navigationTrail = ShopNavigationTrail::itemEdit(request(), $shop, $item);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
         return view('shops.items.edit', [
             'shop' => $shop,
             'item' => $item,
+            'navigationTrail' => $navigationTrail,
+            'trailQuery' => $trailQuery,
         ]);
     }
 

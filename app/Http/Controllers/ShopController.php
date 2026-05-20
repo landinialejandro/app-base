@@ -12,6 +12,8 @@ use App\Models\Shop;
 use App\Support\Auth\Security;
 use App\Support\Shops\ShopPublishedCatalogReader;
 use App\Support\Shops\ShopPublisher;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\ShopNavigationTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -94,7 +96,7 @@ class ShopController extends Controller
             ->with('success', 'Tienda creada correctamente.');
     }
 
-    public function show(Shop $shop): View
+    public function show(Request $request, Shop $shop): View
     {
         $this->authorize('view', $shop);
 
@@ -104,38 +106,58 @@ class ShopController extends Controller
 
         $shop->loadCount('items');
 
+        $navigationTrail = ShopNavigationTrail::show(
+            $request,
+            $shop,
+            $request->query('return_tab')
+        );
+
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
         return view('shops.show', [
             'shop' => $shop,
-            'canUpdateShop' => request()->user()?->can('update', $shop) === true,
-            'canDeleteShop' => request()->user()?->can('delete', $shop) === true,
+            'canUpdateShop' => $request->user()?->can('update', $shop) === true,
+            'canDeleteShop' => $request->user()?->can('delete', $shop) === true,
+            'navigationTrail' => $navigationTrail,
+            'trailQuery' => $trailQuery,
         ]);
     }
 
-public function preview(Shop $shop, ShopPublishedCatalogReader $reader): View
-{
-    $this->authorize('view', $shop);
+    public function preview(Request $request, Shop $shop, ShopPublishedCatalogReader $reader): View
+    {
+        $this->authorize('view', $shop);
 
-    $shop->loadMissing('tenant');
+        $shop->loadMissing('tenant');
 
-    $previewItems = $shop->items()
-        ->with('product')
-        ->orderBy('sort_order')
-        ->orderBy('id')
-        ->get();
+        $previewItems = $shop->items()
+            ->with('product')
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
 
-    return view('shops.preview', [
-        'shop' => $shop,
-        'previewItems' => $previewItems,
-        'publicVisibleItemsCount' => $reader->visibleItemsForShop($shop)->count(),
-    ]);
-}
+        $navigationTrail = ShopNavigationTrail::preview($request, $shop);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
 
-    public function edit(Shop $shop): View
+        return view('shops.preview', [
+            'shop' => $shop,
+            'previewItems' => $previewItems,
+            'publicVisibleItemsCount' => $reader->visibleItemsForShop($shop)->count(),
+            'navigationTrail' => $navigationTrail,
+            'trailQuery' => $trailQuery,
+        ]);
+    }
+
+    public function edit(Request $request, Shop $shop): View
     {
         $this->authorize('update', $shop);
 
+        $navigationTrail = ShopNavigationTrail::edit($request, $shop);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
         return view('shops.edit', [
             'shop' => $shop,
+            'navigationTrail' => $navigationTrail,
+            'trailQuery' => $trailQuery,
         ]);
     }
 

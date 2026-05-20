@@ -1,6 +1,7 @@
 {{-- FILE: resources/views/shops/tabs/items.blade.php | V2 --}}
 
 @php
+    $trailQuery = $trailQuery ?? [];
     use App\Models\ShopItem;
 
     $statuses = [
@@ -21,7 +22,8 @@
     :table-data="[
         'shop' => $shop,
         'canUpdateShop' => $canUpdateShop,
+        'trailQuery' => $trailQuery,
     ]"
-    :add-url="$canUpdateShop ? route('shops.items.create', $shop) : null"
+    :add-url="$canUpdateShop ? route('shops.items.create', ['shop' => $shop] + $trailQuery) : null"
     add-label="Agregar artículo"
 />

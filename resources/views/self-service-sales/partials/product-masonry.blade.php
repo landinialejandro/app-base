@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/partials/product-masonry.blade.php | V2 --}}
+{{-- FILE: resources/views/self-service-sales/partials/product-masonry.blade.php | V3 --}}
 
 <section class="shop-catalog">
     <div class="shop-category-strip" aria-label="Categorías">
@@ -30,7 +30,10 @@
 
         <div class="shop-masonry">
             @foreach($shopItems as $shopItem)
-                @include('self-service-sales.partials.product-card', ['shopItem' => $shopItem])
+                @include('self-service-sales.partials.product-card', [
+                    'tenant' => $tenant,
+                    'shopItem' => $shopItem,
+                ])
             @endforeach
         </div>
     @endif

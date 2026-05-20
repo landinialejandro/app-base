@@ -20,6 +20,7 @@ use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ProductComponentController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductionDashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
@@ -27,11 +28,11 @@ use App\Http\Controllers\SelfServiceCustomerIdentityCompletionController;
 use App\Http\Controllers\SelfServiceSalesAccessController;
 use App\Http\Controllers\SelfServiceSalesCartController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
+use App\Http\Controllers\SelfServiceSalesProductImageController;
 use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
 use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
 use App\Http\Controllers\SelfServiceStoreCustomerOperationController;
 use App\Http\Controllers\ServiceDashboardController;
-use App\Http\Controllers\ProductionDashboardController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopItemController;
 use App\Http\Controllers\SuperadminDashboardController;
@@ -176,6 +177,8 @@ Route::prefix('shop/{tenant:slug}')
     ->group(function () {
         Route::get('/', [SelfServiceSalesCustomerRegistrationController::class, 'shop'])
             ->name('shop');
+        Route::get('/products/{product}/images/{attachment}', [SelfServiceSalesProductImageController::class, 'show'])
+            ->name('product_images.show');
         Route::get('/register', [SelfServiceSalesCustomerRegistrationController::class, 'create'])
             ->name('register.create');
         Route::post('/register', [SelfServiceSalesCustomerRegistrationController::class, 'store'])

@@ -4,9 +4,9 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Product;
 use App\Models\Shop;
 use App\Models\ShopItem;
+use App\Support\Products\ProductLineItemSelector;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,13 +25,10 @@ class StoreShopItemRequest extends FormRequest
         $tenant = app('tenant');
 
         return [
-            'product_id' => [
-                'required',
-                'integer',
-                Rule::exists('products', 'id')
-                    ->where('tenant_id', $tenant->id)
-                    ->whereNull('deleted_at'),
-            ],
+            'product_id' => app(ProductLineItemSelector::class)->requiredRulesFor(
+                tenantId: $tenant->id,
+                activeOnly: true,
+            ),
             'display_name' => ['nullable', 'string', 'max:160'],
             'display_description' => ['nullable', 'string', 'max:2000'],
             'use_product_price' => ['nullable', 'boolean'],
@@ -68,17 +65,4 @@ class StoreShopItemRequest extends FormRequest
         return $data;
     }
 
-    public function selectedProduct(): ?Product
-    {
-        $productId = $this->validated('product_id');
-
-        if (! $productId) {
-            return null;
-        }
-
-        return Product::query()
-            ->where('tenant_id', app('tenant')->id)
-            ->whereKey($productId)
-            ->first();
-    }
 }

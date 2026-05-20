@@ -8,6 +8,7 @@ class AttachmentCatalog extends BaseCatalog
 {
     public const KIND_PHOTO = 'photo';
 
+    public const KIND_SHOP = 'shop';
     public const KIND_MANUAL = 'manual';
 
     public const KIND_EVIDENCE = 'evidence';
@@ -20,6 +21,7 @@ class AttachmentCatalog extends BaseCatalog
 
     protected static array $kinds = [
         self::KIND_PHOTO => 'Fotos',
+        self::KIND_SHOP => 'Tienda',
         self::KIND_MANUAL => 'Manuales',
         self::KIND_EVIDENCE => 'Evidencias',
         self::KIND_SUPPORT => 'Soporte',

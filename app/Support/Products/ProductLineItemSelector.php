@@ -15,22 +15,54 @@ class ProductLineItemSelector
         mixed $user,
         string $tenantId,
         bool $enabled = true,
+        bool $activeOnly = false,
     ): Collection {
         if (! $enabled) {
             return collect();
         }
 
-        return app(Security::class)
+        $query = app(Security::class)
             ->scope($user, 'products.viewAny', Product::query())
             ->where('tenant_id', $tenantId)
-            ->whereNull('deleted_at')
+            ->whereNull('deleted_at');
+
+        if ($activeOnly) {
+            $query->where('is_active', true);
+        }
+
+        return $query
             ->orderBy('name')
             ->get();
+    }
+
+    public function requiredRulesFor(
+        string $tenantId,
+        bool $enabled = true,
+        bool $activeOnly = false,
+    ): array {
+        $rules = ['required', 'integer'];
+
+        if (! $enabled) {
+            return $rules;
+        }
+
+        $rules[] = Rule::exists('products', 'id')->where(function ($query) use ($tenantId, $activeOnly) {
+            $query
+                ->where('tenant_id', $tenantId)
+                ->whereNull('deleted_at');
+
+            if ($activeOnly) {
+                $query->where('is_active', true);
+            }
+        });
+
+        return $rules;
     }
 
     public function nullableRulesFor(
         string $tenantId,
         bool $enabled = true,
+        bool $activeOnly = false,
     ): array {
         $rules = ['nullable', 'integer'];
 
@@ -38,9 +70,14 @@ class ProductLineItemSelector
             return $rules;
         }
 
-        $rules[] = Rule::exists('products', 'id')->where(function ($query) use ($tenantId) {
-            $query->where('tenant_id', $tenantId)
+        $rules[] = Rule::exists('products', 'id')->where(function ($query) use ($tenantId, $activeOnly) {
+            $query
+                ->where('tenant_id', $tenantId)
                 ->whereNull('deleted_at');
+
+            if ($activeOnly) {
+                $query->where('is_active', true);
+            }
         });
 
         return $rules;
@@ -51,17 +88,23 @@ class ProductLineItemSelector
         string $tenantId,
         int|string|null $productId,
         bool $enabled = true,
+        bool $activeOnly = false,
     ): void {
         if (! $enabled || empty($productId)) {
             return;
         }
 
-        app(Security::class)
+        $query = app(Security::class)
             ->scope($user, 'products.viewAny', Product::query())
             ->where('tenant_id', $tenantId)
             ->whereNull('deleted_at')
-            ->whereKey($productId)
-            ->firstOrFail();
+            ->whereKey($productId);
+
+        if ($activeOnly) {
+            $query->where('is_active', true);
+        }
+
+        $query->firstOrFail();
     }
 
     public function normalizeProductId(

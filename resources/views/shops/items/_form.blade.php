@@ -2,6 +2,7 @@
 
 @php
     use App\Models\ShopItem;
+    use App\Support\Products\ProductLinked;
 
     $mode = $mode ?? 'create';
 
@@ -34,7 +35,13 @@
     <div class="form-group">
         <label class="form-label">Producto</label>
         <div class="form-control" aria-readonly="true">
-            {{ $item->product?->name ?? '—' }}{{ $item->product?->sku ? ' · '.$item->product->sku : '' }}
+            @include('products.components.linked-product', [
+                'linked' => ProductLinked::forProduct($item->product, [], 'Producto'),
+            ])
+
+            @if ($item->product?->sku)
+                · {{ $item->product->sku }}
+            @endif
         </div>
     </div>
 @endif

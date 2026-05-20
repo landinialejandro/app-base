@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/partials/product-card.blade.php | V3 --}}
+{{-- FILE: resources/views/self-service-sales/partials/product-card.blade.php | V4 --}}
 
 @php
     $product = $shopItem->product;
@@ -7,6 +7,20 @@
     $description = $shopItem->displayDescription();
     $displayName = $shopItem->displayName();
     $searchText = \Illuminate\Support\Str::lower($displayName.' '.$description.' '.$product?->unit_label);
+
+    $productImages = $product
+        ? $shopImages->map(fn ($attachment, $index) => [
+            'label' => 'Foto '.($index + 1),
+            'url' => route('self_service_sales.product_images.show', [
+                'tenant' => $tenant,
+                'product' => $product,
+                'attachment' => $attachment,
+            ]),
+        ])->values()
+        : collect();
+
+    $firstImageUrl = $productImages->first()['url'] ?? null;
+
     $productPayload = [
         'id' => $shopItem->id,
         'shopItemId' => $shopItem->id,
@@ -16,11 +30,8 @@
         'price' => $price !== null ? (float) $price : null,
         'priceLabel' => $price !== null ? '$ '.number_format((float) $price, 2, ',', '.') : 'Precio a confirmar',
         'unit' => $product?->unit_label,
-        'imageCount' => $shopImages->count(),
-        'images' => $shopImages->map(fn ($attachment, $index) => [
-            'label' => 'Foto '.($index + 1),
-            'url' => null,
-        ])->values(),
+        'imageCount' => $productImages->count(),
+        'images' => $productImages,
     ];
 @endphp
 
@@ -30,13 +41,17 @@
     data-product='@json($productPayload, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG)'
 >
     <button type="button" class="shop-product-card__media" data-product-view aria-label="Ver {{ $displayName }}">
-        <span class="shop-product-placeholder" aria-hidden="true">
-            <span>{{ mb_substr($displayName, 0, 2) }}</span>
-            <small>{{ \Illuminate\Support\Str::limit($displayName, 18) }}</small>
-        </span>
+        @if($firstImageUrl)
+            <img src="{{ $firstImageUrl }}" alt="{{ $displayName }}" loading="lazy">
+        @else
+            <span class="shop-product-placeholder" aria-hidden="true">
+                <span>{{ mb_substr($displayName, 0, 2) }}</span>
+                <small>{{ \Illuminate\Support\Str::limit($displayName, 18) }}</small>
+            </span>
+        @endif
 
-        @if($shopImages->count() > 1)
-            <span class="shop-photo-count">{{ $shopImages->count() }} fotos</span>
+        @if($productImages->count() > 1)
+            <span class="shop-photo-count">{{ $productImages->count() }} fotos</span>
         @endif
     </button>
 

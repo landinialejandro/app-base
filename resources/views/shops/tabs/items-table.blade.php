@@ -2,6 +2,7 @@
 
 @php
     use App\Models\ShopItem;
+    use App\Support\Products\ProductLinked;
 
     $statusLabels = [
         ShopItem::STATUS_DRAFT => 'Borrador',
@@ -35,7 +36,9 @@
                 @foreach ($items as $item)
                     <tr>
                         <td>
-                            {{ $item->product?->name ?? '—' }}
+                            @include('products.components.linked-product', [
+                                'linked' => ProductLinked::forProduct($item->product, [], 'Producto'),
+                            ])
 
                             @if ($item->product?->sku)
                                 <div class="table-cell-help">

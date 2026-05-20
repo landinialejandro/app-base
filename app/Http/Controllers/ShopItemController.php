@@ -8,10 +8,9 @@ use App\Events\OperationalRecordCreated;
 use App\Events\OperationalRecordUpdated;
 use App\Http\Requests\StoreShopItemRequest;
 use App\Http\Requests\UpdateShopItemRequest;
-use App\Models\Product;
 use App\Models\Shop;
 use App\Models\ShopItem;
-use App\Support\Auth\Security;
+use App\Support\Products\ProductLineItemSelector;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,12 +21,11 @@ class ShopItemController extends Controller
     {
         $this->authorize('update', $shop);
 
-        $products = app(Security::class)
-            ->scope($request->user(), 'products.viewAny', Product::query())
-            ->where('tenant_id', app('tenant')->id)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
+        $products = app(ProductLineItemSelector::class)->optionsFor(
+            user: $request->user(),
+            tenantId: app('tenant')->id,
+            activeOnly: true,
+        );
 
         return view('shops.items.create', [
             'shop' => $shop,

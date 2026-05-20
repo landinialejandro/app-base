@@ -8,6 +8,7 @@
     @php
         use App\Models\Shop;
         use App\Models\ShopItem;
+        use App\Support\Products\ProductLinked;
 
         $shopStatusLabels = [
             Shop::STATUS_DRAFT => 'Borrador',
@@ -131,13 +132,19 @@
 
                                 <tr>
                                     <td>
-                                        {{ $item->displayName() }}
+                                        <div>
+                                            {{ $item->displayName() }}
+                                        </div>
 
-                                        @if ($product?->sku)
-                                            <div class="table-cell-help">
-                                                {{ $product->sku }}
-                                            </div>
-                                        @endif
+                                        <div class="table-cell-help">
+                                            @include('products.components.linked-product', [
+                                                'linked' => ProductLinked::forProduct($product, [], 'Producto'),
+                                            ])
+
+                                            @if ($product?->sku)
+                                                · {{ $product->sku }}
+                                            @endif
+                                        </div>
                                     </td>
                                     <td>
                                         {{ $item->displayDescription() ?: '—' }}

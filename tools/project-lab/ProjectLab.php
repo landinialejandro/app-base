@@ -1227,63 +1227,99 @@ class ProjectLab
         return ['ok' => true, 'output' => $output];
     }
 
-    private function applyTextPatch(string $content, array $patch): array
-    {
-        $anchor = $patch['anchor'];
-        $text = $patch['text'];
-        $op = $patch['op'];
-        $match = $patch['match'];
-        $count = $this->countExactOccurrences($content, $anchor);
+private function applyTextPatch(string $content, array $patch): array
+{
+    $anchor = $patch['anchor'];
+    $text = $patch['text'];
+    $op = $patch['op'];
+    $match = $patch['match'];
+    $count = $this->countExactOccurrences($content, $anchor);
 
-        if ($count < 1) {
+    if ($count < 1) {
+        return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
+    }
+
+    if ($match === 'one' && $count > 1) {
+        return ['ok' => false, 'error' => "[ERROR] ANCHOR ambiguo: ocurrencias encontradas {$count} con MATCH=one."];
+    }
+
+    if ($op === 'insert') {
+        $offset = strpos($content, $anchor);
+
+        if ($offset === false) {
             return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
         }
 
-        if ($match === 'one' && $count > 1) {
-            return ['ok' => false, 'error' => "[ERROR] ANCHOR ambiguo: ocurrencias encontradas {$count} con MATCH=one."];
-        }
+        $insertText = $text;
+        $anchorLength = strlen($anchor);
+        $anchorEnd = $offset + $anchorLength;
 
-        if ($op === 'insert') {
-            $offset = strpos($content, $anchor);
+        if ($patch['position'] === 'after') {
+            $insertOffset = $anchorEnd;
+            $lineEndingLength = 0;
 
-            if ($offset === false) {
-                return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
+            if (substr($content, $anchorEnd, 2) === "\r\n") {
+                $lineEndingLength = 2;
+            } elseif (substr($content, $anchorEnd, 1) === "\n" || substr($content, $anchorEnd, 1) === "\r") {
+                $lineEndingLength = 1;
             }
 
-            $insertOffset = $patch['position'] === 'before' ? $offset : $offset + strlen($anchor);
-            $newContent = substr($content, 0, $insertOffset).$text.substr($content, $insertOffset);
+            if ($lineEndingLength > 0) {
+                $insertOffset += $lineEndingLength;
 
-            return ['ok' => true, 'content' => $newContent, 'count' => 1, 'offsets' => [$offset]];
-        }
+                if ($insertText !== '' && ! str_ends_with($insertText, "\n") && ! str_ends_with($insertText, "\r")) {
+                    $insertText .= substr($content, $anchorEnd, $lineEndingLength);
+                }
+            }
+        } else {
+            $insertOffset = $offset;
+            $previousCharacter = $offset > 0 ? substr($content, $offset - 1, 1) : '';
 
-        $offsets = [];
-        $searchOffset = 0;
-
-        while (($offset = strpos($content, $anchor, $searchOffset)) !== false) {
-            $offsets[] = $offset;
-            $searchOffset = $offset + strlen($anchor);
-
-            if ($match === 'one') {
-                break;
+            if (($offset === 0 || $previousCharacter === "\n" || $previousCharacter === "\r")
+                && $insertText !== ''
+                && ! str_ends_with($insertText, "\n")
+                && ! str_ends_with($insertText, "\r")) {
+                $insertText .= "\n";
             }
         }
 
-        if ($match === 'all') {
-            $newContent = str_replace($anchor, $text, $content, $affected);
-
-            return ['ok' => true, 'content' => $newContent, 'count' => $affected, 'offsets' => $offsets];
+        if ($insertText !== '' && substr($content, $insertOffset, strlen($insertText)) === $insertText) {
+            return ['ok' => false, 'error' => '[ERROR] INSERT omitido: el TEXT ya existe en la posición objetivo.'];
         }
 
-        $offset = $offsets[0] ?? null;
-
-        if ($offset === null) {
-            return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
-        }
-
-        $newContent = substr($content, 0, $offset).$text.substr($content, $offset + strlen($anchor));
+        $newContent = substr($content, 0, $insertOffset).$insertText.substr($content, $insertOffset);
 
         return ['ok' => true, 'content' => $newContent, 'count' => 1, 'offsets' => [$offset]];
     }
+
+    $offsets = [];
+    $searchOffset = 0;
+
+    while (($offset = strpos($content, $anchor, $searchOffset)) !== false) {
+        $offsets[] = $offset;
+        $searchOffset = $offset + strlen($anchor);
+
+        if ($match === 'one') {
+            break;
+        }
+    }
+
+    if ($match === 'all') {
+        $newContent = str_replace($anchor, $text, $content, $affected);
+
+        return ['ok' => true, 'content' => $newContent, 'count' => $affected, 'offsets' => $offsets];
+    }
+
+    $offset = $offsets[0] ?? null;
+
+    if ($offset === null) {
+        return ['ok' => false, 'error' => '[ERROR] ANCHOR no encontrado.'];
+    }
+
+    $newContent = substr($content, 0, $offset).$text.substr($content, $offset + strlen($anchor));
+
+    return ['ok' => true, 'content' => $newContent, 'count' => 1, 'offsets' => [$offset]];
+}
 
     private function countExactOccurrences(string $content, string $anchor): int
     {
@@ -1358,30 +1394,34 @@ class ProjectLab
         ];
     }
 
-    private function validateDocSectionsBalanced(string $content): true|string
-    {
-        preg_match_all('/<<SECTION:\s*.*?>>|<<END SECTION>>/su', $content, $matches);
+private function validateDocSectionsBalanced(string $content): true|string
+{
+    $depth = 0;
 
-        $depth = 0;
+    foreach (preg_split('/\R/u', $content) ?: [] as $line) {
+        $line = trim($line);
 
-        foreach ($matches[0] ?? [] as $token) {
-            if (str_starts_with($token, '<<SECTION:')) {
-                if ($depth !== 0) {
-                    return 'sección anidada o delimitador <<END SECTION>> faltante.';
-                }
-
-                $depth++;
-            } else {
-                if ($depth !== 1) {
-                    return 'delimitador <<END SECTION>> sin apertura.';
-                }
-
-                $depth--;
+        if (preg_match('/^<<SECTION:\s*.+?>>$/u', $line)) {
+            if ($depth !== 0) {
+                return 'sección anidada o delimitador <<END SECTION>> faltante.';
             }
+
+            $depth++;
+
+            continue;
         }
 
-        return $depth === 0 ? true : 'delimitador <<END SECTION>> faltante.';
+        if ($line === '<<END SECTION>>') {
+            if ($depth !== 1) {
+                return 'delimitador <<END SECTION>> sin apertura.';
+            }
+
+            $depth--;
+        }
     }
+
+    return $depth === 0 ? true : 'delimitador <<END SECTION>> faltante.';
+}
 
     private function validateCodePatchResult(string $relativePath): array
     {

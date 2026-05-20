@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/shops/tabs/items-table.blade.php | V2 --}}
+{{-- FILE: resources/views/shops/tabs/items-table.blade.php | V4 --}}
 
 @php
     use App\Models\ShopItem;
@@ -81,12 +81,37 @@
                                     <x-icons.pencil />
                                 </x-button-tool>
 
+                                @php
+                                    $isPublished = $item->status === ShopItem::STATUS_PUBLISHED;
+                                    $nextStatus = $isPublished ? ShopItem::STATUS_HIDDEN : ShopItem::STATUS_PUBLISHED;
+                                    $visibilityActionTitle = $isPublished ? 'Ocultar artículo' : 'Publicar artículo';
+                                @endphp
+
+                                <x-button-tool-submit
+                                    :action="route('shops.items.update', ['shop' => $shop, 'item' => $item] + $trailQuery)"
+                                    method="PUT"
+                                    variant="secondary"
+                                    :title="$visibilityActionTitle"
+                                    :label="$visibilityActionTitle"
+                                >
+                                    <x-slot:fields>
+                                        <input type="hidden" name="status" value="{{ $nextStatus }}">
+                                    </x-slot:fields>
+
+                                    @if ($isPublished)
+                                        <x-icons.eye />
+                                    @else
+                                        <x-icons.eye-slash />
+                                    @endif
+                                </x-button-tool-submit>
+
                                 <x-button-tool-submit
                                     :action="route('shops.items.destroy', ['shop' => $shop, 'item' => $item] + $trailQuery)"
                                     method="DELETE"
                                     variant="danger"
-                                    title="Ocultar artículo"
-                                    label="Ocultar artículo"
+                                    title="Eliminar artículo de la tienda"
+                                    label="Eliminar artículo de la tienda"
+                                    message="¿Eliminar este artículo de la tienda?"
                                 >
                                     <x-icons.trash />
                                 </x-button-tool-submit>

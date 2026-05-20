@@ -20,6 +20,7 @@
     use App\Support\Inventory\InventorySurfaceService;
     use App\Support\LineItems\LineItemViewHelper;
     use App\Support\Modules\ModuleSurfaceRegistry;
+    use App\Support\Products\ProductLinked;
 
     $viewHelper = app(LineItemViewHelper::class);
 
@@ -81,7 +82,16 @@
                         <td>{{ $item->position }}</td>
 
                         <td>
-                            <div>{{ $item->description }}</div>
+                            <div>
+                                @if ($item->product)
+                                    @include('products.components.linked-product', [
+                                        'linked' => ProductLinked::forProduct($item->product, $trailQuery, 'Producto'),
+                                    ])
+                                @else
+                                    {{ $item->description }}
+                                @endif
+                            </div>
+
                             <div class="text-muted">{{ $itemTypeLabel }}</div>
                         </td>
 
@@ -141,4 +151,4 @@
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
 
-<x-dev-component-version name="line-item-table" version="V4" />
+<x-dev-component-version name="line-item-table" version="V6" />

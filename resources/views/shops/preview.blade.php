@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/shops/preview.blade.php | V2 --}}
+{{-- FILE: resources/views/shops/preview.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -38,6 +38,7 @@
         $publicVisibleItemsCount = $publicVisibleItemsCount ?? 0;
         $navigationTrail = $navigationTrail ?? [];
         $trailQuery = $trailQuery ?? NavigationTrail::toQuery($navigationTrail);
+        $productThumbs = $productThumbs ?? collect();
     @endphp
 
     <x-page>
@@ -98,6 +99,7 @@
                             @foreach ($previewItems as $item)
                                 @php
                                     $product = $item->product;
+                                    $productThumb = $product ? ($productThumbs->get($product->id) ?? null) : null;
                                     $isPubliclyVisible = $item->status === ShopItem::STATUS_PUBLISHED
                                         && $item->is_visible === true
                                         && $shop->isActive()
@@ -130,18 +132,38 @@
 
                                 <tr>
                                     <td>
-                                        <div>
-                                            {{ $item->displayName() }}
-                                        </div>
-
-                                        <div class="table-cell-help">
-                                            @include('products.components.linked-product', [
-                                                'linked' => ProductLinked::forProduct($product, $trailQuery, 'Producto'),
-                                            ])
-
-                                            @if ($product?->sku)
-                                                · {{ $product->sku }}
+                                        <div class="attachment-file-cell">
+                                            @if ($productThumb && ($productThumb['preview_url'] ?? null))
+                                                <a href="{{ $productThumb['preview_url'] }}"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="attachment-file-thumb-link"
+                                                    aria-label="Abrir imagen de {{ $productThumb['file_name'] ?? $item->displayName() }}">
+                                                    <img src="{{ $productThumb['preview_url'] }}"
+                                                        alt="{{ $productThumb['file_name'] ?? $item->displayName() }}"
+                                                        class="attachment-thumb">
+                                                </a>
+                                            @else
+                                                <span class="attachment-thumb attachment-thumb--placeholder">IMG</span>
                                             @endif
+
+                                            <div class="attachment-file-meta">
+                                                <div>
+                                                    @if ($product)
+                                                        @include('products.components.linked-product', [
+                                                            'linked' => ProductLinked::forProduct($product, $trailQuery, 'Producto'),
+                                                        ])
+                                                    @else
+                                                        {{ $item->displayName() }}
+                                                    @endif
+                                                </div>
+
+                                                @if ($product?->sku)
+                                                    <div class="table-cell-help">
+                                                        {{ $product->sku }}
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
                                     </td>
                                     <td>
@@ -186,5 +208,6 @@
             </p>
         </x-card>
 
+        <x-dev-component-version name="shops.preview" version="V4" />
     </x-page>
 @endsection

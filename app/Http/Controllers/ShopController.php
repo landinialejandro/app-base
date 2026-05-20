@@ -10,6 +10,7 @@ use App\Http\Requests\StoreShopRequest;
 use App\Http\Requests\UpdateShopRequest;
 use App\Models\Shop;
 use App\Support\Auth\Security;
+use App\Support\Attachments\AttachmentSurfaceService;
 use App\Support\Shops\ShopPublishedCatalogReader;
 use App\Support\Shops\ShopPublisher;
 use App\Support\Navigation\NavigationTrail;
@@ -123,17 +124,42 @@ class ShopController extends Controller
         ]);
     }
 
-    public function preview(Request $request, Shop $shop, ShopPublishedCatalogReader $reader): View
+    public function preview(Request $request, Shop $shop, ShopPublishedCatalogReader $reader, AttachmentSurfaceService $attachmentSurface): View
     {
         $this->authorize('view', $shop);
 
         $shop->loadMissing('tenant');
 
         $previewItems = $shop->items()
-            ->with('product')
+            ->with([
+                'product.attachments' => function ($query) {
+                    $query
+                        ->where('kind', 'shop')
+                        ->where('is_image', true)
+                        ->ordered();
+                },
+            ])
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
+
+        $productThumbs = collect();
+
+        foreach ($previewItems as $item) {
+            $product = $item->product;
+
+            if (! $product) {
+                continue;
+            }
+
+            $media = $attachmentSurface->mediaCollectionFor($product, [
+                'kind' => 'shop',
+                'is_image' => true,
+                'index' => 0,
+            ]);
+
+            $productThumbs->put($product->id, $media['image'] ?? $media['firstImage'] ?? null);
+        }
 
         $navigationTrail = ShopNavigationTrail::preview($request, $shop);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -142,6 +168,7 @@ class ShopController extends Controller
             'shop' => $shop,
             'previewItems' => $previewItems,
             'publicVisibleItemsCount' => $reader->visibleItemsForShop($shop)->count(),
+            'productThumbs' => $productThumbs,
             'navigationTrail' => $navigationTrail,
             'trailQuery' => $trailQuery,
         ]);

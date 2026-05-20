@@ -106,22 +106,13 @@ class ShopItemController extends Controller
         $this->authorize('update', $shop);
         $this->assertItemBelongsToShop($shop, $item);
 
-        $beforeAttributes = $item->getAttributes();
+        $item->delete();
 
-        $item->update([
-            'status' => ShopItem::STATUS_HIDDEN,
-            'is_visible' => false,
-        ]);
-
-        event(new OperationalRecordUpdated(
-            record: $item,
-            beforeAttributes: $beforeAttributes,
-            actorUserId: $request->user()?->id,
-        ));
+        $navigationTrail = ShopNavigationTrail::show($request, $shop, 'items');
 
         return redirect()
-            ->route('shops.show', $shop)
-            ->with('success', 'Artículo ocultado correctamente.');
+            ->route('shops.show', ['shop' => $shop, 'return_tab' => 'items'] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Artículo eliminado de la tienda correctamente.');
     }
 
     protected function assertItemBelongsToShop(Shop $shop, ShopItem $item): void

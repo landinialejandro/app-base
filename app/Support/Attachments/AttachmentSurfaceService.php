@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Support/Attachments/AttachmentSurfaceService.php | V12
+// FILE: app/Support/Attachments/AttachmentSurfaceService.php | V13
 
 namespace App\Support\Attachments;
 
 use App\Models\Asset;
+use App\Models\Attachment;
 use App\Models\Document;
 use App\Models\Order;
 use App\Models\Task;
@@ -182,6 +183,77 @@ class AttachmentSurfaceService implements ModuleSurfaceService
                 'tabsId' => $tabsId,
                 'createLabel' => 'Agregar adjunto',
             ],
+        ];
+    }
+
+    public function mediaCollectionFor(Model $attachable, array $options = []): array
+    {
+        $kind = trim((string) ($options['kind'] ?? ''));
+        $isImageFilter = array_key_exists('is_image', $options) ? $options['is_image'] : null;
+        $index = max(0, (int) ($options['index'] ?? 0));
+
+        $attachments = $this->attachmentsFor($attachable)
+            ->filter(function ($attachment) use ($kind, $isImageFilter): bool {
+                if (! $attachment instanceof Attachment) {
+                    return false;
+                }
+
+                if ($kind !== '' && (string) $attachment->kind !== $kind) {
+                    return false;
+                }
+
+                if ($isImageFilter !== null && (bool) $attachment->is_image !== (bool) $isImageFilter) {
+                    return false;
+                }
+
+                return true;
+            })
+            ->values();
+
+        $all = $attachments
+            ->map(fn (Attachment $attachment) => $this->mediaPayload($attachment))
+            ->values();
+
+        $images = $attachments
+            ->filter(fn (Attachment $attachment) => $attachment->isImage())
+            ->map(fn (Attachment $attachment) => $this->mediaPayload($attachment))
+            ->values();
+
+        $files = $attachments
+            ->reject(fn (Attachment $attachment) => $attachment->isImage())
+            ->map(fn (Attachment $attachment) => $this->mediaPayload($attachment))
+            ->values();
+
+        return [
+            'attachments' => $all,
+            'images' => $images,
+            'files' => $files,
+            'image' => $images->get($index),
+            'firstImage' => $images->first(),
+            'index' => $index,
+            'count' => $all->count(),
+        ];
+    }
+
+    private function mediaPayload(Attachment $attachment): array
+    {
+        $canView = auth()->user()?->can('view', $attachment) === true;
+        $canDownload = auth()->user()?->can('view', $attachment) === true;
+
+        $extension = strtoupper((string) ($attachment->extension ?: ''));
+
+        return [
+            'attachment' => $attachment,
+            'id' => $attachment->id,
+            'kind' => $attachment->kind,
+            'is_image' => $attachment->isImage(),
+            'file_name' => $attachment->file_name,
+            'extension' => $extension,
+            'mime_type' => $attachment->mime_type,
+            'size_bytes' => $attachment->size_bytes,
+            'can_view' => $canView,
+            'preview_url' => $canView ? route('attachments.preview', $attachment) : null,
+            'download_url' => $canDownload ? route('attachments.download', $attachment) : null,
         ];
     }
 

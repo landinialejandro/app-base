@@ -44,7 +44,7 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ESTRUCTURA GENERAL DE PÁGINA
 
@@ -115,6 +115,46 @@ Regla:
 
 una vista pública externa debe expresar claramente que pertenece al plano público/externo y no al panel interno del tenant.
 
+
+Regla adicional para tienda pública mobile commerce:
+
+la tienda pública tenant-scoped puede usar una gramática visual diferenciada del panel interno cuando el frente externo customer lo requiera.
+
+Caso vigente:
+
+/shop/{tenant:slug}
+
+Lectura visual vigente:
+
+experiencia pública tipo mobile commerce/feed.
+
+Elementos visuales vigentes:
+
+header compacto sticky
+safe area superior e inferior
+estado visitante/customer en banda liviana
+chips horizontales de categorías
+catálogo sin card institucional pesada
+masonry responsive
+cards compactas de producto
+modal o bottom sheet de producto en mobile
+carrito visible desde header superior
+barra inferior con acciones externas
+perfil externo solo en barra inferior
+
+Reglas:
+
+esta gramática visual pertenece al plano público externo customer
+
+no debe confundirse con panel interno
+
+no debe exponer navegación interna tenant
+
+no debe usar administración interna de shops como experiencia pública
+
+no debe mostrar x-dev-component-version en superficie pública visible para customers
+
+la ausencia de x-dev-component-version en pantalla pública no elimina su vigencia para vistas internas, Blades intervenidos o auditorías visuales internas
 Base esperada para administración interna de shops:
 
 la administración interna de shops debe usar estructura interna estándar del sistema.
@@ -216,7 +256,7 @@ resources/views/landing
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00031
+SECTION_VERSION: 00035
 
 COMPONENTES DISPONIBLES
 
@@ -269,6 +309,10 @@ changes
 lock
 unlock
 box
+qr
+user
+qr
+user
 
 Regla:
 
@@ -305,6 +349,20 @@ Editar funciones
 lock / unlock
 bloqueo o desbloqueo visual
 
+
+Uso vigente en tienda pública externa:
+
+qr
+acción Escanear QR o acceso visual equivalente en barra inferior
+
+user
+perfil externo customer en barra inferior
+
+Regla:
+
+los íconos usados en la tienda pública externa deben seguir siendo genéricos por figura o representación visual.
+
+No deben nombrarse por módulo ni por caso comercial específico.
 Componentes modulares reusables vigentes:
 
 linked-order-action
@@ -482,6 +540,18 @@ no reemplaza SECTION_VERSION documental ni versionado de archivos
 
 no decide permisos, lógica de negocio ni comportamiento funcional
 
+
+Regla adicional para superficies públicas externas:
+
+x-dev-component-version no debe mostrarse al customer externo en superficies públicas visibles.
+
+Caso vigente:
+
+/shop/{tenant:slug}
+
+Lectura:
+
+la herramienta de identificación visual de Blades intervenidos sigue vigente para auditoría interna, pero no debe aparecer como elemento visible de la experiencia pública customer.
 Regla de auditoría visual:
 
 todo Blade nuevo o modificado debe revisar si corresponde incorporar o actualizar x-dev-component-version antes de cerrar la intervención.

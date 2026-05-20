@@ -36,12 +36,109 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 DECISIONES VIGENTES
 
 Este documento registra decisiones vivas del proyecto que todavía condicionan implementación, auditoría, continuidad o próximos pasos.
 
+
+CARRITO PERSISTENTE EXTERNO EN SELF_SERVICE_SALES
+
+Decisión vigente:
+
+self_service_sales incorpora carrito persistente externo inicial para customers habilitados.
+
+Lectura vigente:
+
+SelfServiceCart representa el carrito externo persistente de una cuenta customer en una tienda del tenant.
+
+SelfServiceCartItem representa una línea persistente del carrito vinculada a un ShopItem publicado.
+
+El carrito pertenece al plano externo customer.
+
+No pertenece al panel interno.
+
+No administra shops.
+
+No administra Products.
+
+No administra Inventory.
+
+No administra Documents.
+
+Reglas:
+
+el carrito persistente solo opera para SelfServiceStoreCustomer con operation_enabled = true
+
+el carrito debe validar relación customer-tienda válida
+
+el carrito debe validar tenant público correspondiente
+
+el carrito debe consumir ShopItem como unidad operativa de publicación
+
+el carrito no debe operar directamente sobre Product como unidad comercial primaria
+
+agregar al carrito no crea Order
+
+agregar al carrito no crea Document
+
+agregar al carrito no crea InventoryMovement
+
+checkout simulado no equivale a operación comercial real
+
+checkout simulado no crea Orders, Documents ni InventoryMovements
+
+Motivo:
+
+ShopItem representa la publicación comercial concreta de un Product dentro de una Shop activa.
+
+Product conserva catálogo maestro.
+
+Orders, Documents e Inventory conservan ownership de operación formal, formalización documental y stock.
+
+IMAGEN PÚBLICA SEGURA DE PRODUCTO PUBLICADO
+
+Decisión vigente:
+
+la imagen pública de producto en tienda no publica Attachment genérico.
+
+Debe publicar únicamente una imagen de Product validada contra publicación efectiva de tienda.
+
+Lectura vigente:
+
+attachments.preview pertenece al plano interno autorizado.
+
+No debe reutilizarse para tienda pública externa.
+
+La futura imagen pública debe resolverse mediante ruta propia del plano self_service_sales.
+
+Criterio mínimo previsto:
+
+tenant correcto
+Shop activa
+ShopItem publicado
+ShopItem visible
+Product activo
+producto perteneciente al mismo tenant
+Attachment kind = shop
+Attachment is_image = true
+
+Reglas:
+
+no exponer Attachment genérico
+
+no reutilizar attachments.preview
+
+no mostrar imagen pública si la publicación efectiva no está validada
+
+no convertir la ruta pública de imagen en acceso interno al tenant
+
+Estado:
+
+criterio decidido como continuidad.
+
+Implementación pendiente.
 PRODUCTOPERATIONALSUMMARY COMO SUBCAPA CONTEXTUAL DE PRODUCTS
 
 Decisión vigente:

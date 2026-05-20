@@ -82,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 REGLA GENERAL
 
@@ -365,6 +365,64 @@ administración interna no debe autorizarse por SelfServiceExternalSession
 
 customer externo no debe operar rutas shops.*
 
+
+Regla adicional para carrito persistente externo:
+
+si una capa satélite externa incorpora carrito persistente, debe validarse que:
+
+pertenezca al plano externo customer
+
+opere sobre publicación comercial concreta
+
+no administre el módulo interno consumido
+
+no reemplace Orders
+
+no reemplace Documents
+
+no reemplace Inventory
+
+no cree operación comercial formal por sí mismo
+
+no mueva stock
+
+no cree comprobantes
+
+no use sesión interna
+
+no use permisos internos del tenant
+
+no opere para visitantes públicos
+
+no opere para customers externos no habilitados
+
+Caso vigente:
+
+self_service_sales incorpora carrito persistente externo mediante:
+
+SelfServiceCart
+
+SelfServiceCartItem
+
+Reglas:
+
+SelfServiceCart no reemplaza Order
+
+SelfServiceCartItem no reemplaza OrderItem
+
+SelfServiceCart no reemplaza Document
+
+SelfServiceCartItem no reemplaza DocumentItem
+
+SelfServiceCart no reemplaza InventoryMovement
+
+ShopItem debe funcionar como unidad operativa de publicación consumida por el carrito
+
+Product conserva catálogo maestro
+
+operation_enabled = false debe bloquear operación de carrito en backend
+
+checkout simulado no equivale a checkout real
 Regla adicional para contrato material Inventory/Orders:
 
 si una capacidad mueve, entrega, aplica, consume, devuelve o regulariza materiales, debe distinguirse entre:
@@ -1645,7 +1703,7 @@ No usar building-storefront si no existe como componente disponible.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -1664,6 +1722,14 @@ documentar pendientes reales si existen
 documentar validaciones realizadas
 eliminar o actualizar menciones legacy
 
+
+documentar efectos colaterales medidos cuando exista operación externa persistente
+
+documentar que una acción simulada no crea registros formales si ese es el contrato vigente
+
+documentar rutas públicas nuevas y diferenciarlas de rutas internas equivalentes
+
+documentar pruebas negativas cuando se expongan recursos públicos derivados de recursos internos
 No debe cerrarse una reconversión profunda si la documentación conserva la clasificación anterior como vigente.
 
 Reglas:
@@ -1703,10 +1769,44 @@ Regla:
 
 la limpieza documental forma parte del cierre técnico.
 
+
+Regla adicional para imágenes públicas derivadas de archivos internos:
+
+si una capacidad externa necesita exponer imágenes o archivos asociados a recursos internos, debe validarse que exista una ruta pública propia del plano externo.
+
+No debe reutilizarse una ruta interna autorizada.
+
+Caso vigente:
+
+attachments.preview pertenece al plano interno autorizado.
+
+No debe usarse como imagen pública de tienda.
+
+Para una imagen pública de producto publicado deben validarse, como mínimo:
+
+tenant correcto
+
+Shop activa
+
+ShopItem publicado
+
+ShopItem visible
+
+Product activo
+
+producto perteneciente al mismo tenant
+
+Attachment kind = shop
+
+Attachment is_image = true
+
+Regla:
+
+la exposición pública de imagen debe fallar si no se valida la publicación efectiva.
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CHECKLIST MÍNIMO EXISTENTE
 
@@ -1728,6 +1828,11 @@ sin código muerto evidente
 sin duplicaciones evitables
 sin bypasses de seguridad
 
+sin reutilización de rutas internas como rutas públicas externas
+sin exposición pública de archivos internos sin contrato específico
+sin confundir carrito persistente con compra real
+sin confundir checkout simulado con pago real
+sin efectos colaterales formales no esperados
 Para módulos con estados operativos o trazabilidad, verificar además:
 
 estado del padre

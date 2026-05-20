@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00024
 
 PATRONES VIGENTES
 
@@ -365,6 +365,8 @@ módulo interno estándar publica o deja disponible lectura
 ↓
 capa satélite externa consume
 ↓
+backend externo valida operación habilitada cuando exista operación externa
+↓
 plano público representa solo lo permitido
 
 Caso vigente:
@@ -385,6 +387,30 @@ self_service_sales
 ↓
 /shop/{tenant:slug}
 
+Relación operativa validada para carrito externo:
+
+Shop
+↓
+ShopItem
+↓
+SelfServiceCartItem
+↓
+SelfServiceCart
+↓
+SelfServiceStoreCustomer
+↓
+SelfServiceCustomerAccount
+
+Lectura:
+
+ShopItem es la unidad operativa de publicación consumida por el carrito.
+
+Product conserva catálogo maestro.
+
+SelfServiceCart persiste operación externa autorizada.
+
+SelfServiceCartItem conserva línea de carrito, vínculo a ShopItem y snapshots de línea.
+
 Reglas:
 
 la capa externa no administra el módulo interno
@@ -403,6 +429,24 @@ la publicación no mueve stock
 
 la publicación no crea Orders, Documents ni InventoryMovements
 
+
+el carrito persistente externo no crea Orders, Documents ni InventoryMovements
+
+el checkout simulado no crea Orders, Documents ni InventoryMovements
+
+el bloqueo operativo del carrito vive en backend
+
+el frontend solo representa estado, mensaje o resultado autorizado
+
+el identificador operativo del carrito es ShopItem, no Product
+
+Regla adicional para imagen pública futura:
+
+Attachment interno no se publica genéricamente.
+
+La ruta pública futura debe exponer solo imagen de Product validada contra Shop activa y ShopItem publicable.
+
+No debe reutilizar attachments.preview.
 RECLASIFICACIÓN SIN LEGACY ESTABLE
 
 Patrón validado:

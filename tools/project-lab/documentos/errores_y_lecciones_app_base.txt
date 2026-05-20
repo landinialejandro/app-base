@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 LECCIONES VIGENTES
 
@@ -162,6 +162,119 @@ Regla:
 
 todo flujo derivado relevante debe validarse en runtime web real antes de considerarse cerrado.
 
+
+VIEW CACHE, PHP LINT Y GIT DIFF NO CIERRAN FRONTEND RUNTIME
+
+Una vista puede compilar, pasar lint o no mostrar diferencias problemáticas y aun así fallar en navegador real.
+
+Caso detectado:
+
+el carrito persistente de tienda pública parecía implementado, pero no agregaba productos por un problema en el payload frontend data-product.
+
+También se detectó que una directiva Blade inline:
+
+@php($publicPage = true)
+
+generó compilación incorrecta en shop.blade.php y provocó errores de sección.
+
+Corrección aplicada:
+
+usar bloque Blade explícito:
+
+@php
+$publicPage = true;
+@endphp
+
+Lección:
+
+view:cache, php -l y git diff --check no cierran flujos frontend.
+
+Regla:
+
+todo flujo frontend relevante debe validarse en navegador real, consola JS, Network y backend cuando exista interacción cliente-servidor.
+
+NO ESCAPAR DOS VECES JSON EN DATA ATTRIBUTES
+
+Un payload JSON puede existir en Blade y aun así llegar roto al frontend si se escapa de forma incompatible con el consumidor JS.
+
+Caso detectado:
+
+e(json_encode(...)) terminó escapando comillas como " dentro de un atributo data-*.
+
+Consecuencia:
+
+JSON.parse() fallaba
+product quedaba vacío
+no viajaba shop_item_id
+el backend recibía payload incompleto
+la acción de carrito respondía 422
+
+Lección:
+
+cuando un data-* será consumido por JSON.parse(), debe emitirse JSON válido para ese contexto.
+
+Regla:
+
+no usar escape doble que rompa el contrato frontend.
+
+Si backend requiere shopItemId, el frontend debe enviar shopItemId explícito y no depender de inferencias desde Product.
+
+NO CONFUNDIR MENSAJE DE VALIDACIÓN CON CAUSA REAL
+
+Un mensaje de validación puede describir el síntoma operativo sin revelar la causa técnica real.
+
+Caso detectado:
+
+el 422 decía:
+
+El producto ya no está disponible en la tienda.
+
+Pero el producto sí estaba disponible.
+
+Causa real:
+
+no viajaba shop_item_id por payload frontend roto.
+
+Lección:
+
+un mensaje backend genérico no debe cerrar el diagnóstico.
+
+Regla:
+
+ante 422, validar payload real enviado, Network, request backend, disponibilidad real del registro y contrato esperado antes de modificar reglas de negocio.
+
+NO REUTILIZAR PREVIEW INTERNO PARA EXPOSICIÓN PÚBLICA
+
+Una ruta interna funcional no debe reutilizarse automáticamente como recurso público externo.
+
+Caso detectado:
+
+attachments.preview existe y funciona para el plano interno autorizado.
+
+Riesgo:
+
+usar attachments.preview para imágenes de tienda pública expondría un recurso interno fuera de su plano correcto.
+
+Lección:
+
+preview interno no equivale a imagen pública de producto publicado.
+
+Regla:
+
+una imagen pública de tienda debe resolverse mediante ruta propia del plano self_service_sales y validar publicación efectiva.
+
+No debe exponerse Attachment genérico.
+
+Condiciones mínimas previstas:
+
+tenant correcto
+Shop activa
+ShopItem publicado
+ShopItem visible
+Product activo
+producto perteneciente al mismo tenant
+Attachment kind = shop
+Attachment is_image = true
 UN VÍNCULO NULLABLE NO DEBE REINTRODUCIRSE COMO REQUIRED SIN DOCTRINA
 
 Un campo relacional nullable puede ser vínculo opcional y no dependencia obligatoria.

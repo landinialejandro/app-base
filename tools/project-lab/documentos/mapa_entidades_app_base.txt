@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00030
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -66,6 +66,10 @@ appointments → orders mediante appointments.order_id cuando exista vínculo op
 orders → documents mediante documents.order_id cuando exista derivación documental
 shops → shop_items
 shop_items → products
+self_service_sales → SelfServiceCart mediante carrito externo persistente cuando exista customer habilitado
+SelfServiceCart → SelfServiceCartItem
+SelfServiceCartItem → ShopItem
+ShopItem → Product
 
 Relaciones transversales relevantes:
 
@@ -377,6 +381,69 @@ shops administra sus propios shop_items.
 
 self_service_sales consume la publicación vigente.
 
+self_service_sales puede operar carrito persistente externo inicial cuando existe customer externo activo, relación customer-tienda válida y operation_enabled = true.
+
+Entidades vigentes del carrito externo:
+
+SelfServiceCart
+SelfServiceCartItem
+
+Relación conceptual vigente del carrito externo:
+
+Tenant
+↓
+SelfServiceCustomerAccount
+↓
+SelfServiceStoreCustomer
+↓
+SelfServiceCart
+↓
+SelfServiceCartItem
+↓
+ShopItem
+↓
+Product
+
+Lectura:
+
+SelfServiceCart representa el carrito externo persistente de una cuenta customer en una tienda del tenant.
+
+SelfServiceCartItem representa una línea persistente del carrito vinculada a un ShopItem publicado.
+
+El carrito se asocia a tenant, cuenta externa y relación customer-tienda.
+
+Cada línea se vincula a ShopItem, no directamente a Product como unidad operativa de publicación.
+
+El ID operativo para agregar productos al carrito es shopItemId.
+
+No productId como unidad operativa directa de carrito.
+
+Product conserva catálogo maestro.
+
+ShopItem conserva publicación comercial concreta.
+
+Reglas:
+
+SelfServiceCart no reemplaza Order.
+
+SelfServiceCartItem no reemplaza OrderItem.
+
+SelfServiceCart no reemplaza Document.
+
+SelfServiceCartItem no reemplaza DocumentItem.
+
+SelfServiceCart no reemplaza InventoryMovement.
+
+Agregar al carrito no mueve stock.
+
+Agregar al carrito no crea Order.
+
+Agregar al carrito no crea Document.
+
+Agregar al carrito no crea InventoryMovement.
+
+Checkout simulado no equivale a operación comercial formal.
+
 OrderItemController y DocumentItemController no deben reconstruir internamente Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial.
 
 ShopItem puede tomar productos activos mediante selector oficial o capacidad equivalente de Products.
@@ -483,6 +550,42 @@ un ShopItem publicado no crea Documents
 un ShopItem publicado no crea InventoryMovements
 
 un ShopItem publicado no habilita fichas ni QR
+
+un ShopItem publicado no habilita carrito si el customer externo no posee operation_enabled = true
+
+un ShopItem publicado no habilita checkout real
+
+un ShopItem publicado no habilita pago real
+
+un ShopItem publicado no crea operación comercial formal
+
+Relación conceptual prevista para imágenes públicas de tienda:
+
+Product
+↓
+Attachment kind = shop, is_image = true
+↓
+ShopItem publicado y visible
+↓
+Shop activa
+↓
+self_service_sales /shop/{tenant:slug}
+
+Lectura:
+
+la imagen pública futura pertenece a la publicación comercial efectiva del producto en tienda.
+
+No publica Attachment genérico.
+
+No reutiliza attachments.preview.
+
+Reglas:
+
+attachments.preview pertenece al plano interno autorizado
+
+la imagen pública de tienda debe exponerse por una ruta propia de self_service_sales
+
+la exposición pública futura debe validar tenant correcto, Shop activa, ShopItem publicado, ShopItem visible, Product activo, producto del mismo tenant, Attachment kind = shop y Attachment is_image = true
 
 una Shop activa puede tener artículos configurados pero no visibles públicamente si los ShopItems están ocultos, en borrador, no publicados o asociados a producto inactivo
 

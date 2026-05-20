@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 COMPONENTES BLADE GLOBALES
 
@@ -58,6 +58,8 @@ x-breadcrumb
 x-card
 x-modal
 x-dev-component-version
+x-icons.qr
+x-icons.user
 
 Reglas:
 
@@ -127,6 +129,24 @@ Caso vigente:
 
 los partials compactos de ProductOperationalSummary no requieren x-dev-component-version porque funcionan como fragmentos internos de summary_items, sin entidad visual independiente mayor.
 
+
+Caso vigente adicional:
+
+los partials públicos de self_service_sales no deben mostrar x-dev-component-version en la superficie pública visible al customer externo.
+
+Lectura:
+
+x-dev-component-version sigue vigente como ayuda visual interna y de auditoría.
+
+No debe exponerse en experiencia pública customer.
+
+Caso vigente:
+
+/shop/{tenant:slug}
+
+Regla:
+
+una superficie pública externa visible para customers no debe mostrar identificadores técnicos internos de componentes, versiones de Blade ni marcas de auditoría visual.
 Regla de validación runtime:
 
 no debe utilizarse un componente Blade si no existe realmente en resources/views/components o como clase correspondiente.
@@ -295,7 +315,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -497,6 +517,32 @@ cambio de tienda o cuenta externa
 
 catálogo publicado inicial cuando exista Shop activa y artículos visibles
 
+
+experiencia visual mobile commerce/feed
+
+header compacto sticky
+
+safe area superior e inferior
+
+estado visitante/customer en banda liviana
+
+chips horizontales de categorías
+
+masonry responsive de productos
+
+cards compactas de producto
+
+modal o bottom sheet de producto en mobile
+
+carrito visible desde header superior
+
+barra inferior con acciones externas
+
+acción Escanear QR con x-icons.qr
+
+acción Mi Perfil con x-icons.user
+
+perfil externo solo en barra inferior
 Reglas:
 
 /shop/{tenant:slug} debe expresar tienda pública, no panel interno

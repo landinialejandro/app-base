@@ -10,7 +10,7 @@ GESTIÓN: Documento rector inicial para la capacidad self_service_sales como cap
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 OBJETIVO DEL DOCUMENTO
 
@@ -20,13 +20,15 @@ Shopping Autoservicio se identifica técnicamente como:
 
 self_service_sales
 
-Su función es ordenar una capacidad comercial autogestiva por tenant, orientada a permitir que clientes externos puedan registrarse, acceder a una tienda pública controlada, seleccionar una tienda vinculada, comprar o cargar saldo, consumir fichas mediante QR, consultar movimientos y operar dentro del alcance comercial habilitado por cada tenant.
+Su función es ordenar una capacidad comercial autogestiva por tenant, orientada a permitir que clientes externos puedan registrarse, acceder a una tienda pública controlada, seleccionar una tienda vinculada, ver catálogo publicado, operar carrito persistente inicial cuando estén habilitados, comprar o cargar saldo en etapas posteriores, consumir fichas mediante QR, consultar movimientos y operar dentro del alcance comercial habilitado por cada tenant.
 
 Lectura estructural vigente:
 
 self_service_sales no administra internamente la tienda.
 
 self_service_sales consume el catálogo publicado por el módulo interno estándar shops.
+
+self_service_sales puede operar carrito persistente propio del plano externo cuando exista customer externo habilitado para operar.
 
 Este documento busca:
 
@@ -48,6 +50,8 @@ distinguir self_service_sales de la administración interna del módulo shops
 distinguir configuración interna de tienda y consumo público externo
 definir consumo externo de Shop y ShopItem publicados
 definir publicación inicial de productos activos desde shops
+definir carrito persistente externo inicial
+definir bloqueo operativo del carrito por operation_enabled
 definir saldo real, fichas, fichas promocionales y consumo futuros
 establecer límites frente a Shops, Products, Inventory y Documents
 preparar integración futura con Mercado Pago
@@ -61,6 +65,8 @@ evitar que la sesión externa mínima se confunda con guard externo definitivo
 evitar que el middleware externo pasivo se confunda con autorización obligatoria
 evitar que el selector externo prometa operación comercial real
 evitar que la tienda pública se confunda con administración interna de shops
+evitar que el carrito persistente se confunda con checkout real, pago real, orden, documento o movimiento de stock
+evitar que imágenes públicas futuras reutilicen rutas internas de Attachments
 
 No define:
 
@@ -78,7 +84,14 @@ guard externo definitivo
 middleware externo definitivo de autorización obligatoria
 remember token externo
 validación final de identidad operativa
-operación comercial real
+checkout real
+pago real
+compra formal completa
+creación de Orders desde tienda
+creación de Documents desde tienda
+movimientos de stock por tienda
+imágenes públicas definitivas de productos
+operación comercial real completa
 administración interna de shops
 
 Estado operativo vigente:
@@ -199,6 +212,109 @@ self_service_sales no administra internamente Shop ni ShopItem.
 
 La tienda pública muestra únicamente lo que el contrato público permita exponer.
 
+Corte operativo vigente de tienda pública:
+
+/shop/{tenant:slug} cuenta con una experiencia pública orientada a consumo mobile commerce/feed.
+
+Puede mostrar:
+
+header compacto
+estado visitante o customer
+chips de categorías
+catálogo visual de productos publicados
+cards compactas
+modal o bottom sheet de producto
+carrito visible desde header
+barra inferior con acciones externas
+perfil externo desde barra inferior
+
+Lectura:
+
+esta experiencia pertenece al plano público externo customer.
+
+No es panel interno.
+
+No es administración interna.
+
+No es navegación tenant interna.
+
+No habilita operación comercial completa por sí misma.
+
+Corte operativo vigente de carrito persistente:
+
+self_service_sales incorpora carrito persistente inicial mediante:
+
+SelfServiceCart
+SelfServiceCartItem
+
+Lectura:
+
+SelfServiceCart representa el carrito externo persistente de una cuenta customer en una tienda del tenant.
+
+SelfServiceCartItem representa una línea persistente del carrito vinculada a un ShopItem publicado.
+
+El carrito se asocia a:
+
+tenant
+SelfServiceCustomerAccount
+SelfServiceStoreCustomer
+
+Cada línea se vincula a ShopItem.
+
+El identificador operativo para agregar productos al carrito es shopItemId.
+
+No productId como unidad operativa directa de carrito.
+
+Cada línea puede conservar snapshots de:
+
+nombre
+precio
+unidad
+producto
+publicación
+
+Reglas:
+
+el carrito persistente solo opera para customer externo con relación customer-tienda válida y operation_enabled = true.
+
+Visitantes públicos no operan carrito persistente.
+
+Customers externos con operation_enabled = false no operan carrito persistente.
+
+El carrito persistente no crea por sí mismo Orders.
+
+El carrito persistente no crea Documents.
+
+El carrito persistente no crea InventoryMovements.
+
+El checkout vigente permanece simulado mientras no exista contrato de operación comercial real.
+
+Corte operativo pendiente de imágenes públicas de productos:
+
+la tienda pública no debe reutilizar attachments.preview para exponer imágenes.
+
+attachments.preview pertenece al plano interno autorizado.
+
+La futura imagen pública de producto debe resolverse mediante ruta propia del plano self_service_sales y validar publicación efectiva.
+
+Criterio previsto:
+
+Product
+↓
+Attachment kind = shop, is_image = true
+↓
+ShopItem publicado y visible
+↓
+Shop activa
+↓
+/shop/{tenant:slug}
+
+Regla:
+
+no se publica Attachment genérico.
+
+Solo puede exponerse imagen de producto cuando pertenezca a un producto activo publicado en ShopItem visible de la Shop activa del tenant.
+
 Regla:
 
 este documento marca doctrina funcional y dirección operativa de self_service_sales.
@@ -208,7 +324,7 @@ Toda evolución futura debe validarse contra documentación vigente, código rea
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 NATURALEZA DE SHOPPING AUTOSERVICIO
 
@@ -229,6 +345,8 @@ membership del cliente externo
 pasarela de pago propia
 controlador de hardware
 sistema fiscal completo por sí mismo
+reemplazo de Attachments
+exposición pública genérica de archivos internos
 
 Debe leerse como:
 
@@ -240,12 +358,14 @@ capa de identidad externa customer
 capa de selección externa de tienda
 capa de sesión externa mínima
 capa de publicación comercial consumida desde shops
+capa de carrito persistente externo inicial
 capa de saldo prepago futura
 capa de consumo por ficha futura
 capa de movimientos comerciales futura
 capa preparada para pagos externos
 capa preparada para consumo por QR
 capa preparada para integración con controlador externo
+capa futura de exposición pública segura de imágenes comerciales publicadas
 
 Nombre doctrinal:
 
@@ -289,9 +409,11 @@ Parties conserva clientes, contactos y sujetos fiscales.
 
 Documents conserva formalización documental y comprobantes cuando correspondan.
 
+Attachments conserva archivos internos, autorización interna y preview interna.
+
 Security conserva autorización.
 
-self_service_sales conserva la experiencia comercial autogestiva, el registro externo, la identidad externa, la relación customer-tienda, el consumo de publicación comercial, el saldo futuro, las fichas futuras, los movimientos comerciales futuros y el consumo por QR futuro.
+self_service_sales conserva la experiencia comercial autogestiva, el registro externo, la identidad externa, la relación customer-tienda, el consumo de publicación comercial, el carrito persistente externo inicial, el saldo futuro, las fichas futuras, los movimientos comerciales futuros, el consumo por QR futuro y la exposición pública segura futura de imágenes comerciales publicadas.
 
 Primer corte operativo validado:
 
@@ -320,6 +442,55 @@ ShopItem no reemplaza Product.
 Shop no reemplaza Tenant.
 
 La tienda pública muestra únicamente lo que el contrato público permita exponer.
+
+Corte operativo vigente de carrito persistente:
+
+self_service_sales incorpora carrito persistente externo inicial.
+
+Entidades vigentes:
+
+SelfServiceCart
+SelfServiceCartItem
+
+Lectura:
+
+SelfServiceCart pertenece al plano externo customer.
+
+SelfServiceCartItem pertenece al plano externo customer.
+
+SelfServiceCart no reemplaza Order.
+
+SelfServiceCartItem no reemplaza OrderItem.
+
+SelfServiceCart no reemplaza Document.
+
+SelfServiceCartItem no reemplaza DocumentItem.
+
+SelfServiceCart no reemplaza InventoryMovement.
+
+SelfServiceCartItem no reemplaza ShopItem.
+
+El carrito opera sobre ShopItem porque ShopItem representa la publicación comercial concreta.
+
+Product conserva catálogo maestro.
+
+Reglas:
+
+carrito persistente no equivale a compra real
+
+checkout simulado no equivale a pago real
+
+checkout simulado no crea operación comercial formal
+
+agregar al carrito no mueve stock
+
+agregar al carrito no crea Order
+
+agregar al carrito no crea Document
+
+agregar al carrito no crea InventoryMovement
+
+operation_enabled = true habilita canOperate() dentro del contrato vigente, pero no reemplaza contratos futuros de pago, saldo, fichas, QR, órdenes, documentos ni stock
 
 Regla:
 
@@ -351,10 +522,27 @@ No puede confundirse con la tienda pública /shop/{tenant:slug}.
 
 self_service_sales no debe reapropiarse de la administración interna de Shop ni ShopItem.
 
+Regla adicional de imágenes públicas:
+
+self_service_sales no debe exponer Attachments internos por ruta interna.
+
+attachments.preview pertenece al plano interno autorizado.
+
+Una imagen pública futura de tienda debe validarse contra publicación efectiva y no contra acceso genérico al archivo.
+
+Criterio mínimo previsto:
+
+tenant correcto
+Shop activa
+ShopItem publicado y visible
+Product activo
+Attachment kind = shop
+Attachment is_image = true
+
 <<END SECTION>>
 
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO
 
@@ -379,6 +567,8 @@ administración interna de shops
 Shop
 ShopItem
 publicación de productos activos
+Attachments internos
+preview interna de archivos
 
 El plano interno continúa gobernado por el modelo vigente:
 
@@ -405,6 +595,16 @@ Vista previa interna vigente:
 
 /shops/{shop}/preview
 
+Ruta interna vigente de preview de attachments:
+
+attachments.preview
+
+Lectura:
+
+attachments.preview pertenece al plano interno autorizado.
+
+No debe reutilizarse como exposición pública de imágenes de tienda.
+
 PLANO EXTERNO
 
 Corresponde a clientes externos que operan comercialmente con una tienda del tenant.
@@ -424,6 +624,8 @@ entrada pública general externa
 selector externo de tiendas
 salida externa
 catálogo publicado visible
+carrito persistente externo inicial
+checkout simulado vigente
 saldo futuro
 compras futuras
 consumos futuros
@@ -431,6 +633,7 @@ movimientos futuros
 transferencias futuras
 solicitudes de comprobantes futuras
 consumo por QR futuro
+imágenes públicas comerciales futuras validadas por publicación efectiva
 
 Rutas públicas externas vigentes:
 
@@ -441,6 +644,40 @@ Rutas públicas externas vigentes:
 /tienda/seleccionar
 
 /tienda/salir
+
+Rutas externas vigentes de carrito:
+
+GET /shop/{tenant:slug}/cart
+
+POST /shop/{tenant:slug}/cart/items
+
+PATCH /shop/{tenant:slug}/cart/items/{cartItem}
+
+DELETE /shop/{tenant:slug}/cart/items/{cartItem}
+
+DELETE /shop/{tenant:slug}/cart
+
+POST /shop/{tenant:slug}/checkout
+
+Lectura:
+
+las rutas de carrito pertenecen al plano externo customer.
+
+No pertenecen al panel interno.
+
+No pertenecen a navegación tenant interna.
+
+No administran shops.
+
+No administran Products.
+
+No administran Inventory.
+
+No administran Documents.
+
+No usan Auth interno como fuente de pertenencia tenant.
+
+No crean Membership.
 
 Regla central:
 
@@ -500,6 +737,12 @@ Redirigir a /shop/{tenant:slug} no equivale a habilitar operación comercial.
 
 Ver catálogo publicado no equivale a habilitar operación comercial.
 
+Ver producto publicado no equivale a habilitar carrito.
+
+Iniciar carrito persistente no equivale a compra real.
+
+Checkout simulado no equivale a pago real.
+
 POST /tienda/salir limpia solo la sesión externa de self_service_sales.
 
 POST /tienda/salir no debe invalidar la sesión Laravel completa.
@@ -507,6 +750,28 @@ POST /tienda/salir no debe invalidar la sesión Laravel completa.
 POST /tienda/salir no debe cerrar sesión interna si existiera.
 
 La entrada pública externa no debe mostrar ni prometer acceso a dashboard, tenant/profile, parties.show ni rutas internas.
+
+Regla adicional para carrito persistente:
+
+el carrito persistente externo solo puede operar si existe customer externo activo, relación customer-tienda válida y operation_enabled = true.
+
+Visitante público no opera carrito persistente.
+
+Customer externo con operation_enabled = false no opera carrito persistente.
+
+El bloqueo debe vivir en backend.
+
+JS puede representar mensajes o estados, pero no decide autorización ni habilitación comercial.
+
+Regla adicional para efectos operativos del carrito:
+
+agregar, editar, eliminar o vaciar carrito no debe crear por sí mismo:
+
+Orders
+Documents
+InventoryMovements
+
+El checkout vigente permanece simulado hasta que exista contrato específico de operación comercial real.
 
 Regla adicional para shops:
 
@@ -535,6 +800,27 @@ La vista previa interna no requiere sesión externa customer.
 La vista previa interna no convierte usuario interno en customer externo.
 
 La vista previa interna debe ayudar a diagnosticar publicación sin crear bypass entre planos.
+
+Regla adicional para imágenes públicas:
+
+la exposición pública futura de imágenes de productos publicados debe vivir en una ruta propia del plano self_service_sales.
+
+No debe reutilizar attachments.preview.
+
+No debe exponer Attachment genérico.
+
+Debe validar como mínimo:
+
+tenant público correcto
+Shop activa
+ShopItem publicado
+ShopItem visible
+Product activo
+producto perteneciente al mismo tenant
+Attachment kind = shop
+Attachment is_image = true
+
+Si alguna condición falla, la imagen no debe exponerse públicamente.
 
 <<END SECTION>>
 

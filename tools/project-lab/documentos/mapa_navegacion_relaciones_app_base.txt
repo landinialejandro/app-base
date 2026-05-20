@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00026
 
 REGLA GENERAL
 
@@ -85,6 +85,18 @@ redirección a tienda pública no equivale a operación comercial habilitada
 
 catálogo publicado no equivale a operación comercial habilitada
 
+
+carrito visible no equivale a compra real
+
+carrito persistente no equivale a operación comercial formal
+
+checkout simulado no equivale a pago real
+
+checkout simulado no equivale a creación de Order, Document ni InventoryMovement
+
+ruta pública de imagen de tienda no equivale a preview interna de Attachment
+
+attachments.preview no equivale a imagen pública de producto publicado
 administración interna de tienda no equivale a tienda pública customer
 
 customer externo no equivale a administrador interno de tienda
@@ -203,6 +215,40 @@ Entradas públicas vigentes:
 
 /tienda/salir
 
+Rutas públicas externas vigentes de carrito:
+
+GET /shop/{tenant:slug}/cart
+
+POST /shop/{tenant:slug}/cart/items
+
+PATCH /shop/{tenant:slug}/cart/items/{cartItem}
+
+DELETE /shop/{tenant:slug}/cart/items/{cartItem}
+
+DELETE /shop/{tenant:slug}/cart
+
+POST /shop/{tenant:slug}/checkout
+
+Lectura:
+
+las rutas de carrito pertenecen al plano externo customer.
+
+Operan bajo /shop/{tenant:slug}.
+
+No pertenecen al panel interno.
+
+No pertenecen a navegación tenant interna.
+
+No administran shops.
+
+No administran Products.
+
+No administran Inventory.
+
+No administran Documents.
+
+No crean operación comercial formal por sí mismas.
+
 Consumo externo vigente:
 
 self_service_sales consume catálogo publicado por shops
@@ -243,6 +289,12 @@ Recorrido externo vigente:
 
 → /shop/{tenant:slug}
 
+→ catálogo público
+
+→ carrito persistente si customer externo está habilitado para operar
+
+→ checkout simulado
+
 → /tienda/salir
 
 → /tienda
@@ -273,6 +325,48 @@ POST /tienda/salir limpia la sesión externa self_service_sales.*.
 
 POST /tienda/salir devuelve al acceso externo sin cerrar sesión interna.
 
+
+Recorrido de carrito externo vigente:
+
+/shop/{tenant:slug}
+
+→ ver catálogo público
+
+→ agregar ShopItem al carrito si customer externo puede operar
+
+→ consultar carrito persistente
+
+→ actualizar cantidad de línea
+
+→ eliminar línea
+
+→ vaciar carrito
+
+→ checkout simulado
+
+Lectura del recorrido de carrito:
+
+el carrito opera como navegación pública externa bajo la tienda tenant-scoped.
+
+el carrito no abre panel interno.
+
+el carrito no crea navegación interna del tenant.
+
+el carrito no administra catálogo.
+
+el carrito no administra Shop ni ShopItem.
+
+el carrito consume ShopItem publicado como unidad operativa.
+
+el carrito persiste líneas externas cuando existe customer habilitado.
+
+el checkout vigente es simulado.
+
+el checkout simulado no crea Order.
+
+el checkout simulado no crea Document.
+
+el checkout simulado no crea InventoryMovement.
 Recorrido interno vigente de administración de Shops:
 
 dashboard interno o sección interna autorizada
@@ -369,6 +463,38 @@ shops.* no debe autorizarse por sesión externa mínima
 
 ShopItem publicado no equivale a operación comercial transaccional
 
+
+ShopItem publicado no equivale a carrito habilitado para cualquier visitante
+
+ShopItem publicado no equivale a checkout real
+
+ShopItem publicado no equivale a pago real
+
+Carrito persistente externo no equivale a compra formal
+
+Checkout simulado no equivale a operación comercial real
+
+Ruta pública futura de imagen de producto publicado:
+
+/shop/{tenant:slug}/products/{product}/images/{attachment}
+
+Lectura:
+
+esta ruta debe pertenecer al plano público externo de self_service_sales.
+
+No debe confundirse con:
+
+/attachments/{attachment}/preview
+
+Reglas:
+
+attachments.preview pertenece al plano interno autorizado
+
+la ruta pública de imagen no debe exponer Attachment genérico
+
+la ruta pública de imagen debe validar publicación efectiva antes de exponer archivo
+
+la ruta pública de imagen no debe crear acceso interno al tenant
 Regla adicional para subcapas contextuales internas:
 
 una subcapa contextual alojada dentro de un módulo host no crea navegación nueva por sí misma.
@@ -460,7 +586,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -706,6 +832,12 @@ Recorrido externo vigente:
 → /tienda/seleccionar
 
 → /shop/{tenant:slug}
+
+→ catálogo público
+
+→ carrito persistente si customer externo está habilitado para operar
+
+→ checkout simulado
 
 → /tienda/salir
 

@@ -1,19 +1,23 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCartPresenter.php | V1
+// FILE: app/Support/SelfServiceSales/SelfServiceCartPresenter.php | V2
 
 namespace App\Support\SelfServiceSales;
 
 use App\Models\SelfServiceCart;
+use App\Models\Shop;
+use App\Models\ShopItem;
 use App\Models\Tenant;
 
 class SelfServiceCartPresenter
 {
+    public const ITEM_UNAVAILABLE_MESSAGE = 'Este producto ya no está disponible. Eliminalo del carrito para continuar.';
     public function present(SelfServiceCart $cart, Tenant $tenant, string $message = 'Carrito actualizado.'): array
     {
         $items = $cart->items->map(function ($item) use ($tenant) {
             $unitPrice = (float) $item->unit_price_snapshot;
             $subtotal = $unitPrice * (int) $item->quantity;
+            $isAvailable = $this->itemStillAvailable($item, $tenant);
 
             return [
                 'id' => $item->id,
@@ -25,6 +29,8 @@ class SelfServiceCartPresenter
                 'unit_price_label' => $this->money($unitPrice),
                 'subtotal' => $subtotal,
                 'subtotal_label' => $this->money($subtotal),
+                'is_available' => $isAvailable,
+                'availability_message' => $isAvailable ? null : self::ITEM_UNAVAILABLE_MESSAGE,
                 'actions' => [
                     'update_url' => route('self_service_sales.cart.items.update', [
                         'tenant' => $tenant,
@@ -76,6 +82,27 @@ class SelfServiceCartPresenter
         }
 
         return $this->empty($message);
+    }
+
+    private function itemStillAvailable($item, Tenant $tenant): bool
+    {
+        return ShopItem::query()
+            ->where('tenant_id', $tenant->id)
+            ->whereKey($item->self_service_shop_item_id)
+            ->where('status', ShopItem::STATUS_PUBLISHED)
+            ->where('is_visible', true)
+            ->whereHas('shop', function ($query) use ($tenant) {
+                $query
+                    ->where('tenant_id', $tenant->id)
+                    ->where('status', Shop::STATUS_ACTIVE);
+            })
+            ->whereHas('product', function ($query) use ($tenant, $item) {
+                $query
+                    ->where('tenant_id', $tenant->id)
+                    ->where('is_active', true)
+                    ->whereKey($item->product_id);
+            })
+            ->exists();
     }
 
     private function money(float|int $value): string

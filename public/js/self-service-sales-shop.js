@@ -1,4 +1,4 @@
-// FILE: public/js/self-service-sales-shop.js | V3
+// FILE: public/js/self-service-sales-shop.js | V4
 
 (function () {
     const root = document.querySelector('[data-shop-app]');
@@ -34,6 +34,7 @@
     const cartItems = document.querySelector('[data-cart-items]');
     const cartTotal = document.querySelector('[data-cart-total]');
     const checkoutTotal = document.querySelector('[data-checkout-total]');
+    const checkoutButtons = Array.from(document.querySelectorAll('[data-checkout-open]'));
     const filterEmpty = document.querySelector('[data-filter-empty]');
 
     const parseProduct = (card) => {
@@ -109,6 +110,12 @@
         showNotImplemented(error?.message || 'No pudimos actualizar el carrito.');
     };
 
+    const hasUnavailableCartItems = () => {
+        return Boolean(
+            state.cart?.items?.some((line) => line && line.is_available === false)
+        );
+    };
+
     const renderTotals = () => {
         const total = state.cart?.total_label || '$ 0,00';
 
@@ -122,6 +129,10 @@
     };
 
     const renderCart = () => {
+        checkoutButtons.forEach((button) => {
+            button.disabled = hasUnavailableCartItems();
+            button.classList.toggle('is-disabled', hasUnavailableCartItems());
+        });
         if (!cartItems) {
             return;
         }
@@ -139,12 +150,15 @@
 
         state.cart.items.forEach((line) => {
             const item = document.createElement('div');
-            item.className = 'shop-cart-line';
+            const isAvailable = line.is_available !== false;
+
+            item.className = isAvailable ? 'shop-cart-line' : 'shop-cart-line is-unavailable';
             item.innerHTML = `
                 <div class="shop-cart-line__top">
                     <strong></strong>
                     <span></span>
                 </div>
+                <div class="shop-cart-line__warning" data-cart-line-warning hidden></div>
                 <div class="shop-cart-line__qty">
                     <button type="button" data-cart-dec aria-label="Disminuir">−</button>
                     <span></span>
@@ -156,8 +170,21 @@
             item.querySelector('strong').textContent = line.name;
             item.querySelector('.shop-cart-line__top span').textContent = line.subtotal_label;
             item.querySelector('.shop-cart-line__qty span').textContent = `${line.quantity}`;
-            item.querySelector('[data-cart-dec]').addEventListener('click', () => changeQuantity(line, -1));
-            item.querySelector('[data-cart-inc]').addEventListener('click', () => changeQuantity(line, 1));
+
+            const warning = item.querySelector('[data-cart-line-warning]');
+            if (!isAvailable && warning) {
+                warning.hidden = false;
+                warning.textContent = line.availability_message || 'Este producto ya no está disponible. Eliminalo del carrito para continuar.';
+            }
+
+            const decButton = item.querySelector('[data-cart-dec]');
+            const incButton = item.querySelector('[data-cart-inc]');
+
+            decButton.disabled = !isAvailable;
+            incButton.disabled = !isAvailable;
+
+            decButton.addEventListener('click', () => changeQuantity(line, -1));
+            incButton.addEventListener('click', () => changeQuantity(line, 1));
             item.querySelector('[data-cart-remove]').addEventListener('click', () => removeFromCart(line));
 
             cartItems.appendChild(item);
@@ -314,6 +341,12 @@
 
     const openCheckout = async () => {
         if (!requireCartExperience()) {
+            return;
+        }
+
+        if (hasUnavailableCartItems()) {
+            show(cartDrawer);
+            showNotImplemented('Hay productos que ya no están disponibles. Eliminalos del carrito para continuar.');
             return;
         }
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceSalesCartController.php | V1
+// FILE: app/Http/Controllers/SelfServiceSalesCartController.php | V2
 
 namespace App\Http\Controllers;
 
@@ -27,7 +27,7 @@ class SelfServiceSalesCartController extends Controller
             $cart = $this->carts->currentCart($request, $tenant);
 
             return response()->json($this->presenter->present($cart, $tenant, 'Carrito cargado.'));
-        });
+        }, $request, $tenant);
     }
 
     public function storeItem(Request $request, Tenant $tenant): JsonResponse
@@ -46,7 +46,7 @@ class SelfServiceSalesCartController extends Controller
             $cart = $this->carts->addItem($request, $tenant, (int) $data['shop_item_id'], (int) $data['quantity']);
 
             return response()->json($this->presenter->present($cart, $tenant));
-        });
+        }, $request, $tenant);
     }
 
     public function updateItem(Request $request, Tenant $tenant, SelfServiceCartItem $cartItem): JsonResponse
@@ -64,7 +64,7 @@ class SelfServiceSalesCartController extends Controller
             $cart = $this->carts->updateItem($request, $tenant, $cartItem, (int) $data['quantity']);
 
             return response()->json($this->presenter->present($cart, $tenant));
-        });
+        }, $request, $tenant);
     }
 
     public function destroyItem(Request $request, Tenant $tenant, SelfServiceCartItem $cartItem): JsonResponse
@@ -73,7 +73,7 @@ class SelfServiceSalesCartController extends Controller
             $cart = $this->carts->destroyItem($request, $tenant, $cartItem);
 
             return response()->json($this->presenter->present($cart, $tenant));
-        });
+        }, $request, $tenant);
     }
 
     public function clear(Request $request, Tenant $tenant): JsonResponse
@@ -82,7 +82,7 @@ class SelfServiceSalesCartController extends Controller
             $cart = $this->carts->clear($request, $tenant);
 
             return response()->json($this->presenter->present($cart, $tenant, 'Carrito vaciado.'));
-        });
+        }, $request, $tenant);
     }
 
     public function checkout(Request $request, Tenant $tenant): JsonResponse
@@ -95,14 +95,28 @@ class SelfServiceSalesCartController extends Controller
                 $cart,
                 $tenant
             ));
-        });
+        }, $request, $tenant);
     }
 
-    private function respond(callable $callback): JsonResponse
+    private function respond(callable $callback, ?Request $request = null, ?Tenant $tenant = null): JsonResponse
     {
         try {
             return $callback();
         } catch (HttpExceptionInterface $exception) {
+            if ($request && $tenant) {
+                try {
+                    $cart = $this->carts->currentCart($request, $tenant);
+
+                    return response()->json(
+                        $this->presenter->error($exception->getMessage(), $cart, $tenant),
+                        $exception->getStatusCode()
+                    );
+                } catch (HttpExceptionInterface) {
+                    // Si ni siquiera puede resolverse el carrito por falta de sesión/autorización,
+                    // se devuelve el error vacío para no exponer estado.
+                }
+            }
+
             return response()->json(
                 $this->presenter->empty($exception->getMessage()),
                 $exception->getStatusCode()

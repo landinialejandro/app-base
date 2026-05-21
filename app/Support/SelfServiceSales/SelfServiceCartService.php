@@ -19,6 +19,7 @@ class SelfServiceCartService
     public const MESSAGE_LOGIN_REQUIRED = 'Ingresá como cliente para operar el carrito.';
     public const MESSAGE_OPERATION_DISABLED = 'Tu cuenta externa está reconocida para esta tienda, pero la operación comercial todavía no está habilitada.';
     public const MESSAGE_NOT_AVAILABLE = 'El producto ya no está disponible en la tienda.';
+    public const MESSAGE_CART_HAS_UNAVAILABLE_ITEMS = 'Hay productos que ya no están disponibles. Eliminá esos ítems del carrito para continuar.';
     public const MESSAGE_EMPTY_CART = 'El carrito está vacío.';
 
     public function currentCart(Request $request, Tenant $tenant): SelfServiceCart
@@ -108,6 +109,12 @@ class SelfServiceCartService
             throw new HttpException(422, self::MESSAGE_EMPTY_CART);
         }
 
+        $blockedItems = $this->unavailableCartItems($tenant, $cart);
+
+        if ($blockedItems->isNotEmpty()) {
+            throw new HttpException(422, self::MESSAGE_CART_HAS_UNAVAILABLE_ITEMS);
+        }
+
         return $cart;
     }
 
@@ -163,6 +170,36 @@ class SelfServiceCartService
         }
 
         return $this->freshCart($cart);
+    }
+
+    private function unavailableCartItems(Tenant $tenant, SelfServiceCart $cart): \Illuminate\Support\Collection
+    {
+        return $cart->items
+            ->filter(function (SelfServiceCartItem $item) use ($tenant): bool {
+                return ! $this->cartItemStillAvailable($tenant, $item);
+            })
+            ->values();
+    }
+
+    private function cartItemStillAvailable(Tenant $tenant, SelfServiceCartItem $cartItem): bool
+    {
+        return ShopItem::query()
+            ->where('tenant_id', $tenant->id)
+            ->whereKey($cartItem->self_service_shop_item_id)
+            ->where('status', ShopItem::STATUS_PUBLISHED)
+            ->where('is_visible', true)
+            ->whereHas('shop', function ($query) use ($tenant) {
+                $query
+                    ->where('tenant_id', $tenant->id)
+                    ->where('status', Shop::STATUS_ACTIVE);
+            })
+            ->whereHas('product', function ($query) use ($tenant, $cartItem) {
+                $query
+                    ->where('tenant_id', $tenant->id)
+                    ->where('is_active', true)
+                    ->whereKey($cartItem->product_id);
+            })
+            ->exists();
     }
 
     private function publicShopItem(Tenant $tenant, int $shopItemId): ShopItem

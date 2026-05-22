@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00033
+SECTION_VERSION: 00036
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -435,9 +435,21 @@ SelfServiceCartItem no reemplaza DocumentItem.
 SelfServiceCart no reemplaza InventoryMovement.
 
 
-SelfServiceCart puede registrar estado de checkout simulado o checkout interno real según contrato vigente, pero ese estado no reemplaza operación comercial formal.
+SelfServiceCart registra el estado del carrito externo persistente.
 
-SelfServiceCart.meta puede conservar paquete de checkout, request transaccional y response de provider simulado cuando exista corte backend real interno.
+En el corte vigente, SelfServiceCart puede pasar a status = checked_out mediante checkout interno real con provider externo simulado.
+
+SelfServiceCart.meta conserva la persistencia inicial del checkout y del pago simulado.
+
+Persistencia vigente en cart.meta:
+
+checkout
+
+payment_request
+
+payment_response
+
+payment_attempts
 
 Reglas:
 
@@ -447,7 +459,13 @@ cart.meta no reemplaza Documents
 
 cart.meta no reemplaza Inventory
 
+cart.meta no reemplaza Payment como entidad futura si se decide crearla
+
+cart.meta no reemplaza PaymentAttempt como entidad futura si se decide crearla
+
 cart.meta no acredita pago real externo por sí mismo
+
+cart.meta registra request y response del provider simulado en el primer corte vigente
 Agregar al carrito no mueve stock.
 
 
@@ -472,7 +490,17 @@ Agregar al carrito no crea Document.
 
 Agregar al carrito no crea InventoryMovement.
 
-Checkout simulado no equivale a operación comercial formal.
+Checkout interno real con provider externo simulado no equivale a operación comercial formal completa.
+
+Provider externo simulado no equivale a pago real externo.
+
+Route name legacy self_service_sales.checkout.simulate no define la lectura conceptual vigente del checkout.
+
+Regla:
+
+el checkout interno y la transición de SelfServiceCart.status a checked_out son reales dentro del corte implementado.
+
+La simulación vigente queda limitada a la comunicación externa con el provider.
 
 
 Checkout backend real interno con provider simulado representa una validación transaccional interna real de app-base, pero no equivale a integración real con provider externo.
@@ -483,6 +511,42 @@ app-base valida carrito, disponibilidad, cantidades, precios, moneda, tenant, cu
 
 El provider simulado representa únicamente la respuesta externa esperada.
 
+
+Frontera vigente de checkout y provider externo simulado:
+
+SelfServiceCart
+↓
+SelfServiceCheckoutService
+↓
+SelfServicePaymentRequestFactory
+↓
+SelfServicePaymentGateway
+↓
+SimulatedExternalPaymentGateway
+↓
+SelfServiceCart.meta payment_request/payment_response/checkout
+
+Lectura:
+
+SelfServiceCheckoutService ejecuta el caso de uso interno de checkout.
+
+SelfServicePaymentRequestFactory arma el request económico desde backend.
+
+SelfServicePaymentGateway define la frontera reemplazable.
+
+SimulatedExternalPaymentGateway representa el provider externo simulado.
+
+No se creó entidad Payment.
+
+No se creó entidad PaymentAttempt.
+
+No se creó tabla de pagos.
+
+No se creó relación formal con Order.
+
+No se creó relación formal con Document.
+
+No se creó relación formal con InventoryMovement.
 Reglas:
 
 checkout backend real interno con provider simulado no crea por sí mismo Order

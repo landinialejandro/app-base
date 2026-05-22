@@ -10,7 +10,7 @@ GESTIÓN: Documento rector inicial para la capacidad self_service_sales como cap
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00013
 
 OBJETIVO DEL DOCUMENTO
 
@@ -51,6 +51,7 @@ distinguir configuración interna de tienda y consumo público externo
 definir consumo externo de Shop y ShopItem publicados
 definir publicación inicial de productos activos desde shops
 definir carrito persistente externo inicial
+definir checkout interno real con provider externo simulado
 definir bloqueo operativo del carrito por operation_enabled
 definir saldo real, fichas, fichas promocionales y consumo futuros
 establecer límites frente a Shops, Products, Inventory y Documents
@@ -84,8 +85,7 @@ guard externo definitivo
 middleware externo definitivo de autorización obligatoria
 remember token externo
 validación final de identidad operativa
-checkout real
-pago real
+pago real con provider externo
 compra formal completa
 creación de Orders desde tienda
 creación de Documents desde tienda
@@ -287,8 +287,104 @@ El carrito persistente no crea Documents.
 
 El carrito persistente no crea InventoryMovements.
 
-El checkout vigente permanece simulado mientras no exista contrato de operación comercial real.
+El checkout vigente ya no debe leerse como simulación completa: el backend de checkout y el cierre interno del carrito son reales dentro del corte implementado; la comunicación con el provider externo permanece simulada mientras no exista integración real con Mercado Pago, MODO u otro provider.
 
+
+Corte operativo vigente de checkout interno real con provider externo simulado:
+
+self_service_sales ya implementa un primer corte de checkout backend real.
+
+Lectura vigente:
+
+carrito externo persistente real
+customer externo real
+relación customer-tienda real
+validación backend de operation_enabled real
+validación backend de Shop activa real
+validación backend de ShopItem publicado y visible real
+validación backend de Product activo real
+validación backend de tenant correcto real
+cierre interno de carrito real
+provider externo simulado
+respuesta de provider simulada con contrato estable
+
+Frontera vigente de pagos:
+
+SelfServiceCheckoutService
+SelfServicePaymentRequestFactory
+SelfServicePaymentGateway
+SimulatedExternalPaymentGateway
+
+Reglas:
+
+SelfServiceSalesCartController no debe llamar a provider concreto
+
+SelfServiceCheckoutService conserva el caso de uso de checkout
+
+SelfServicePaymentRequestFactory arma el request económico desde backend
+
+SelfServicePaymentGateway define la frontera reemplazable
+
+SimulatedExternalPaymentGateway representa provider externo simulado
+
+el frontend no envía precios
+
+el frontend no envía totales
+
+el frontend no envía nombres de productos como fuente económica
+
+el backend recalcula total desde SelfServiceCartItem
+
+el backend genera idempotency_key
+
+el backend persiste request y response en SelfServiceCart.meta
+
+Estado de cierre vigente:
+
+si el provider simulado devuelve approved, SelfServiceCart.status pasa a checked_out.
+
+Persistencia vigente en cart.meta:
+
+checkout
+payment_request
+payment_response
+payment_attempts
+
+Payload vigente de provider simulado:
+
+provider = simulated
+provider_target = mercado_pago
+status = approved
+status_detail = accredited
+external_payment_id
+external_preference_id
+external_reference
+amount
+currency
+raw.simulated = true
+
+No implementa todavía:
+
+Pago real con Mercado Pago
+Pago real con MODO
+Payment como entidad propia
+PaymentAttempt como entidad propia
+Order posterior al pago
+Document posterior al pago
+InventoryMovement posterior al pago
+bridge operativo de formalización comercial
+
+Regla:
+
+checkout interno real con provider externo simulado no equivale a pago real externo.
+
+provider externo simulado no equivale a checkout completamente simulado.
+
+SelfServiceCart checked_out no equivale a Order creada.
+
+SelfServiceCart checked_out no equivale a Document creado.
+
+SelfServiceCart checked_out no equivale a stock movido.
 Corte operativo pendiente de imágenes públicas de productos:
 
 la tienda pública no debe reutilizar attachments.preview para exponer imágenes.

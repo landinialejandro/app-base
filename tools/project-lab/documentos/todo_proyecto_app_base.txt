@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -772,11 +772,9 @@ InventoryMovements
 comprobantes
 integraciones externas
 
-Pendiente específico próximo:
+Cerrado en corte posterior:
 
-implementar checkout real interno con provider externo simulado reemplazable.
-
-El frente debe considerar, sin asumir implementación no validada:
+checkout backend real con provider externo simulado
 
 SelfServicePaymentGateway
 
@@ -786,45 +784,65 @@ SelfServicePaymentRequestFactory
 
 SelfServiceCheckoutService
 
-persistencia de paquete transaccional en SelfServiceCart.meta
+binding por contenedor de SelfServicePaymentGateway hacia SimulatedExternalPaymentGateway
 
-estado checked_out en SelfServiceCart cuando corresponda
+cierre de SelfServiceCart como checked_out cuando el provider simulado responde approved
 
-actualización del frontend del checkout panel
+persistencia de checkout en SelfServiceCart.meta.checkout
 
-no crear Orders todavía
+persistencia de payment_request en SelfServiceCart.meta.payment_request
 
-no crear Documents todavía
+persistencia de payment_response en SelfServiceCart.meta.payment_response
 
-no crear InventoryMovements todavía
+persistencia de payment_attempts en SelfServiceCart.meta.payment_attempts
 
-Regla:
+UI básica de resultado de pago simulado en checkout-panel
 
-el próximo corte no debe llamarse simplemente checkout simulado si el backend transaccional interno queda implementado.
+Validaciones cerradas:
 
-Lectura esperada:
+rechazo de checkout con ítem no disponible
 
-checkout real interno con provider simulado.
+carrito activo conservado ante rechazo por disponibilidad
 
-La simulación debe limitarse a la comunicación externa con el provider.
-Pendiente específico próximo:
-implementar checkout real interno con provider externo simulado reemplazable.
-El frente debe considerar, sin asumir implementación no validada:
-SelfServicePaymentGateway
-SimulatedExternalPaymentGateway
-SelfServicePaymentRequestFactory
-SelfServiceCheckoutService
-persistencia de paquete transaccional en SelfServiceCart.meta
-estado checked_out en SelfServiceCart cuando corresponda
-actualización del frontend del checkout panel
-no crear Orders todavía
-no crear Documents todavía
-no crear InventoryMovements todavía
-Regla:
-el próximo corte no debe llamarse simplemente checkout simulado si el backend transaccional interno queda implementado.
-Lectura esperada:
-checkout real interno con provider simulado.
-La simulación debe limitarse a la comunicación externa con el provider.
+ausencia de payment_response cuando el checkout fue bloqueado
+
+aprobación de checkout con carrito disponible
+
+resolución del gateway por interface
+
+Pendientes posteriores:
+
+integración real con Mercado Pago
+
+integración real con MODO
+
+Payment como entidad propia si se decide
+
+PaymentAttempt como entidad propia si se decide
+
+tabla de pagos si se decide
+
+creación de Order posterior al pago
+
+creación de Document posterior al pago
+
+reserva o movimiento de stock
+
+renombrar route name self_service_sales.checkout.simulate a nombre definitivo cuando se decida
+
+definir formalización interna posterior al pago aprobado
+
+Reglas:
+
+checkout interno real con provider externo simulado no equivale a pago real externo
+
+provider externo simulado no equivale a checkout completamente simulado
+
+SelfServiceCart checked_out no equivale a Order creada
+
+SelfServiceCart checked_out no equivale a Document creado
+
+SelfServiceCart checked_out no equivale a stock movido
 
 Regla:
 

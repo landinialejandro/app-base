@@ -82,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00025
 
 REGLA GENERAL
 
@@ -434,11 +434,13 @@ un ítem no disponible no debe vaciar automáticamente el carrito
 el carrito debe conservar la línea marcada para corrección manual cuando el contexto siga siendo válido
 
 el frontend solo debe representar is_available, availability_message y estado de bloqueo preparados por backend
-checkout simulado no equivale a checkout real
+checkout interno real con provider externo simulado no equivale a pago real externo
 
-checkout backend real interno con provider externo simulado no equivale a pago real externo
+provider externo simulado no equivale a checkout completamente simulado
 
-checkout backend real interno con provider externo simulado no equivale a operación comercial formal completa
+la simulación vigente queda limitada a la comunicación externa con el provider
+
+checkout interno real con provider externo simulado no equivale a operación comercial formal completa
 
 Regla adicional para integraciones externas de pago:
 
@@ -466,6 +468,44 @@ se persistan request y response del provider cuando corresponda
 
 no se cree Order, Document ni InventoryMovement sin bridge operativo explícito y validado
 
+
+Corte validado para self_service_sales:
+
+checkout interno real implementado
+
+provider externo simulado implementado
+
+pago real con Mercado Pago no implementado
+
+pago real con MODO no implementado
+
+Payment no implementado como entidad propia
+
+PaymentAttempt no implementado como entidad propia
+
+Order posterior al pago no implementada
+
+Document posterior al pago no implementado
+
+movimiento de stock posterior al pago no implementado
+
+Reglas de validación obligatoria para checkout externo:
+
+validar frontera explícita de provider
+
+validar que el controller no conozca provider concreto
+
+validar que el request económico se construya en backend
+
+validar que el backend genere idempotency_key cuando corresponda
+
+validar persistencia de request y response
+
+validar bloqueo de carrito con ítems no disponibles
+
+validar aprobación con carrito limpio
+
+validar resolución del gateway por interface
 Regla:
 
 provider simulado no debe convertirse en doctrina de pago real.

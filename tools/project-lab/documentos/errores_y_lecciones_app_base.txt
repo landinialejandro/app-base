@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00015
 
 LECCIONES VIGENTES
 
@@ -275,6 +275,105 @@ la línea problemática debe marcarse mediante payload preparado
 el frontend debe representar el bloqueo y permitir la corrección manual
 
 el botón de pago debe quedar bloqueado mientras exista al menos un ítem no disponible
+
+NO CONFUNDIR PROVIDER SIMULADO CON CHECKOUT SIMULADO COMPLETO
+
+
+NO DIAGNOSTICAR CHECKOUT SIN VALIDAR DISPONIBILIDAD REAL DEL CARRITO
+
+
+NO TRATAR LOGS HISTÓRICOS COMO ERROR VIGENTE SIN AUDITORÍA
+
+Un error registrado en storage/logs/laravel.log puede ser histórico y no representar el estado vigente del código.
+
+Caso detectado:
+
+apareció en log un error anterior:
+
+Unable to locate a class or view for component [products.components.linked-product]
+
+La auditoría actual confirmó que el Blade existe, que las vistas vigentes usan include y que view:clear / optimize:clear cerraron correctamente.
+
+No correspondía aplicar patch.
+
+Lección:
+
+no se debe modificar código por un log antiguo si la evidencia actual no reproduce el problema.
+
+Reglas:
+
+verificar fecha del log
+
+auditar existencia actual del archivo o componente
+
+validar vista/cache/runtime vigente
+
+no aplicar patches sin evidencia de error actual
+
+distinguir error histórico de error reproducible vigente
+Un checkout que no cierra no debe diagnosticarse primero como error de provider, frontend o gateway.
+
+Caso detectado:
+
+un carrito no cerró porque contenía un ítem no disponible:
+
+Aromatizador vehicular
+available=false
+
+El backend bloqueó correctamente el checkout y mantuvo el carrito activo.
+
+Mensaje operativo:
+
+Hay productos que ya no están disponibles. Eliminá esos ítems del carrito para continuar.
+
+Lección:
+
+antes de modificar provider, frontend o reglas de checkout, debe validarse la disponibilidad real de las líneas del carrito.
+
+Reglas:
+
+validar ítems disponibles antes de diagnosticar provider
+
+validar payload real de carrito antes de modificar frontend
+
+validar estado de Shop, ShopItem, Product, tenant y operation_enabled
+
+mantener carrito activo si el bloqueo es recuperable
+
+no crear payment_response cuando el checkout fue bloqueado por disponibilidad
+Un provider externo simulado no implica que todo el checkout sea simulado.
+
+Caso detectado:
+
+self_service_sales evolucionó desde una lectura de checkout simulado completo hacia un checkout interno real con provider externo simulado.
+
+Lectura vigente:
+
+el carrito externo persistente es real
+
+la validación de customer externo, tenant, operation_enabled y disponibilidad es real
+
+el checkout backend es real
+
+el cierre interno del carrito como checked_out es real
+
+la comunicación externa con Mercado Pago, MODO u otro provider permanece simulada
+
+Lección:
+
+la documentación y el diagnóstico técnico deben distinguir entre simulación del provider y simulación completa del flujo.
+
+Reglas:
+
+provider simulado no equivale a checkout completamente simulado
+
+checkout interno real con provider simulado no equivale a pago real externo
+
+SelfServiceCart checked_out no equivale a Order creada
+
+SelfServiceCart checked_out no equivale a Document creado
+
+SelfServiceCart checked_out no equivale a InventoryMovement creado
 NO REUTILIZAR PREVIEW INTERNO PARA EXPOSICIÓN PÚBLICA
 
 Una ruta interna funcional no debe reutilizarse automáticamente como recurso público externo.

@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00030
+SECTION_VERSION: 00034
 
 REGLA GENERAL
 
@@ -90,12 +90,14 @@ carrito visible no equivale a compra real
 
 carrito persistente no equivale a operación comercial formal
 
-checkout simulado no equivale a pago real
-
-checkout simulado no equivale a creación de Order, Document ni InventoryMovement
+checkout interno real con provider externo simulado no equivale a pago real externo
 
 
-checkout backend real interno con provider simulado no equivale a pago real externo
+provider externo simulado no equivale a checkout completamente simulado
+SelfServiceCart checked_out no equivale a creación de Order, Document ni InventoryMovement
+
+
+la simulación vigente queda limitada a la comunicación externa con el provider
 
 checkout backend real interno con provider simulado no equivale a operación comercial formal completa
 

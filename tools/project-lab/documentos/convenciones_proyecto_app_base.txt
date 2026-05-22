@@ -88,7 +88,7 @@ Contrato compacto = formato principal.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00044
+SECTION_VERSION: 00051
 
 [PRINCIPIOS]
 Simplicidad.
@@ -163,6 +163,12 @@ No reconstruye bloqueos externos.
 No decide significado de catálogos ajenos.
 No concentra cierre/cancelación/derivación si existe hook o service de frontera.
 No mezcla plano interno y plano externo.
+
+No llama providers externos de pago en forma directa.
+
+No concentra integración con Mercado Pago, MODO u otro provider.
+
+Si existe checkout o pago externo, debe delegar en service de caso de uso y frontera gateway reemplazable.
 No calcula saldos materiales si el ownership pertenece a Inventory.
 No administra ledger material formal si pertenece a Inventory.
 
@@ -680,7 +686,9 @@ sesión externa mínima
 middleware externo pasivo
 tienda pública
 consumo de catálogo publicado
-operación comercial futura
+checkout interno real con provider externo simulado
+operación comercial formal futura
+pago real futuro
 
 Reglas:
 customer externo ≠ User
@@ -719,14 +727,16 @@ bloquear pago mientras exista al menos una línea no disponible
 
 Carrito persistente no equivale a compra real.
 
-Checkout simulado no equivale a pago real.
+Checkout interno real con provider externo simulado no equivale a pago real externo.
 
-Checkout simulado no crea Orders, Documents ni InventoryMovements.
+Provider externo simulado no equivale a checkout completamente simulado.
+
+SelfServiceCart checked_out no crea Orders, Documents ni InventoryMovements.
 
 
-Checkout backend real interno con provider simulado no equivale a pago real externo.
+La simulación vigente queda limitada a la comunicación externa con el provider.
 
-Checkout backend real interno con provider simulado no equivale a operación comercial formal completa.
+Checkout interno real con provider externo simulado no equivale a operación comercial formal completa.
 
 Provider externo no equivale a autoridad interna de negocio.
 
@@ -737,6 +747,42 @@ app-base recalcula carrito, disponibilidad, cantidades, precios, moneda, tenant,
 el provider simulado representa solo la respuesta externa esperada
 
 no crear Orders, Documents ni InventoryMovements sin bridge operativo explícito y validado
+
+Patrón vigente para provider externo reemplazable:
+
+Controller
+↓
+Service de checkout
+↓
+Interface de gateway
+↓
+Provider concreto
+
+Implementación vigente:
+
+SelfServiceSalesCartController
+↓
+SelfServiceCheckoutService
+↓
+SelfServicePaymentGateway
+↓
+SimulatedExternalPaymentGateway
+
+Reglas:
+
+el provider real futuro debe reemplazar la implementación concreta, no el flujo de carrito
+
+el backend debe construir el request de pago
+
+el frontend no debe transportar datos económicos críticos
+
+el backend debe generar idempotency_key cuando corresponda
+
+request y response deben persistirse en backend según contrato operativo
+
+el binding de interface puede vivir en AppServiceProvider
+
+un route name legacy puede mantenerse temporalmente por compatibilidad, pero no define la lectura conceptual final del flujo
 Imagen pública de producto publicado no equivale a preview interna de Attachment.
 
 Reglas:

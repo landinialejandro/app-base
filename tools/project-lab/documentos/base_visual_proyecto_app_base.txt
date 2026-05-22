@@ -44,7 +44,7 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 ESTRUCTURA GENERAL DE PÁGINA
 
@@ -157,6 +157,78 @@ el color/estado visual debe comunicar bloqueo operativo corregible
 el usuario debe poder identificar la línea afectada y eliminarla manualmente
 
 el botón de pago debe quedar bloqueado mientras exista al menos un ítem no disponible
+
+
+Regla visual para checkout interno real con provider externo simulado:
+
+el panel público de checkout puede representar resultado de pago simulado aprobado cuando el backend devuelve payload autorizado.
+
+Caso vigente:
+
+resources/views/self-service-sales/partials/checkout-panel.blade.php
+
+Lectura visual:
+
+Mercado Pago · entorno simulado
+
+mensaje dinámico de conexión o procesamiento
+
+estado del pago
+
+ID de pago
+
+referencia externa
+
+importe
+
+Reglas:
+
+el panel pertenece al plano público externo customer
+
+no expone navegación interna tenant
+
+no expone datos privados del tenant
+
+no muestra x-dev-component-version visible al customer externo
+
+no debe comunicar pago real externo cuando el provider es simulado
+
+debe distinguir resultado aprobado de provider simulado y formalización comercial completa pendiente
+Regla visual para checkout interno real con provider externo simulado:
+
+el panel público de checkout puede representar resultado de pago simulado aprobado cuando el backend devuelve payload autorizado.
+
+Caso vigente:
+
+resources/views/self-service-sales/partials/checkout-panel.blade.php
+
+Lectura visual:
+
+Mercado Pago · entorno simulado
+
+mensaje dinámico de conexión o procesamiento
+
+estado del pago
+
+ID de pago
+
+referencia externa
+
+importe
+
+Reglas:
+
+el panel pertenece al plano público externo customer
+
+no expone navegación interna tenant
+
+no expone datos privados del tenant
+
+no muestra x-dev-component-version visible al customer externo
+
+no debe comunicar pago real externo cuando el provider es simulado
+
+debe distinguir resultado aprobado de provider simulado y formalización comercial completa pendiente
 no debe confundirse con panel interno
 
 no debe exponer navegación interna tenant

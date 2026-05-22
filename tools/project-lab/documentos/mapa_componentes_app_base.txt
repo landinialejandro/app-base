@@ -335,7 +335,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -499,6 +499,42 @@ resources/views/self-service-sales/shop.blade.php
 
 resources/views/self-service-sales/store-selector.blade.php
 
+
+Partial público vigente de checkout:
+
+resources/views/self-service-sales/partials/checkout-panel.blade.php
+
+Responsabilidad visual:
+
+representar estado de checkout
+
+representar resultado de provider externo simulado
+
+representar datos del provider simulado cuando el backend los expone en payload autorizado
+
+mantener pertenencia al plano público externo customer
+
+no exponer navegación interna tenant
+
+no exponer datos privados del tenant
+
+no mostrar x-dev-component-version visible al customer externo
+
+Reglas:
+
+checkout-panel representa payload preparado por backend y JS autorizado
+
+checkout-panel no decide pago real
+
+checkout-panel no decide formalización comercial
+
+checkout-panel no crea Order
+
+checkout-panel no crea Document
+
+checkout-panel no mueve stock
+
+checkout-panel no debe comunicar pago real externo cuando el provider es simulado
 Lectura:
 
 estas vistas pertenecen al plano público externo de self_service_sales.

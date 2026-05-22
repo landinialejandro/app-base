@@ -174,7 +174,7 @@ Toda modificación persistente debe ejecutarse mediante contratos explícitos de
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 HERRAMIENTAS DISPONIBLES
 
@@ -257,6 +257,40 @@ LAB_PATCH no aplica por aproximación.
 Si hay ambigüedad, debe devolver ERROR.
 
 Si falla validación posterior, debe hacer rollback cuando corresponda.
+
+Ejecución por tandas:
+
+cuando una entrada contiene múltiples bloques LAB_PATCH, Project Lab debe procesarlos como una tanda.
+
+Si un patch falla por un error local validable, debe omitir ese patch, registrar WARN y continuar con los patches siguientes.
+
+Errores locales recuperables:
+
+ANCHOR inexistente
+ANCHOR duplicado con MATCH=one
+POSITION faltante
+POSITION inválida
+MATCH inválido
+TEXT ya existente en posición objetivo
+errores de contrato limitados al patch actual
+
+La tanda debe finalizar con WARN si al menos un patch fue omitido.
+
+La salida debe informar:
+
+patches aplicados
+patches omitidos
+total de patches procesados
+
+Regla:
+
+un error local de un patch no debe bloquear patches posteriores sanos.
+
+No debe informarse OK final pleno cuando existieron errores parciales.
+
+Corte operativo validado:
+
+Project Lab continúa la tanda cuando un patch falla por ANCHOR no encontrado y aplica correctamente un patch posterior sano.
 
 CODE
 
@@ -403,6 +437,31 @@ validar contratos de código
 obtener evidencia antes de intervenir
 guardar salidas de consola como auditoría
 ejecutar macros audit internas mediante prefijo controlado
+
+Criterio de auditorías acotadas:
+
+las auditorías deben pedir la mínima evidencia suficiente para avanzar sin suponer.
+
+No deben dispararse búsquedas amplias sobre todo el proyecto si alcanza con inspeccionar el frente, archivo, método, ruta o patrón exacto.
+
+Reglas:
+
+preferir búsquedas acotadas a tools/project-lab cuando el frente sea Project Lab
+preferir --include cuando se conoce el tipo de archivo
+usar head cuando la salida puede ser extensa
+ampliar de forma progresiva solo si la evidencia inicial no alcanza
+evitar capturar salidas gigantes sin necesidad operativa
+evitar auditorías generales si ya existe contexto suficiente
+
+Patrón recomendado:
+
+primero buscar el punto exacto
+después inspeccionar el bloque cercano
+recién luego ampliar el alcance si sigue faltando evidencia
+
+Regla:
+
+Project Lab debe ayudar a obtener evidencia real sin convertir cada diagnóstico en una auditoría masiva.
 
 Macros audit:
 

@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00019
 
 DECISIONES VIGENTES
 
@@ -90,17 +90,17 @@ checkout simulado no equivale a operación comercial real
 checkout simulado no crea Orders, Documents ni InventoryMovements
 
 
-Decisión evolutiva pendiente:
+Decisión vigente implementada y validada:
 
-el próximo corte de checkout externo debe implementar checkout backend real interno con provider externo simulado.
+self_service_sales ya implementa checkout backend real interno con provider externo simulado.
 
 Lectura:
 
-no debe simularse todo el checkout.
+ya no debe leerse como checkout completamente simulado.
 
 app-base debe validar internamente carrito, disponibilidad, cantidades, precios, moneda, tenant, customer externo, relación customer-tienda y operation_enabled.
 
-La única parte simulada inicialmente debe ser la comunicación con el provider externo.
+La simulación vigente queda limitada a la comunicación con el provider externo.
 
 Providers previstos:
 
@@ -108,7 +108,7 @@ Mercado Pago
 MODO
 otro provider externo equivalente
 
-Primer cierre operativo previsto:
+Primer cierre operativo vigente:
 
 marcar SelfServiceCart.status = checked_out
 
@@ -118,12 +118,27 @@ guardar request transaccional interna
 
 guardar response del provider simulado
 
+
+guardar payment_attempts
+
+generar idempotency_key desde backend cuando corresponda
+
+resolver provider mediante SelfServicePaymentGateway
 No debe crear todavía:
 
 Order
 Document
 InventoryMovement
 
+
+Tampoco se creó todavía:
+
+Payment
+PaymentAttempt
+tabla de pagos
+relación formal con Order
+relación formal con Document
+relación formal con InventoryMovement
 Regla:
 
 no debe existir bridge operativo hacia Orders, Documents o Inventory hasta decisión explícita y validación real.
@@ -131,6 +146,16 @@ no debe existir bridge operativo hacia Orders, Documents o Inventory hasta decis
 Motivo:
 
 separar checkout interno real de pago externo real permite validar el contrato transaccional de app-base sin acoplarse tempranamente a un provider.
+
+Decisión adicional vigente:
+
+mantener temporalmente el route name self_service_sales.checkout.simulate por compatibilidad del corte actual.
+
+Regla:
+
+ese nombre de ruta no define la lectura conceptual final del checkout.
+
+El comportamiento vigente debe leerse como checkout interno real con provider externo simulado.
 Motivo:
 
 ShopItem representa la publicación comercial concreta de un Product dentro de una Shop activa.

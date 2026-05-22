@@ -142,7 +142,7 @@ Detalle técnico puede evolucionar sin alterar doctrina.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00038
+SECTION_VERSION: 00043
 
 [AUTORIDAD CENTRAL]
 Decisión final = backend / capa central de seguridad.
@@ -201,7 +201,7 @@ Configuración interna ≠ operación externa.
 * saldo mostrado en Blade
 * acción visible en superficie embebida
 * carrito visible
-* checkout simulado
+* checkout externo aprobado visualmente
 * respuesta visual de provider externo
 * redirect visual de pago
 
@@ -245,6 +245,18 @@ respuesta no autenticada
 
 El backend debe recalcular y validar antes de iniciar o confirmar operación crítica.
 
+
+Regla vigente para checkout externo:
+
+todo checkout externo es acción crítica del plano externo.
+
+Debe validar backend antes de producir efectos.
+
+No debe confiar en datos económicos, estado visual, redirect, pantalla de éxito ni respuesta no autenticada.
+
+Debe operar mediante frontera explícita reemplazable cuando dependa de provider externo.
+
+El detalle de clases, servicios, bindings, payloads y persistencia pertenece a documentos especializados.
 [AUTONOMÍA MODULAR]
 Módulo autónomo ≠ acceso libre.
 
@@ -289,9 +301,15 @@ operation_enabled = false bloquea operación comercial.
 
 Carrito persistente externo ≠ compra formal.
 
-Checkout simulado ≠ pago real.
+Checkout externo aprobado visualmente ≠ pago real.
 
-Checkout backend real interno con provider simulado ≠ provider real externo.
+Checkout interno real con provider externo simulado ≠ pago real externo.
+
+Provider externo simulado ≠ checkout completamente simulado.
+
+SelfServiceCart checked_out ≠ formalización documental/fiscal completa.
+
+SelfServiceCart checked_out ≠ Order, Document ni InventoryMovement.
 
 [RECURSOS INTERNOS CONSUMIDOS POR PLANO EXTERNO]
 Todo recurso interno consumido por un plano externo conserva autorización interna propia.
@@ -360,7 +378,7 @@ Todo pago o checkout externo debe validar backend antes de producir efectos inte
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00026
 
 [ACCESO PÚBLICO]
 Previo o externo a operación interna autenticada.
@@ -526,7 +544,7 @@ resolver contexto externo pasivo
 redirigir a tienda pública
 ver catálogo publicado
 ver carrito persistente
-iniciar checkout simulado
+iniciar checkout externo
 recibir respuesta visual de provider externo
 
 Para operar deberá existir:
@@ -651,24 +669,36 @@ redirect visual
 respuesta de provider no validada
 pantalla de éxito
 
-Checkout simulado no equivale a pago real.
+Checkout interno real con provider externo simulado no equivale a pago real externo.
 
-Checkout backend real interno con provider simulado no equivale a integración real con provider externo.
+Provider externo simulado no equivale a checkout completamente simulado.
+
+SelfServiceCart checked_out no equivale a formalización documental/fiscal completa.
 
 El primer cierre de checkout real interno no debe crear Orders, Documents ni InventoryMovements sin bridge operativo definido.
 
 [PAGO / PROVIDER EXTERNO]
 Provider externo de pago debe operar detrás de frontera explícita.
 
-No debe autorizar acceso interno.
 
-No debe decidir operación comercial interna por sí mismo.
+Reglas:
 
-No debe reemplazar validación backend.
+customer externo habilitado para operar no equivale a usuario interno
 
-No debe reemplazar tenant, customer, relación externa ni operation_enabled.
+checkout externo aprobado no equivale a autorización interna
 
-No debe acreditar saldo ni generar efectos por redirect visual.
+provider externo aprobado no equivale a formalización documental/fiscal completa
+provider externo no autoriza acceso interno
+
+provider externo no decide operación comercial interna por sí mismo
+
+provider externo no reemplaza validación backend
+
+provider externo no reemplaza tenant, customer, relación externa ni operation_enabled
+
+provider externo no acredita saldo ni genera efectos por redirect visual
+
+El detalle de providers concretos, gateways, servicios, bindings, payloads y persistencia pertenece a documentos especializados.
 
 [ERRORES DE ACCESO EXTERNO]
 Los fallos de acceso externo deben usar mensajes genéricos cuando corresponda.

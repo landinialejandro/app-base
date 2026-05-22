@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00032
+SECTION_VERSION: 00033
 
 PATRONES VIGENTES
 
@@ -115,6 +115,68 @@ bind tenant
 Security real
 dataset real
 
+PRESENTACIÓN DE ESTADOS POR VOCABULARIO TRANSVERSAL Y CATÁLOGO PROPIETARIO
+
+Patrón validado:
+
+valor real del módulo
+↓
+catálogo propietario
+↓
+intención común en StatusVocabulary
+↓
+badge class común
+↓
+label contextual si corresponde
+↓
+Blade representa
+
+Lectura:
+
+StatusVocabulary concentra intenciones visuales comunes, labels base, clases base y presentaciones reutilizables.
+
+El catálogo propietario conserva el contexto del módulo, el mapeo desde valores reales y los labels contextuales.
+
+Blade representa el resultado preparado.
+
+Reglas:
+
+Blade no decide intención visual de estado
+
+Blade no decide clases status-badge de forma local
+
+Blade no interpreta valores de dominio para decidir color o badge
+
+un valor contextual puede mapearse a una intención común existente
+
+una nueva intención transversal solo debe agregarse si expresa una intención visual común real
+
+los payloads preparados por backend son válidos cuando contienen label y clase de badge ya resueltos
+
+Casos validados:
+
+OrderCatalog
+DocumentCatalog
+HasLineItemStatuses
+TaskCatalog
+AppointmentCatalog
+AssetCatalog
+ProjectCatalog
+ProductCatalog
+PartyCatalog
+SelfServiceStoreCustomerCatalog
+ShopCatalog
+InventoryFulfillmentDisplayCatalog
+InventorySurfaceService
+StatusVocabulary::expirationPresentation() en vistas de invitaciones
+
+Caso válido de payload preparado:
+
+Inventory puede entregar display_status_badge, line_status_badge y consistency_badge como payload preparado por backend.
+
+Regla:
+
+payload preparado por backend ≠ decisión local de Blade.
 UX OPERATIVA
 
 acciones donde nace la intención

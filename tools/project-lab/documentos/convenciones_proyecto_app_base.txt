@@ -88,7 +88,7 @@ Contrato compacto = formato principal.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00051
+SECTION_VERSION: 00053
 
 [PRINCIPIOS]
 Simplicidad.
@@ -230,6 +230,26 @@ actualización documental
 Referencia:
 <DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
+
+Criterio operativo consolidado:
+
+archivo nuevo = php_full / FILE completo
+
+método nuevo en clase existente = php_method_add / TARGET ++
+
+reemplazo de método existente = php_method_patch / TARGET ::
+
+cambio textual puntual = LAB_PATCH
+
+Reglas:
+
+LAB_PATCH no debe usarse como contrato principal para crear archivos nuevos
+
+LAB_PATCH no debe usarse como contrato principal para agregar métodos nuevos
+
+aunque un caso pueda aplicar técnicamente, debe usarse el contrato proporcional correcto
+
+Project Lab debe operar con el contrato que mejor representa la naturaleza del cambio
 [CONTRATO MODULAR]
 Módulo = mini app interna cerrable del tenant.
 
@@ -383,6 +403,43 @@ Blade representa.
 Blade no interpreta JSON.
 Salida visual usa helper, presenter o payload preparado.
 
+
+[ESTADOS VISUALES / STATUS VOCABULARY]
+Estado visible debe resolverse por intención visual, catálogo propietario o payload preparado.
+
+Patrón vigente:
+
+valor real del módulo
+↓
+catálogo propietario
+↓
+intención común en StatusVocabulary
+↓
+badge class común
+↓
+label contextual si corresponde
+↓
+Blade representa
+
+Reglas:
+
+StatusVocabulary resuelve intención común y clase base
+
+catálogo propietario resuelve valores reales, contexto del módulo, mapeo e labels contextuales
+
+Blade no decide labels de estado
+
+Blade no decide clases status-badge de forma local
+
+Blade no debe hardcodear status-badge--success, status-badge--muted, status-badge--warning ni status-badge--expired si existe vocabulario o catálogo aplicable
+
+primero usar intención existente en StatusVocabulary
+
+agregar intención transversal solo si representa una intención común real
+
+agregar regla en catálogo propietario si el estado es contextual
+
+dejar hardcode en Blade solo como excepción puntual, no como convención estable
 Caso Orders:
 party_id
 asset_id

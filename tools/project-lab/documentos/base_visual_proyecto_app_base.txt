@@ -373,12 +373,72 @@ resources/views/landing
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00037
+SECTION_VERSION: 00038
 
 COMPONENTES DISPONIBLES
 
 El sistema utiliza una base visual reusable compuesta por layouts, componentes Blade y patrones UI consistentes.
 
+
+Regla visual transversal para estados y badges:
+
+todo estado visible debe tender a representarse como badge cuando corresponda a una condición operativa, visual o de lifecycle.
+
+La presentación visual de estados no debe resolverse por clases hardcodeadas directamente en Blade.
+
+Fuente común vigente:
+
+StatusVocabulary
+
+Responsabilidad:
+
+resolver intenciones visuales comunes
+
+resolver labels base cuando corresponda
+
+resolver clases base de badge
+
+resolver presentaciones reutilizables
+
+Intenciones comunes vigentes:
+
+active
+inactive
+pending
+confirmed
+approved
+closed
+cancelled
+partial
+completed
+published
+hidden
+archived
+expired
+expiring
+sent
+enabled
+disabled
+neutral
+warning
+
+Reglas:
+
+la normalización debe hacerse por intención visual, no por palabra literal
+
+un valor contextual como pending_approval puede mapearse a pending si no representa una intención transversal nueva
+
+una nueva intención transversal solo debe agregarse si representa una intención común real
+
+el catálogo propietario resuelve valores reales del módulo, contexto y labels específicos
+
+Blade solo representa catálogo, vocabulario o payload preparado por backend
+
+Blade no debe decidir directamente clases como status-badge--success, status-badge--muted, status-badge--warning o status-badge--expired fuera del vocabulario común
+
+los payloads preparados por backend pueden transportar badge label y badge class cuando corresponda
+
+un badge visual no requiere crear componente Blade global si el markup existente es suficiente y la decisión visual ya llega preparada
 Componentes estructurales vigentes:
 
 x-page

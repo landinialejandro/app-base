@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 COMPONENTES BLADE GLOBALES
 
@@ -257,6 +257,40 @@ los componentes globales representan payload recibido.
 
 No deben decidir ni inferir relaciones de dominio.
 
+
+Regla adicional para badges de estado:
+
+status-badge puede seguir usándose como markup visual sin crear un componente Blade global nuevo cuando la vista recibe label y clase ya resueltos.
+
+Lectura:
+
+el badge representa una presentación preparada.
+
+No decide dominio.
+
+No decide lifecycle.
+
+No decide intención visual.
+
+No decide clase CSS por cuenta propia.
+
+Fuentes válidas:
+
+StatusVocabulary
+
+catálogo propietario
+
+payload preparado por backend
+
+Reglas:
+
+Blade no debe interpretar valores reales del módulo para decidir badge
+
+Blade no debe hardcodear clases status-badge cuando exista vocabulario, catálogo o payload preparado
+
+un componente global nuevo para badges no es obligatorio si el patrón visual vigente ya resuelve la presentación con markup simple
+
+el criterio estructural es separar decisión visual de representación visual
 Aclaración vigente sobre vistas de universos funcionales:
 
 una vista raíz de universo funcional no debe promoverse automáticamente a componente global.

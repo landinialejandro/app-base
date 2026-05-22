@@ -36,13 +36,62 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 DECISIONES VIGENTES
 
 Este documento registra decisiones vivas del proyecto que todavía condicionan implementación, auditoría, continuidad o próximos pasos.
 
 
+NORMALIZACIÓN VISUAL TRANSVERSAL DE ESTADOS
+
+Decisión vigente:
+
+los estados visibles del sistema deben resolverse mediante vocabulario común de intenciones y catálogos propietarios cuando el valor real del módulo requiere contexto.
+
+Fuente común vigente:
+
+StatusVocabulary
+
+Lectura:
+
+StatusVocabulary define intenciones visuales comunes, labels base, clases base y presentaciones reutilizables.
+
+El catálogo propietario conserva el significado contextual del módulo.
+
+Blade representa catálogo, vocabulario o payload preparado por backend.
+
+Reglas:
+
+Blade no debe decidir localmente labels de estado
+
+Blade no debe decidir localmente clases status-badge
+
+Blade no debe depender de constantes de modelo para resolver presentación visual si existe catálogo aplicable
+
+pending_approval no es intención transversal propia; puede mapearse a pending cuando corresponda
+
+closed no equivale a cancelled
+
+inactive no equivale a pending ni a cancelled
+
+archived no equivale a cancelled
+
+inactive y archived pueden presentarse como neutral cuando corresponda
+
+warning queda aceptada como intención transversal real para advertencias o atención operativa
+
+los mensajes explicativos contextuales no pertenecen necesariamente al catálogo de estados
+
+no todo ternario o booleano visible debe convertirse automáticamente en estado
+
+Caso validado:
+
+las vistas de shops no deben depender de Shop::STATUS_* ni ShopItem::STATUS_* para lectura visual de estados.
+
+Motivo:
+
+separar modelo, catálogo, vocabulario visual y Blade evita acoplamiento, imports innecesarios en vistas y duplicación de clases visuales.
 CARRITO PERSISTENTE EXTERNO EN SELF_SERVICE_SALES
 
 Decisión vigente:

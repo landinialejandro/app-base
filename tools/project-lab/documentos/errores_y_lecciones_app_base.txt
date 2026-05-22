@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 LECCIONES VIGENTES
 
@@ -442,6 +442,101 @@ si el anchor es ambiguo, pedir grep o fragmento exacto
 si el cambio afecta una función JS completa, preferir TARGET de función o archivo completo según corresponda
 
 si queda lógica duplicada fuera de función, limpiar antes de considerar cerrado el cambio
+NO USAR LAB_PATCH PARA ARCHIVOS NUEVOS O MÉTODOS NUEVOS
+
+LAB_PATCH no debe usarse como contrato principal para crear archivos nuevos ni para agregar métodos nuevos en clases existentes.
+
+Casos detectados:
+
+se intentó crear un archivo nuevo con LAB_PATCH
+
+se intentó agregar métodos nuevos con LAB_PATCH
+
+Corrección aplicada:
+
+archivo nuevo mediante php_full / FILE completo
+
+método nuevo en clase existente mediante php_method_add / TARGET ++
+
+reemplazo de método existente mediante php_method_patch / TARGET ::
+
+cambio textual puntual mediante LAB_PATCH
+
+Lección:
+
+que un patch pueda aplicar técnicamente no significa que sea el contrato correcto.
+
+Reglas:
+
+archivo nuevo requiere FILE completo
+
+método nuevo requiere TARGET ++
+
+método existente requiere TARGET ::
+
+LAB_PATCH queda para cambios textuales puntuales con ancla exacta
+
+no usar LAB_PATCH como atajo para cambios estructurales
+
+NO REPONER IMPORTS COMO PARCHE SI LA DEPENDENCIA DE MODELO EN BLADE ES EL PROBLEMA
+
+Un error de clase no encontrada puede revelar una dependencia visual indebida hacia constantes de modelo.
+
+Casos detectados:
+
+Class "Shop" not found
+
+Class "ShopItem" not found
+
+Causa:
+
+algunas vistas seguían usando constantes del modelo para resolver estados visuales.
+
+Corrección estable:
+
+no reponer imports como cierre permanente
+
+migrar la lectura visual de estados hacia catálogo propietario y StatusVocabulary
+
+Lección:
+
+si Blade depende de constantes de modelo para presentar estado, el problema puede ser de frontera entre modelo, catálogo y vista.
+
+Reglas:
+
+Blade representa catálogo, vocabulario o payload preparado
+
+Blade no debe depender de constantes del modelo para decidir estado visual si existe catálogo aplicable
+
+los imports en Blade no deben ocultar una dependencia visual indebida
+
+NO MEZCLAR VOCABULARIO VISUAL CON MENSAJE EXPLICATIVO CONTEXTUAL
+
+Un catálogo de estados no debe absorber mensajes explicativos si esos mensajes no forman parte del vocabulario visual de estado.
+
+Caso detectado:
+
+se agregó publicVisibilityMessage() a ShopCatalog.
+
+Luego se retiró porque mezclaba vocabulario visual con explicación contextual.
+
+Corrección aplicada:
+
+reemplazar el archivo completo y retirar el método.
+
+Lección:
+
+no todo mensaje visible pertenece al catálogo de estados.
+
+Reglas:
+
+estado visual común pertenece a StatusVocabulary o catálogo propietario
+
+label contextual de estado puede pertenecer al catálogo propietario
+
+mensaje explicativo o razón contextual puede permanecer fuera del catálogo de estados
+
+no todo ternario o booleano visible debe convertirse automáticamente en estado
 UN VÍNCULO NULLABLE NO DEBE REINTRODUCIRSE COMO REQUIRED SIN DOCTRINA
 
 Un campo relacional nullable puede ser vínculo opcional y no dependencia obligatoria.

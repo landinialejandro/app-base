@@ -34,7 +34,7 @@
             data-cart-show-url="{{ route('self_service_sales.cart.show', ['tenant' => $tenant]) }}"
             data-cart-add-url="{{ route('self_service_sales.cart.items.store', ['tenant' => $tenant]) }}"
             data-cart-clear-url="{{ route('self_service_sales.cart.clear', ['tenant' => $tenant]) }}"
-            data-checkout-url="{{ route('self_service_sales.checkout.simulate', ['tenant' => $tenant]) }}"
+            data-checkout-url="{{ route('self_service_sales.checkout.process', ['tenant' => $tenant]) }}"
         >
             @include('self-service-sales.partials.shop-header', [
                 'tenant' => $tenant,

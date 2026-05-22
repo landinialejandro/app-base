@@ -202,7 +202,7 @@ Route::prefix('shop/{tenant:slug}')
         Route::delete('/cart', [SelfServiceSalesCartController::class, 'clear'])
             ->name('cart.clear');
         Route::post('/checkout', [SelfServiceSalesCartController::class, 'checkout'])
-            ->name('checkout.simulate');
+            ->name('checkout.process');
     });
 
 // APP-BASE

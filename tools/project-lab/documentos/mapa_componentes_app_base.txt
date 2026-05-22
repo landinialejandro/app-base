@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00015
 
 COMPONENTES BLADE GLOBALES
 
@@ -60,6 +60,9 @@ x-modal
 x-dev-component-version
 x-icons.qr
 x-icons.user
+x-icons.eye
+x-icons.eye-slash
+x-icons.trash
 
 Reglas:
 
@@ -147,6 +150,12 @@ Caso vigente:
 Regla:
 
 una superficie pública externa visible para customers no debe mostrar identificadores técnicos internos de componentes, versiones de Blade ni marcas de auditoría visual.
+Caso vigente adicional:
+shops.preview pertenece al plano interno autorizado.
+Por lo tanto, puede mostrar x-dev-component-version cuando la vista, card o bloque intervenido tenga entidad visual propia.
+Regla:
+la prohibición de exponer x-dev-component-version aplica a superficies públicas externas visibles para customers.
+No aplica a preview interna autorizada del módulo shops.
 Regla de validación runtime:
 
 no debe utilizarse un componente Blade si no existe realmente en resources/views/components o como clase correspondiente.
@@ -192,6 +201,17 @@ un componente linked no debe inventar enlace hacia Party
 un componente linked no debe ocultar el snapshot propio del registro
 
 PartyLinked representa únicamente el vínculo gestionado cuando existe Party vinculada y corresponde mostrar enlace.
+ProductLinked representa el vínculo gestionado con Product cuando existe producto asociado y corresponde mostrar enlace contextual.
+Casos vigentes:
+shops.preview
+x-line-item-table para Orders
+x-line-item-table para Documents
+Reglas:
+el módulo oferente Products resuelve el link oficial
+el consumidor entrega Product o payload compatible
+el consumidor entrega trail cuando corresponde preservar contexto
+el componente linked no debe ser reemplazado por lógica local de navegación
+el componente linked no debe duplicar el nombre del producto como texto principal y secundario
 
 No debe usarse como fuente principal del texto visible de contraparte cuando Orders o Documents ofrecen helper oficial de lectura.
 
@@ -315,7 +335,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -618,6 +638,13 @@ el botón o acción de activar tienda no debe comunicar habilitación comercial 
 el customer externo no debe tener acceso visual ni funcional a estas vistas
 
 la vista previa interna debe mostrar diagnóstico de visibilidad pública efectiva
+la vista previa interna puede mostrar thumb autorizado cuando el payload ya llega preparado
+la vista previa interna puede usar ProductLinked contextual como nombre principal del producto
+la vista previa interna puede mostrar SKU o referencia secundaria sin duplicar el nombre principal
+Reglas:
+shops.preview no debe consultar Attachments directamente desde Blade
+shops.preview no debe reconstruir ProductLinked localmente
+shops.preview debe consumir payload autorizado preparado por la capa correspondiente
 
 la vista previa interna no debe abrir /shop/{tenant:slug} como si fuera administración interna
 
@@ -670,7 +697,7 @@ la navegación puede incluir iconografía por módulo, pero esta debe provenir d
 
 
 <<SECTION: COMPONENTES DE ÍCONOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 COMPONENTES DE ÍCONOS
 
@@ -690,6 +717,17 @@ los nombres deben ser genéricos por forma visual
 no deben nombrarse por módulo
 no debe declararse un ícono si el componente Blade no existe realmente
 antes de usar un ícono en ModuleCatalog o metadata equivalente debe verificarse su existencia real
+Uso vigente adicional:
+eye
+acción o estado de visible/publicado cuando el componente exista
+eye-slash
+acción o estado de oculto, borrador o no visible cuando el componente exista
+trash
+eliminación real
+Reglas:
+eye y eye-slash expresan visibilidad o publicación.
+trash no debe usarse como equivalente visual de ocultar.
+ocultar/publicar y eliminar deben mantener iconografía diferenciada.
 
 Ejemplos válidos:
 
@@ -707,6 +745,9 @@ changes
 lock
 unlock
 box
+eye
+eye-slash
+trash
 
 Uso vigente adicional:
 
@@ -1353,7 +1394,7 @@ Debe abrir detalle bajo demanda mediante modal y no expandir la tabla con column
 
 
 <<SECTION: COMPONENTES REUTILIZABLES TRANSVERSALES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 COMPONENTES REUTILIZABLES TRANSVERSALES
 
@@ -1382,6 +1423,16 @@ no deben consultar modelos externos por sí mismos
 no deben decidir permisos efectivos
 
 no deben reconstruir reglas de módulos consumidores u oferentes
+Regla adicional para x-line-item-table:
+cuando una línea de Orders o Documents tiene producto asociado y existe ProductLinked contextual preparado, el nombre principal debe representarse mediante el link oficial del producto.
+La información secundaria debe limitarse a datos auxiliares útiles, como tipo o detalle operativo.
+No debe duplicarse el nombre del producto.
+Caso corregido:
+evitar redundancias tipo:
+Producto · Producto: nombre
+Regla:
+x-line-item-table representa payload preparado.
+No reconstruye navegación de Products.
 
 Aclaración vigente para line items:
 

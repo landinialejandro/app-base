@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00030
 
 PATRONES VIGENTES
 
@@ -46,6 +46,28 @@ NAVEGACIÓN CONTEXTUAL
 trail = contexto externo
 return_tab = contexto interno
 
+
+Caso vigente adicional:
+
+ProductLinked contextual desde shops, orders y documents.
+
+Lectura:
+
+el host pasa trailQuery cuando el origen funcional importa.
+
+el helper linked del módulo oferente arma el link contextual.
+
+el destino conserva breadcrumb según origen validado.
+
+Reglas:
+
+el consumidor no reconstruye breadcrumb de Products
+
+el consumidor no arma rutas locales hacia Product si existe helper oficial
+
+el trail debe preservar continuidad operativa real
+
+return_tab solo conserva contexto interno del host cuando corresponde
 SEGURIDAD
 
 Security central
@@ -59,6 +81,32 @@ módulo oferente resuelve
 componente oficial representa
 host monta
 
+
+Caso vigente adicional:
+
+Products como oferente de vínculo contextual mediante ProductLinked.
+
+Consumidores validados:
+
+shops.preview
+x-line-item-table para Orders
+x-line-item-table para Documents
+
+Reglas:
+
+shops no reconstruye link de Product
+
+Orders no reconstruye link de Product
+
+Documents no reconstruye link de Product
+
+el consumidor entrega producto o payload compatible
+
+el consumidor entrega trail cuando corresponde
+
+Products resuelve link oficial
+
+la vista representa el payload sin duplicar nombre ni navegación
 TINKER REAL
 
 usuario real
@@ -123,6 +171,36 @@ Caso vigente:
 
 Orders no debe interpretar Task, Appointment, Party, Asset o Document más allá de referencias pasivas, relaciones necesarias o contratos explícitos.
 
+
+Caso vigente adicional:
+
+Attachments puede operar como oferente de media/thumb autorizado para vistas internas mediante AttachmentSurfaceService.
+
+Contrato validado:
+
+AttachmentSurfaceService::mediaCollectionFor()
+
+Lectura:
+
+el oferente separa attachments, images, files, image, firstImage y payload con preview_url.
+
+El host consume payload preparado.
+
+Caso vigente:
+
+shops.preview muestra thumb interno de producto publicado usando payload autorizado.
+
+Reglas:
+
+el host no consulta Attachments directamente desde Blade
+
+el host no reconstruye media manualmente
+
+attachments.preview puede usarse en preview interna autorizada
+
+attachments.preview no equivale a imagen pública de producto publicado
+
+la tienda pública externa debe resolver imagen futura mediante ruta propia y validación de publicación efectiva
 AISLAMIENTO OPERATIVO RAZONABLE
 
 Patrón validado:
@@ -438,8 +516,64 @@ el bloqueo operativo del carrito vive en backend
 
 el frontend solo representa estado, mensaje o resultado autorizado
 
+
+Regla adicional para bloqueo recuperable:
+
+si el backend detecta una línea no disponible, debe devolver el carrito vigente con la línea marcada.
+
+No debe responder con carrito vacío cuando el error requiere corrección manual del usuario.
+
+Lectura:
+
+bloqueo recuperable ≠ destrucción del estado del carrito.
+
+Reglas:
+
+conservar SelfServiceCart vigente cuando exista contexto válido
+
+marcar la línea problemática
+
+bloquear pago
+
+permitir eliminación manual
+
+no borrar líneas disponibles por un error de disponibilidad parcial
 el identificador operativo del carrito es ShopItem, no Product
 
+
+Regla adicional para disponibilidad de carrito:
+
+el carrito externo debe revalidar disponibilidad efectiva en backend antes de checkout.
+
+No alcanza con que el ShopItem haya sido válido al agregarse.
+
+Debe revalidar, como mínimo:
+
+Shop activa
+
+ShopItem publicado
+
+ShopItem visible
+
+Product activo
+
+tenant correcto
+
+relación customer-tienda válida
+
+operation_enabled
+
+Reglas:
+
+si una línea deja de estar disponible, el checkout se bloquea
+
+el carrito no debe vaciarse automáticamente por un bloqueo recuperable
+
+la línea puede conservarse marcada como no disponible
+
+el frontend representa is_available y availability_message preparados por backend
+
+el customer debe eliminar manualmente el ítem no disponible antes de continuar
 Regla adicional para imagen pública futura:
 
 Attachment interno no se publica genéricamente.
@@ -447,6 +581,18 @@ Attachment interno no se publica genéricamente.
 La ruta pública futura debe exponer solo imagen de Product validada contra Shop activa y ShopItem publicable.
 
 No debe reutilizar attachments.preview.
+
+Regla adicional de distinción interna/externa:
+
+preview interna autorizada puede consumir attachments.preview mediante payload preparado.
+
+tienda pública externa no puede reutilizar attachments.preview como exposición pública.
+
+Lectura:
+
+preview interna = diagnóstico interno autorizado.
+
+imagen pública futura = recurso externo validado contra publicación efectiva.
 RECLASIFICACIÓN SIN LEGACY ESTABLE
 
 Patrón validado:

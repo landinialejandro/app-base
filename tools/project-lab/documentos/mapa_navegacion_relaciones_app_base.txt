@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00030
 
 REGLA GENERAL
 
@@ -94,6 +94,12 @@ checkout simulado no equivale a pago real
 
 checkout simulado no equivale a creación de Order, Document ni InventoryMovement
 
+
+checkout backend real interno con provider simulado no equivale a pago real externo
+
+checkout backend real interno con provider simulado no equivale a operación comercial formal completa
+
+provider externo no equivale a autoridad interna de negocio
 ruta pública de imagen de tienda no equivale a preview interna de Attachment
 
 attachments.preview no equivale a imagen pública de producto publicado
@@ -109,6 +115,14 @@ self_service_sales no administra internamente shops
 
 el trail preserva contexto entre pantallas relacionadas
 
+
+link contextual debe transportar trail actual cuando el origen funcional importa
+
+linked helper del módulo oferente debe armar link contextual cuando recibe trail
+
+destino contextual debe conservar breadcrumb según origen validado
+
+ProductLinked contextual puede operar desde shops, orders y documents sin que esos hosts reconstruyan navegación de Products
 la UI no debe prometer accesos no operables
 
 Regla adicional consolidada:
@@ -336,6 +350,8 @@ Recorrido de carrito externo vigente:
 
 → consultar carrito persistente
 
+
+→ corregir ítems no disponibles cuando corresponda
 → actualizar cantidad de línea
 
 → eliminar línea
@@ -358,6 +374,16 @@ el carrito no administra Shop ni ShopItem.
 
 el carrito consume ShopItem publicado como unidad operativa.
 
+
+el carrito debe revalidar disponibilidad efectiva antes de checkout.
+
+si una línea deja de estar disponible, el checkout no avanza.
+
+el recorrido debe permitir corregir el carrito mediante eliminación manual del ítem no disponible.
+
+el carrito no debe vaciarse automáticamente por un bloqueo recuperable de disponibilidad.
+
+el frontend representa el estado preparado por backend.
 el carrito persiste líneas externas cuando existe customer habilitado.
 
 el checkout vigente es simulado.

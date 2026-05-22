@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 LECCIONES VIGENTES
 
@@ -243,6 +243,38 @@ Regla:
 
 ante 422, validar payload real enviado, Network, request backend, disponibilidad real del registro y contrato esperado antes de modificar reglas de negocio.
 
+
+NO DEVOLVER CARRITO VACÍO ANTE ERROR RECUPERABLE DE CHECKOUT
+
+Un error recuperable del checkout no debe sustituir el estado real del carrito por un carrito vacío.
+
+Caso detectado:
+
+ante checkout bloqueado por productos no disponibles, el backend devolvía un carrito vacío porque SelfServiceSalesCartController::respond() usaba presenter->empty() en errores.
+
+Consecuencia:
+
+el frontend aplicaba ese payload y el carrito se vaciaba visualmente, aunque el usuario debía corregir una línea específica.
+
+Corrección aplicada:
+
+en errores con request y tenant válidos, responder con presenter->error($message, $cart, $tenant) para conservar el carrito vigente.
+
+Lección:
+
+si el usuario debe corregir un ítem, el payload debe conservar el carrito y marcar el ítem no disponible.
+
+Reglas:
+
+un error recuperable no debe vaciar el estado operable del usuario
+
+el backend debe devolver el carrito vigente cuando exista contexto válido
+
+la línea problemática debe marcarse mediante payload preparado
+
+el frontend debe representar el bloqueo y permitir la corrección manual
+
+el botón de pago debe quedar bloqueado mientras exista al menos un ítem no disponible
 NO REUTILIZAR PREVIEW INTERNO PARA EXPOSICIÓN PÚBLICA
 
 Una ruta interna funcional no debe reutilizarse automáticamente como recurso público externo.
@@ -275,6 +307,42 @@ Product activo
 producto perteneciente al mismo tenant
 Attachment kind = shop
 Attachment is_image = true
+
+NO USAR ANCHORS REPETIDOS EN LAB_PATCH
+
+Un patch textual puntual no debe usar un ancla que aparece más de una vez en el archivo destino.
+
+Caso detectado:
+
+un intento de insertar lógica JS después de:
+
+if (!requireCartExperience())
+
+falló porque el anchor aparecía múltiples veces.
+
+También se detectó que un patch alternativo dejó inicialmente lógica duplicada fuera de función.
+
+Corrección aplicada:
+
+se limpió el residuo y se validó el archivo con node --check.
+
+Lección:
+
+LAB_PATCH debe usarse solo cuando el ancla exacta es única y segura.
+
+Reglas:
+
+no usar anchors genéricos
+
+no usar anchors repetidos
+
+no aplicar por aproximación
+
+si el anchor es ambiguo, pedir grep o fragmento exacto
+
+si el cambio afecta una función JS completa, preferir TARGET de función o archivo completo según corresponda
+
+si queda lógica duplicada fuera de función, limpiar antes de considerar cerrado el cambio
 UN VÍNCULO NULLABLE NO DEBE REINTRODUCIRSE COMO REQUIRED SIN DOCTRINA
 
 Un campo relacional nullable puede ser vínculo opcional y no dependencia obligatoria.

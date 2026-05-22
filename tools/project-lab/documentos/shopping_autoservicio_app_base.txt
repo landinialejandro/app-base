@@ -1765,7 +1765,7 @@ customer externo activo ≠ habilitación comercial completa.
 <<END SECTION>>
 
 <<SECTION: PUBLICACIÓN DE PRODUCTOS EN TIENDA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PUBLICACIÓN DE PRODUCTOS EN TIENDA
 
@@ -1873,8 +1873,6 @@ publicar producto no mueve stock
 
 publicar producto no crea documento
 
-publicar producto no habilita carrito
-
 publicar producto no inicia pago
 
 activar tienda no habilita operación comercial completa
@@ -1890,26 +1888,60 @@ catálogo publicado inicial
 artículos visibles
 precio visible
 unidad
-botón deshabilitado de operación en preparación
+carrito persistente externo cuando existe customer habilitado para operar
+checkout simulado vigente mientras no exista checkout real interno con provider externo simulado
 
-No implementa:
+Regla sobre carrito:
 
-compra
-pago
+el carrito opera sobre ShopItem como unidad operativa de publicación.
+
+No opera directamente sobre Product como unidad comercial primaria.
+
+Regla sobre disponibilidad:
+
+una línea de carrito puede quedar no disponible si deja de cumplirse la publicación efectiva.
+
+Causas mínimas:
+
+Shop inactiva
+ShopItem no publicado
+ShopItem no visible
+Product inactivo
+producto de otro tenant
+publicación no perteneciente al tenant público correcto
+
+Regla:
+
+si una línea del carrito deja de estar disponible, el checkout no debe avanzar.
+
+El carrito debe conservar la línea, marcarla como no disponible y exigir eliminación manual por parte del customer antes de continuar.
+
+Regla:
+
+un bloqueo recuperable de disponibilidad no debe vaciar automáticamente el carrito.
+
+No implementa todavía:
+
+pago real externo
 saldo
 fichas operativas
 QR
 órdenes
 documentos
 movimientos de stock
-carrito
-selección transaccional
+operación comercial formal completa
 
 Regla final:
 
 catálogo publicado = visibilidad comercial inicial.
 
+carrito persistente externo = selección comercial preliminar habilitada por contrato externo.
+
 catálogo publicado ≠ operación comercial real.
+
+carrito persistente ≠ operación comercial formal.
+
+checkout simulado ≠ pago real.
 
 <<END SECTION>>
 
@@ -2602,27 +2634,49 @@ los datos fiscales pertenecen a una evolución posterior y deben integrarse sin 
 <<END SECTION>>
 
 <<SECTION: MERCADO PAGO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 MERCADO PAGO
 
 Mercado Pago queda previsto como integración futura.
 
-No forma parte de la primera implementación.
+La lectura vigente debe ampliarse a una frontera de pagos externa reemplazable.
+
+Posibles providers futuros:
+
+Mercado Pago
+MODO
+otro provider externo equivalente
 
 Estado vigente:
 
-la primera fase de self_service_sales no implementa pago real ni acreditación de saldo.
+la fase actual de self_service_sales no implementa pago real externo ni acreditación de saldo.
 
-Mercado Pago queda como puerta futura preparada doctrinalmente, sin integración operativa en esta etapa.
+El checkout vigente no debe leerse como pago real.
+
+Regla nueva de evolución:
+
+el próximo corte no debe simular todo el checkout.
+
+Debe implementar checkout backend real interno y simular únicamente la comunicación con el provider externo.
+
+Lectura esperada:
+
+app-base ejecuta validaciones internas reales.
+
+app-base recalcula disponibilidad, líneas, cantidades, precios y totales desde backend.
+
+app-base prepara un paquete transaccional propio.
+
+el provider simulado representa solo la respuesta externa de pago.
 
 Regla doctrinal futura:
 
-Mercado Pago confirma pago externo.
+Mercado Pago, MODO u otro provider confirma pago externo.
 
-app-base acredita saldo o habilita operación solo después de confirmación válida.
+app-base acredita saldo, habilita operación, genera efectos comerciales o deriva a otros módulos solo después de confirmación válida y contrato interno específico.
 
-No se acredita saldo por:
+No se acredita saldo ni se confirma operación por:
 
 redirect visual
 
@@ -2636,6 +2690,14 @@ notificación no validada
 
 respuesta no autenticada
 
+total enviado por frontend
+
+precio enviado por frontend
+
+nombre enviado por frontend
+
+estado visual del carrito
+
 Reglas:
 
 la integración debe validar tenant
@@ -2644,9 +2706,19 @@ la integración debe validar customer externo
 
 la integración debe validar relación customer-tienda
 
-la integración debe validar operación habilitada
+la integración debe validar operation_enabled
 
-la integración debe validar monto
+la integración debe validar carrito vigente
+
+la integración debe validar disponibilidad efectiva de ShopItem
+
+la integración debe validar estado de Shop
+
+la integración debe validar estado de Product
+
+la integración debe validar cantidades
+
+la integración debe recalcular monto en backend
 
 la integración debe validar moneda
 
@@ -2654,7 +2726,37 @@ la integración debe validar estado real del pago
 
 la integración debe evitar doble acreditación
 
-la integración debe registrar movimiento comercial trazable
+la integración debe usar referencia interna propia cuando corresponda
+
+la integración debe usar idempotencia backend cuando corresponda
+
+la integración debe registrar request y response del provider cuando corresponda
+
+la integración debe registrar movimiento comercial trazable solo cuando exista contrato de operación comercial real
+
+Regla sobre frontera externa:
+
+el provider de pago no debe implementarse como lógica directa de controller ni como lógica de frontend.
+
+Debe existir frontera explícita, service, gateway o contrato equivalente.
+
+Regla sobre primer corte seguro:
+
+el primer cierre de checkout real interno con provider simulado no debe crear todavía:
+
+Order
+Document
+InventoryMovement
+
+hasta que exista bridge operativo definido y validado.
+
+Primer cierre previsto:
+
+marcar SelfServiceCart.status = checked_out
+
+guardar en cart.meta el paquete de checkout, request transaccional y response del provider simulado
+
+mantener explícito que no existe todavía operación comercial formal completa
 
 Mercado Pago no reemplaza ledger interno.
 
@@ -2662,13 +2764,17 @@ Mercado Pago no reemplaza saldo interno.
 
 Mercado Pago no reemplaza Documents.
 
+Mercado Pago no reemplaza Orders.
+
+Mercado Pago no reemplaza Inventory.
+
 Mercado Pago no reemplaza Security.
 
 Mercado Pago no reemplaza validación backend.
 
 Regla sobre operation_enabled:
 
-operation_enabled = false bloquea operación comercial aunque exista acceso externo, tienda visible, catálogo publicado o intento de pago futuro.
+operation_enabled = false bloquea operación comercial aunque exista acceso externo, tienda visible, catálogo publicado, carrito persistente o intento de pago futuro.
 
 No debe iniciarse operación real de pago si el customer no está habilitado para operar según contrato vigente.
 
@@ -2676,20 +2782,20 @@ Regla sobre catálogo publicado:
 
 ver un producto publicado no habilita pago.
 
-seleccionar un producto futuro no habilita pago.
+seleccionar un producto no habilita pago sin contrato transaccional.
 
-agregar a carrito futuro no habilita pago sin contrato transaccional.
+agregar a carrito no habilita pago sin checkout backend real y frontera de provider.
 
 Regla final:
 
-Mercado Pago debe integrarse como confirmación externa de pago, no como autoridad de negocio interna.
+Mercado Pago, MODO u otro provider deben integrarse como confirmación externa de pago, no como autoridad de negocio interna.
 
-La autoridad final de acreditación, movimiento y operación queda en app-base bajo contrato propio.
+La autoridad final de validación, acreditación, movimiento y operación queda en app-base bajo contrato propio.
 
 <<END SECTION>>
 
 <<SECTION: ALCANCE DE LA PRIMERA IMPLEMENTACIÓN>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ALCANCE DE LA PRIMERA IMPLEMENTACIÓN
 
@@ -2697,7 +2803,7 @@ La primera implementación de Shopping Autoservicio debe ser mínima y segura.
 
 Objetivo inicial validado:
 
-habilitar el registro del customer externo, su representación como Party customer person dentro del tenant, una arquitectura inicial de identidad externa separada del plano interno, selección externa de tienda, sesión externa mínima, finalización de identidad operativa, habilitación interna manual y catálogo publicado inicial no transaccional.
+habilitar el registro del customer externo, su representación como Party customer person dentro del tenant, una arquitectura inicial de identidad externa separada del plano interno, selección externa de tienda, sesión externa mínima, finalización de identidad operativa, habilitación interna manual, catálogo publicado inicial y carrito persistente externo inicial para customers habilitados.
 
 Incluye:
 
@@ -2829,23 +2935,49 @@ operation_enabled como columna operativa fuente de verdad
 
 trazabilidad mínima de habilitación manual en meta
 
-SelfServiceShop como cabecera/configuración de tienda
+Shop como cabecera/configuración interna de tienda
 
-SelfServiceShopItem como producto publicado en tienda
+ShopItem como producto publicado en tienda
 
-SelfServiceShopCatalogReader
-
-SelfServiceShopPublisher
+ShopPublishedCatalogReader o capacidad equivalente de lectura publicada vigente
 
 catálogo publicado inicial
 
-self_service_shop_id obligatorio en SelfServiceShopItem
+shop_id obligatorio en ShopItem
 
 tienda activa por tenant
 
 /shop/{tenant:slug} muestra catálogo publicado inicial cuando corresponde
 
-/shop/{tenant:slug} puede mostrar artículos visibles, precio visible, unidad y acción deshabilitada de operación en preparación
+/shop/{tenant:slug} puede mostrar artículos visibles, precio visible, unidad y operación externa según contrato vigente
+
+SelfServiceCart como carrito externo persistente
+
+SelfServiceCartItem como línea externa persistente del carrito
+
+carrito asociado a tenant, SelfServiceCustomerAccount y SelfServiceStoreCustomer
+
+líneas de carrito vinculadas a ShopItem
+
+shopItemId como identificador operativo para agregar productos al carrito
+
+snapshots de línea de carrito cuando correspondan
+
+bloqueo backend de carrito para customers no habilitados
+
+bloqueo backend de carrito para visitantes públicos
+
+bloqueo backend de checkout cuando existen ítems no disponibles
+
+conservación del carrito vigente ante error recuperable de disponibilidad
+
+marcado de línea no disponible mediante payload preparado
+
+mensaje de disponibilidad por línea cuando corresponda
+
+eliminación manual del ítem no disponible por parte del customer antes de continuar
+
+checkout simulado vigente sin pago real externo
 
 cuenta demo multi-tienda para validación del flujo externo
 
@@ -2855,6 +2987,12 @@ No incluye todavía:
 
 Mercado Pago real
 
+MODO real
+
+provider de pago real
+
+checkout backend real con provider externo simulado
+
 saldo operativo completo
 
 fichas operativas
@@ -2863,11 +3001,9 @@ QR operativo
 
 movimientos comerciales reales
 
-carrito
+compra formal
 
-compra
-
-selección transaccional
+selección transaccional formal completa
 
 órdenes generadas desde tienda
 
@@ -2909,6 +3045,10 @@ redirigir a /shop/{tenant:slug} no habilita operación comercial completa
 
 ver catálogo publicado no habilita operación comercial completa
 
+agregar al carrito no habilita operación comercial completa
+
+checkout simulado no habilita pago real
+
 publicar producto no equivale a vender
 
 publicar producto no mueve stock
@@ -2923,7 +3063,13 @@ puede ingresar ≠ puede operar
 
 puede ver tienda ≠ puede comprar
 
+puede agregar al carrito ≠ puede pagar realmente
+
 catálogo publicado ≠ operación comercial real
+
+carrito persistente ≠ operación comercial formal
+
+checkout simulado ≠ pago real
 
 <<END SECTION>>
 
@@ -3009,7 +3155,7 @@ No se considera cierre válido si confirmar email habilita operación comercial 
 <<END SECTION>>
 
 <<SECTION: FUERA DE ALCANCE INICIAL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 FUERA DE ALCANCE INICIAL
 
@@ -3017,7 +3163,13 @@ Quedan fuera del alcance inicial:
 
 integración real con Mercado Pago
 
-pasarela de pago operativa
+integración real con MODO
+
+integración real con provider externo de pago
+
+checkout backend real con provider externo simulado
+
+pasarela de pago operativa real
 
 saldo real funcional completo
 
@@ -3069,11 +3221,7 @@ cambio real de contraseña externa
 
 experiencia completa de customer autenticado
 
-compra
-
-carrito
-
-selección transaccional
+compra formal
 
 órdenes generadas desde tienda
 
@@ -3084,6 +3232,12 @@ movimientos comerciales reales
 movimientos de stock por tienda
 
 operación comercial completa
+
+bridge operativo desde checkout externo hacia Orders
+
+bridge operativo desde checkout externo hacia Documents
+
+bridge operativo desde checkout externo hacia Inventory
 
 Ya no debe tratarse como fuera de alcance global del corte vigente:
 
@@ -3105,27 +3259,41 @@ operation_enabled como columna operativa
 
 habilitación manual desde plano interno
 
-catálogo publicado inicial no transaccional
+catálogo publicado inicial
 
-SelfServiceShop
+Shop
 
-SelfServiceShopItem
+ShopItem
 
-SelfServiceShopCatalogReader
+ShopPublishedCatalogReader o capacidad equivalente de lectura publicada vigente
 
-SelfServiceShopPublisher
+carrito persistente externo inicial
+
+SelfServiceCart
+
+SelfServiceCartItem
+
+validación backend de disponibilidad del carrito
+
+bloqueo de checkout por ítems no disponibles
+
+conservación del carrito ante errores recuperables
+
+marcado visual de ítems no disponibles
+
+eliminación manual de ítems no disponibles
 
 Regla:
 
-estos elementos ya forman parte del corte base implementado o doctrinalmente consolidado según la documentación vigente.
+estos elementos ya forman parte del corte base implementado, validado o doctrinalmente consolidado según la documentación vigente.
 
 Regla:
 
-los elementos fuera de alcance pueden documentarse como evolución prevista, pero no deben mezclarse con la primera implementación si comprometen el cierre seguro del registro del customer y la separación de planos.
+los elementos fuera de alcance pueden documentarse como evolución prevista, pero no deben mezclarse con la primera implementación si comprometen el cierre seguro del registro del customer, la separación de planos, la seguridad del carrito o la operación comercial formal.
 
 Regla adicional:
 
-antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado transaccional, facturación, promociones, guard externo definitivo, middleware externo definitivo de autorización obligatoria u operación comercial real, debe respetarse el corte actual y validar con código real.
+antes de continuar con saldo, ficha, QR, email real, Mercado Pago, MODO, provider externo real, minimercado transaccional, facturación, promociones, guard externo definitivo, middleware externo definitivo de autorización obligatoria u operación comercial real, debe respetarse el corte actual y validar con código real.
 
 Regla específica:
 
@@ -3133,14 +3301,18 @@ la confirmación de email no equivale a habilitación operativa completa.
 
 La finalización de identidad operativa no equivale a operación comercial completa.
 
-La habilitación manual operation_enabled no implementa por sí misma saldo, compra, fichas, QR, pagos, carrito ni comprobantes.
+La habilitación manual operation_enabled no implementa por sí misma saldo, compra formal, fichas, QR, pagos reales ni comprobantes.
+
+El carrito persistente externo no implementa por sí mismo pago real, orden, documento ni movimiento de stock.
+
+El checkout simulado no implementa por sí mismo operación comercial formal.
 
 Para operar comercialmente deberá existir contrato específico de operación externa.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS DE SEGURIDAD>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 REGLAS DE SEGURIDAD
 
@@ -3161,6 +3333,12 @@ el cliente externo no usa Fortify interno
 el cliente externo no usa tenants/select
 
 el cliente externo no administra tienda
+
+el cliente externo no administra shops
+
+el cliente externo no administra Shop
+
+el cliente externo no administra ShopItem
 
 el cliente externo solo opera sobre sus propios datos comerciales autorizados
 
@@ -3183,6 +3361,10 @@ las operaciones críticas deben confirmarse
 la integración con controlador externo debe confirmar aceptación antes de descontar ficha
 
 Mercado Pago futuro no acredita saldo por redirect visual
+
+MODO futuro no acredita saldo por redirect visual
+
+un provider externo futuro no acredita saldo por redirect visual
 
 los datos fiscales compartidos no comparten historial ni saldo entre clientes
 
@@ -3247,7 +3429,7 @@ SelfServiceExternalSession no es tenant activo interno.
 
 SelfServiceExternalSession no es guard externo definitivo.
 
-SelfServiceExternalSession no habilita operación comercial.
+SelfServiceExternalSession no habilita operación comercial completa.
 
 SelfServiceExternalSession no autoriza administración interna de tienda.
 
@@ -3259,65 +3441,92 @@ No convierte /shop/{tenant:slug} en ruta privada.
 
 No bloquea visitantes públicos.
 
+No redirige por falta de sesión externa.
+
 No exige login externo.
 
-No habilita operación comercial.
+No usa Auth.
 
-No autoriza administración interna de tienda.
+No escribe session('tenant_id').
 
-Regla sobre habilitación operativa:
+No crea User.
 
-confirmar email no habilita operación comercial completa.
+No crea Membership.
 
-completar identidad operativa no habilita operación comercial completa.
+No habilita operación comercial completa.
 
-crear contraseña externa no habilita operación comercial completa.
+Regla sobre carrito externo:
 
-validar credencial externa propia no habilita operación comercial completa.
+el carrito persistente externo solo puede operar para customer externo con relación customer-tienda válida y operation_enabled = true.
 
-seleccionar tienda no habilita operación comercial completa.
+Visitantes públicos no operan carrito persistente.
 
-iniciar sesión externa mínima no habilita operación comercial completa.
+Customers externos con operation_enabled = false no operan carrito persistente.
 
-operation_enabled = false bloquea operación comercial.
+El carrito debe validar tenant público correcto.
 
-operation_enabled = true solo habilita canOperate() dentro del contrato vigente.
+El carrito debe validar customer externo correcto.
 
-No reemplaza contratos futuros de saldo, fichas, QR, pagos, carrito, órdenes, documentos ni stock.
+El carrito debe validar relación customer-tienda correcta.
 
-Regla sobre administración interna de tienda:
+El carrito debe operar sobre ShopItem como unidad de publicación.
 
-SelfServiceShop y SelfServiceShopItem pertenecen al plano interno.
+El carrito no debe operar directamente sobre Product como unidad comercial primaria.
 
-Deben requerir:
+Regla sobre disponibilidad del carrito:
 
-User autenticado
-Membership vigente
-tenant activo
-autorización backend efectiva
+el backend debe revalidar disponibilidad efectiva antes de permitir checkout.
 
-No autorizan administración interna:
+No alcanza con que el ítem haya sido válido al agregarse.
 
-customer externo
-SelfServiceExternalSession
-ResolveSelfServiceExternalCustomer
-/shop/{tenant:slug}
-/tienda
-/tienda/seleccionar
+No alcanza con que el frontend muestre el ítem como disponible.
 
-Regla sobre errores de acceso externo:
+No alcanza con que el botón Pagar esté visible.
 
-el acceso externo de customer debe responder con mensajes genéricos ante fallas.
+Si una línea deja de estar disponible, el checkout debe bloquearse.
 
-No debe revelar si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas, token ausente, token inválido, token vencido, token usado, store_customer_id manipulado, pertenencia de cuenta, relación bloqueada, sesión externa o estado no habilitado para operar.
+El carrito debe conservar el ítem no disponible y exigir eliminación manual por parte del customer.
+
+Un error recuperable de disponibilidad no debe vaciar automáticamente el carrito.
+
+Regla sobre checkout:
+
+checkout simulado no equivale a pago real.
+
+checkout simulado no equivale a operación comercial formal.
+
+checkout simulado no crea Order.
+
+checkout simulado no crea Document.
+
+checkout simulado no crea InventoryMovement.
+
+El próximo checkout backend real con provider simulado deberá recalcular datos críticos desde backend.
+
+No debe confiar en:
+
+precios enviados por frontend
+totales enviados por frontend
+nombres enviados por frontend
+estado visual enviado por frontend
+moneda enviada sin validación backend
+disponibilidad enviada por frontend
+
+Regla sobre provider externo:
+
+la conexión con Mercado Pago, MODO u otro provider debe vivir detrás de frontera explícita, service, gateway o contrato equivalente.
+
+No debe implementarse como lógica directa de controller ni como lógica JS.
+
+La integración debe contemplar idempotencia backend cuando corresponda.
+
+La integración debe persistir request y response cuando corresponda.
+
+La integración no debe crear efectos comerciales formales hasta que exista contrato interno explícito.
 
 Regla final:
 
-la autenticación externa futura no equivale a autorización interna.
-
-Operar en la tienda no habilita acceso al panel interno.
-
-Administrar tienda no pertenece al plano customer.
+la tienda pública, el catálogo publicado, la sesión externa mínima, el carrito persistente y el checkout simulado no reemplazan Security, validaciones backend, tenant correcto, ownership modular ni contratos futuros de operación comercial real.
 
 <<END SECTION>>
 

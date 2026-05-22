@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00030
+SECTION_VERSION: 00033
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -434,8 +434,38 @@ SelfServiceCartItem no reemplaza DocumentItem.
 
 SelfServiceCart no reemplaza InventoryMovement.
 
+
+SelfServiceCart puede registrar estado de checkout simulado o checkout interno real según contrato vigente, pero ese estado no reemplaza operación comercial formal.
+
+SelfServiceCart.meta puede conservar paquete de checkout, request transaccional y response de provider simulado cuando exista corte backend real interno.
+
+Reglas:
+
+cart.meta no reemplaza Orders
+
+cart.meta no reemplaza Documents
+
+cart.meta no reemplaza Inventory
+
+cart.meta no acredita pago real externo por sí mismo
 Agregar al carrito no mueve stock.
 
+
+Si un ShopItem deja de cumplir la publicación efectiva después de haber sido agregado, la línea del carrito puede conservarse como no disponible.
+
+Lectura:
+
+la línea permanece en SelfServiceCartItem hasta que el customer la elimine manualmente o hasta que una regla explícita la regularice.
+
+Reglas:
+
+ítem no disponible no habilita checkout
+
+ítem no disponible no debe vaciar automáticamente el carrito
+
+la disponibilidad debe recalcularse en backend
+
+el frontend solo representa el estado preparado por backend
 Agregar al carrito no crea Order.
 
 Agregar al carrito no crea Document.
@@ -444,6 +474,26 @@ Agregar al carrito no crea InventoryMovement.
 
 Checkout simulado no equivale a operación comercial formal.
 
+
+Checkout backend real interno con provider simulado representa una validación transaccional interna real de app-base, pero no equivale a integración real con provider externo.
+
+Lectura:
+
+app-base valida carrito, disponibilidad, cantidades, precios, moneda, tenant, customer externo, relación customer-tienda y operation_enabled.
+
+El provider simulado representa únicamente la respuesta externa esperada.
+
+Reglas:
+
+checkout backend real interno con provider simulado no crea por sí mismo Order
+
+checkout backend real interno con provider simulado no crea por sí mismo Document
+
+checkout backend real interno con provider simulado no crea por sí mismo InventoryMovement
+
+checkout backend real interno con provider simulado no equivale a pago real externo
+
+checkout backend real interno con provider simulado no equivale a operación comercial formal completa
 OrderItemController y DocumentItemController no deben reconstruir internamente Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial.
 
 ShopItem puede tomar productos activos mediante selector oficial o capacidad equivalente de Products.

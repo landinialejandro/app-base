@@ -88,7 +88,7 @@ Contrato compacto = formato principal.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00040
+SECTION_VERSION: 00044
 
 [PRINCIPIOS]
 Simplicidad.
@@ -701,12 +701,42 @@ Activar tienda no habilita operación comercial completa.
 Catálogo publicado no habilita operación comercial completa.
 
 
+Carrito persistente externo no habilita operación comercial completa.
+
+Ítem no disponible en carrito bloquea checkout.
+
+Error recuperable de disponibilidad no debe vaciar automáticamente el carrito.
+
+Reglas:
+
+revalidar disponibilidad en backend antes de checkout
+
+marcar línea no disponible mediante payload preparado
+
+permitir eliminación manual del ítem no disponible
+
+bloquear pago mientras exista al menos una línea no disponible
+
 Carrito persistente no equivale a compra real.
 
 Checkout simulado no equivale a pago real.
 
 Checkout simulado no crea Orders, Documents ni InventoryMovements.
 
+
+Checkout backend real interno con provider simulado no equivale a pago real externo.
+
+Checkout backend real interno con provider simulado no equivale a operación comercial formal completa.
+
+Provider externo no equivale a autoridad interna de negocio.
+
+Reglas:
+
+app-base recalcula carrito, disponibilidad, cantidades, precios, moneda, tenant, customer externo, relación customer-tienda y operation_enabled desde backend
+
+el provider simulado representa solo la respuesta externa esperada
+
+no crear Orders, Documents ni InventoryMovements sin bridge operativo explícito y validado
 Imagen pública de producto publicado no equivale a preview interna de Attachment.
 
 Reglas:
@@ -716,6 +746,12 @@ la futura imagen pública de tienda debe exponerse por ruta propia de self_servi
 no debe reutilizar attachments.preview
 
 attachments.preview pertenece al plano interno autorizado
+
+preview interna autorizada puede usar attachments.preview mediante payload preparado
+
+tienda pública externa no puede reutilizar attachments.preview como imagen pública
+
+la imagen pública futura debe vivir en ruta propia de self_service_sales y validar publicación efectiva
 [CSS / COMPONENTES / JS]
 No usar componentes Blade inexistentes.
 No asumir utilities CSS no validadas.
@@ -749,6 +785,25 @@ shops usa box.
 
 No usar building-storefront si no existe.
 
+
+Uso vigente adicional:
+
+eye
+visible, publicado o acción de mostrar cuando el componente exista
+
+eye-slash
+oculto, borrador, no visible o acción de ocultar cuando el componente exista
+
+trash
+eliminación real
+
+Reglas:
+
+eye y eye-slash expresan visibilidad o publicación
+
+trash no debe usarse como equivalente visual de ocultar
+
+ocultar/publicar y eliminar deben mantener iconografía diferenciada
 [REGLA FINAL]
 Convención válida = regla repetible de implementación que evita acoplamiento, legacy, ambigüedad o duplicación.
 
@@ -2811,7 +2866,7 @@ SVG debe integrarse al sistema visual sin crear acoplamiento funcional ni varian
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NAVEGACIÓN CONTEXTUAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 [USO]
 Regla específica para navegación cruzada entre entidades relacionadas.
@@ -2838,6 +2893,18 @@ La decisión debe ser explícita y estable.
 trail = contexto externo.
 return_tab = contexto interno del host.
 
+
+ProductLinked contextual puede preservar trail cuando el origen funcional importa.
+
+Reglas:
+
+el consumidor entrega Product o payload compatible
+
+el consumidor entrega trailQuery cuando corresponde
+
+Products resuelve link oficial
+
+el consumidor no reconstruye breadcrumb ni rutas locales hacia Product si existe helper oficial
 [REGLA FINAL]
 Navegación contextual no se deduce; se construye y propaga con contrato.
 

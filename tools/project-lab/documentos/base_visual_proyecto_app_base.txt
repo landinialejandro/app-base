@@ -44,7 +44,7 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00010
 
 ESTRUCTURA GENERAL DE PÁGINA
 
@@ -142,10 +142,21 @@ carrito visible desde header superior
 barra inferior con acciones externas
 perfil externo solo en barra inferior
 
+estado visual de ítem no disponible en carrito
+bloqueo visual de pago cuando existan ítems no disponibles
+acción de corrección manual del carrito
 Reglas:
 
 esta gramática visual pertenece al plano público externo customer
 
+
+los productos no disponibles en carrito deben representarse como advertencia recuperable, no como error destructivo
+
+el color/estado visual debe comunicar bloqueo operativo corregible
+
+el usuario debe poder identificar la línea afectada y eliminarla manualmente
+
+el botón de pago debe quedar bloqueado mientras exista al menos un ítem no disponible
 no debe confundirse con panel interno
 
 no debe exponer navegación interna tenant
@@ -199,6 +210,28 @@ artículos configurados
 diagnóstico de visibilidad pública efectiva
 motivo cuando un artículo no sería visible públicamente
 
+
+imagen o thumb autorizado cuando exista payload preparado
+
+nombre del producto como vínculo principal cuando exista link contextual preparado
+
+SKU o referencia secundaria como ayuda visual, sin duplicar el nombre principal
+
+Reglas:
+
+la preview interna puede reutilizar clases visuales de attachments cuando el payload ya llega autorizado
+
+clases reutilizables vigentes para thumb interno:
+
+attachment-file-cell
+attachment-file-thumb-link
+attachment-thumb
+
+la vista preview no debe consultar Attachments directamente desde Blade
+
+la vista preview no debe duplicar nombre de producto como texto principal y link secundario
+
+si existe link contextual del producto, el nombre principal debe ser el link
 Ruta vigente:
 
 /shops/{shop}/preview
@@ -211,6 +244,18 @@ la vista previa interna no debe requerir sesión externa customer
 
 la vista previa interna no debe crear bypass entre plano interno y plano externo
 
+
+la vista previa interna puede mostrar x-dev-component-version cuando la vista, card o bloque intervenido tenga entidad visual propia
+
+Lectura:
+
+shops.preview pertenece al plano interno autorizado.
+
+No es superficie pública customer.
+
+Regla:
+
+mostrar marca visual interna de versión en preview de shops no contradice la prohibición de exponer x-dev-component-version en /shop/{tenant:slug}.
 Regla adicional para landing pública:
 
 la landing puede ofrecer accesos diferenciados por intención.
@@ -256,7 +301,7 @@ resources/views/landing
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00035
+SECTION_VERSION: 00037
 
 COMPONENTES DISPONIBLES
 
@@ -330,6 +375,22 @@ shops usa box.
 
 No usar building-storefront si no existe como componente disponible.
 
+
+Caso vigente adicional:
+
+eye representa publicación visible o acción de mostrar cuando el componente exista.
+
+eye-slash representa oculto, borrador, no visible o acción de ocultar cuando el componente exista.
+
+trash representa eliminación real.
+
+Reglas:
+
+eye y eye-slash pueden expresar visibilidad/publicación.
+
+trash no debe usarse como equivalente visual de ocultar.
+
+ocultar/publicar y eliminar deben mantener iconografía diferenciada.
 Uso vigente de íconos de actividad:
 
 activity
@@ -506,6 +567,26 @@ x-line-operation-modal
 x-tabs-embedded
 x-dev-component-version
 
+
+Regla visual para x-line-item-table:
+
+si una línea de Orders o Documents tiene producto vinculado y existe ProductLinked contextual preparado, el nombre principal debe representarse mediante ese link oficial.
+
+Debajo debe quedar solo información secundaria útil, como tipo o detalle operativo.
+
+No debe duplicarse el nombre del producto en formato principal y secundario.
+
+No debe mostrarse una redundancia tipo:
+
+Producto · Producto: nombre
+
+Regla:
+
+el consumidor entrega producto y contexto.
+
+Products resuelve el link oficial.
+
+x-line-item-table representa el payload sin reconstruir navegación ni duplicar texto.
 x-dev-component-version es el componente vigente para identificar y versionar Blades intervenidos.
 
 Debe utilizarse en Blades nuevos y en Blades modificados cuando la vista, partial, componente o card intervenida tenga entidad visual propia dentro del sistema.

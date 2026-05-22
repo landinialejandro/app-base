@@ -142,7 +142,7 @@ Detalle técnico puede evolucionar sin alterar doctrina.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00037
+SECTION_VERSION: 00038
 
 [AUTORIDAD CENTRAL]
 Decisión final = backend / capa central de seguridad.
@@ -200,6 +200,10 @@ Configuración interna ≠ operación externa.
 * customer externo habilitado visualmente
 * saldo mostrado en Blade
 * acción visible en superficie embebida
+* carrito visible
+* checkout simulado
+* respuesta visual de provider externo
+* redirect visual de pago
 
 [MÍNIMO ACOPLE]
 Consumidor no reinterpreta seguridad de otro módulo.
@@ -216,6 +220,30 @@ módulo dueño consulta hook/service/frontera explícita.
 No reconstruir lógica externa.
 
 Falla en bloqueo crítico = bloquear.
+
+Un provider externo no decide reglas internas de negocio.
+
+Un provider externo no reemplaza validación backend.
+
+Un provider externo no reemplaza autorización interna ni externa.
+
+[FRONTERA DE PAGO EXTERNO]
+Pago externo, provider de pago, pasarela, comprobante futuro o confirmación de pago deben pasar por frontera explícita.
+
+No deben implementarse como lógica directa de controller ni como lógica de frontend.
+
+No deben confiar en:
+
+precio enviado por frontend
+total enviado por frontend
+moneda enviada sin validación backend
+nombre enviado por frontend
+estado visual del carrito
+redirect visual
+pantalla de éxito no verificada
+respuesta no autenticada
+
+El backend debe recalcular y validar antes de iniciar o confirmar operación crítica.
 
 [AUTONOMÍA MODULAR]
 Módulo autónomo ≠ acceso libre.
@@ -259,6 +287,12 @@ Customer externo no administra recursos internos.
 
 operation_enabled = false bloquea operación comercial.
 
+Carrito persistente externo ≠ compra formal.
+
+Checkout simulado ≠ pago real.
+
+Checkout backend real interno con provider simulado ≠ provider real externo.
+
 [RECURSOS INTERNOS CONSUMIDOS POR PLANO EXTERNO]
 Todo recurso interno consumido por un plano externo conserva autorización interna propia.
 
@@ -297,7 +331,10 @@ datos sensibles
 customers externos
 operación comercial externa
 publicación interna consumida externamente
+carrito externo persistente
+checkout externo
 pagos o comprobantes futuros
+provider externo de pago
 entrega formal
 aplicación formal
 devolución formal
@@ -318,10 +355,12 @@ Todo plano auxiliar debe volver a autorización backend efectiva.
 
 Todo cierre crítico debe consultar blockers del módulo dueño cuando exista dependencia externa formal.
 
+Todo pago o checkout externo debe validar backend antes de producir efectos internos.
+
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 [ACCESO PÚBLICO]
 Previo o externo a operación interna autenticada.
@@ -486,6 +525,9 @@ iniciar sesión externa mínima
 resolver contexto externo pasivo
 redirigir a tienda pública
 ver catálogo publicado
+ver carrito persistente
+iniciar checkout simulado
+recibir respuesta visual de provider externo
 
 Para operar deberá existir:
 
@@ -493,6 +535,7 @@ identidad operativa suficiente
 relación customer-tienda válida
 habilitación operativa explícita
 autorización externa correspondiente al flujo
+validación backend del recurso operado
 
 [TIENDA PÚBLICA Y CATÁLOGO]
 Tienda pública y catálogo publicado no habilitan:
@@ -538,6 +581,95 @@ No como sesión pública customer.
 
 No como bypass entre planos.
 
+Puede usar recursos internos autorizados del plano interno.
+
+No debe confundirse con exposición pública externa del recurso.
+
+[CARRITO EXTERNO]
+Carrito externo persistente pertenece al plano externo customer.
+
+No pertenece al panel interno.
+
+No administra shops.
+
+No administra Products.
+
+No administra Inventory.
+
+No administra Documents.
+
+Solo puede operar si existen:
+
+tenant público correcto
+customer externo correcto
+relación customer-tienda válida
+operation_enabled = true
+ShopItem publicado válido
+validación backend efectiva
+
+El carrito externo no habilita por sí mismo:
+
+compra formal
+pago real
+Order
+Document
+InventoryMovement
+saldo
+fichas
+QR
+comprobante
+
+[DISPONIBILIDAD DE CARRITO]
+La disponibilidad debe revalidarse en backend.
+
+No alcanza con que el ítem haya sido válido al agregarse.
+
+No alcanza con que el frontend lo muestre disponible.
+
+No alcanza con que el botón de pago esté visible.
+
+Si un ítem deja de estar disponible, el checkout debe bloquearse.
+
+El carrito puede conservar el ítem no disponible para permitir corrección manual.
+
+Frontend representa estado.
+
+Backend decide bloqueo.
+
+[CHECKOUT EXTERNO]
+Checkout externo es acción crítica del plano externo.
+
+Debe validar backend antes de producir efectos.
+
+No debe confiar en:
+
+precios del frontend
+totales del frontend
+moneda sin validación backend
+estado visual del carrito
+redirect visual
+respuesta de provider no validada
+pantalla de éxito
+
+Checkout simulado no equivale a pago real.
+
+Checkout backend real interno con provider simulado no equivale a integración real con provider externo.
+
+El primer cierre de checkout real interno no debe crear Orders, Documents ni InventoryMovements sin bridge operativo definido.
+
+[PAGO / PROVIDER EXTERNO]
+Provider externo de pago debe operar detrás de frontera explícita.
+
+No debe autorizar acceso interno.
+
+No debe decidir operación comercial interna por sí mismo.
+
+No debe reemplazar validación backend.
+
+No debe reemplazar tenant, customer, relación externa ni operation_enabled.
+
+No debe acreditar saldo ni generar efectos por redirect visual.
+
 [ERRORES DE ACCESO EXTERNO]
 Los fallos de acceso externo deben usar mensajes genéricos cuando corresponda.
 
@@ -551,6 +683,8 @@ Debe distinguirse autorización interna, publicación efectiva, plano externo, c
 [REGLA GENERAL PARA FLUJOS EXTERNOS]
 Todo flujo externo debe validar identidad externa, tenant, relación externa, estado operativo y alcance antes de permitir cualquier operación.
 
+Todo flujo externo transaccional debe recalcular y validar backend antes de producir efectos.
+
 [REGLA FINAL]
 Autenticación externa ≠ autorización interna.
 Sesión externa ≠ sesión interna.
@@ -562,6 +696,9 @@ Token temporal ≠ sesión interna.
 Selección de tienda ≠ operación comercial habilitada.
 Contexto externo pasivo ≠ operación comercial habilitada.
 Catálogo publicado ≠ operación comercial habilitada.
+Carrito externo ≠ compra formal.
+Checkout simulado ≠ pago real.
+Provider externo ≠ autoridad interna.
 Customer externo ≠ administrador interno.
 Salida externa ≠ logout interno.
 
@@ -839,7 +976,7 @@ Backend autoriza o bloquea.
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00033
+SECTION_VERSION: 00034
 
 [OBLIGATORIO]
 No autorizar desde Blade/frontend.
@@ -928,6 +1065,73 @@ Flujo externo debe declarar:
 * límites frente al panel interno
 
 No reutilizar contratos internos si el plano de seguridad es distinto.
+
+[CARRITO EXTERNO]
+Carrito externo debe validar backend:
+
+* tenant público correcto
+* customer externo correcto
+* relación customer-tienda válida
+* operation_enabled
+* ShopItem operativo
+* publicación efectiva
+* cantidades
+* alcance de la acción
+
+No confiar en estado frontend.
+
+No operar para visitantes públicos.
+
+No operar para customers externos no habilitados.
+
+No operar directamente sobre Product como unidad comercial primaria si el contrato vigente exige ShopItem.
+
+[CHECKOUT EXTERNO]
+Checkout externo debe validar backend:
+
+* carrito vigente
+* disponibilidad efectiva
+* cantidades
+* precios recalculados
+* moneda
+* tenant
+* customer
+* relación customer-tienda
+* operation_enabled
+* estado de Shop
+* estado de ShopItem
+* estado de Product
+
+No confiar en:
+
+* total frontend
+* precio frontend
+* moneda frontend sin validación
+* nombre frontend
+* estado visual del botón
+* redirect visual
+* respuesta no validada de provider
+
+Si existe ítem no disponible, debe bloquear.
+
+El frontend solo representa corrección requerida.
+
+[PROVIDER DE PAGO]
+Provider externo debe vivir detrás de frontera explícita.
+
+No implementar provider directo en controller.
+
+No implementar provider directo en JS.
+
+No acreditar saldo por redirect visual.
+
+No generar Order, Document ni InventoryMovement sin contrato interno específico.
+
+La respuesta del provider debe validarse antes de cualquier efecto interno.
+
+La idempotencia backend debe incorporarse cuando corresponda.
+
+Request y response deben persistirse cuando corresponda al contrato operativo.
 
 <<END SECTION>>
 

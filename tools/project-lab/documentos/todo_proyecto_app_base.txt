@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00013
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -584,6 +584,14 @@ eliminación de rutas legacy self_service_sales.shops.*
 eliminación de archivos legacy de administración interna self_service_sales.shops.*
 ajustes visuales del index y show
 
+trail contextual desde shops hacia Products validado
+ProductLinked contextual consumido desde shops.preview
+preview interna de shops con thumb autorizado mediante payload preparado
+acciones publicar, ocultar y eliminar diferenciadas visualmente
+iconografía eye / eye-slash / trash diferenciada según visibilidad o eliminación
+ProductLinked contextual consumido desde líneas de Orders
+ProductLinked contextual consumido desde líneas de Documents
+eliminación de redundancia visual Producto · Producto en line item table
 Rutas internas vigentes de administración:
 
 /shops
@@ -676,6 +684,17 @@ canOperate true con operation_enabled true
 catálogo publicado inicial consumido desde shops
 /shop/{tenant:slug} muestra catálogo publicado inicial
 
+carrito persistente externo inicial implementado sobre SelfServiceCart
+líneas persistentes externas implementadas sobre SelfServiceCartItem
+carrito opera sobre shopItemId como unidad operativa de publicación
+validación backend de operation_enabled para operar carrito
+validación backend de disponibilidad efectiva antes de checkout
+marcado de ítems no disponibles con is_available=false y availability_message
+bloqueo de checkout cuando existe al menos un ítem no disponible
+conservación del carrito ante bloqueo recuperable de disponibilidad
+corrección manual mediante eliminación del ítem no disponible
+UI pública externa de carrito con advertencia recuperable para ítems no disponibles
+botón de pago bloqueado mientras existan ítems no disponibles
 El middleware externo pasivo:
 
 resuelve contexto customer externo cuando la sesión corresponde al tenant público de la ruta
@@ -731,8 +750,7 @@ pagos reales
 movimientos comerciales reales
 Mercado Pago real
 facturación/comprobantes reales
-carrito
-compra
+compra formal
 operación comercial real
 
 Pendiente futuro no incluido en esta reforma:
@@ -753,6 +771,60 @@ Documents
 InventoryMovements
 comprobantes
 integraciones externas
+
+Pendiente específico próximo:
+
+implementar checkout real interno con provider externo simulado reemplazable.
+
+El frente debe considerar, sin asumir implementación no validada:
+
+SelfServicePaymentGateway
+
+SimulatedExternalPaymentGateway
+
+SelfServicePaymentRequestFactory
+
+SelfServiceCheckoutService
+
+persistencia de paquete transaccional en SelfServiceCart.meta
+
+estado checked_out en SelfServiceCart cuando corresponda
+
+actualización del frontend del checkout panel
+
+no crear Orders todavía
+
+no crear Documents todavía
+
+no crear InventoryMovements todavía
+
+Regla:
+
+el próximo corte no debe llamarse simplemente checkout simulado si el backend transaccional interno queda implementado.
+
+Lectura esperada:
+
+checkout real interno con provider simulado.
+
+La simulación debe limitarse a la comunicación externa con el provider.
+Pendiente específico próximo:
+implementar checkout real interno con provider externo simulado reemplazable.
+El frente debe considerar, sin asumir implementación no validada:
+SelfServicePaymentGateway
+SimulatedExternalPaymentGateway
+SelfServicePaymentRequestFactory
+SelfServiceCheckoutService
+persistencia de paquete transaccional en SelfServiceCart.meta
+estado checked_out en SelfServiceCart cuando corresponda
+actualización del frontend del checkout panel
+no crear Orders todavía
+no crear Documents todavía
+no crear InventoryMovements todavía
+Regla:
+el próximo corte no debe llamarse simplemente checkout simulado si el backend transaccional interno queda implementado.
+Lectura esperada:
+checkout real interno con provider simulado.
+La simulación debe limitarse a la comunicación externa con el provider.
 
 Regla:
 

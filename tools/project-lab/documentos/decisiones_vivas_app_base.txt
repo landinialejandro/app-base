@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00011
 
 DECISIONES VIGENTES
 
@@ -89,6 +89,48 @@ checkout simulado no equivale a operación comercial real
 
 checkout simulado no crea Orders, Documents ni InventoryMovements
 
+
+Decisión evolutiva pendiente:
+
+el próximo corte de checkout externo debe implementar checkout backend real interno con provider externo simulado.
+
+Lectura:
+
+no debe simularse todo el checkout.
+
+app-base debe validar internamente carrito, disponibilidad, cantidades, precios, moneda, tenant, customer externo, relación customer-tienda y operation_enabled.
+
+La única parte simulada inicialmente debe ser la comunicación con el provider externo.
+
+Providers previstos:
+
+Mercado Pago
+MODO
+otro provider externo equivalente
+
+Primer cierre operativo previsto:
+
+marcar SelfServiceCart.status = checked_out
+
+guardar en SelfServiceCart.meta el paquete de checkout
+
+guardar request transaccional interna
+
+guardar response del provider simulado
+
+No debe crear todavía:
+
+Order
+Document
+InventoryMovement
+
+Regla:
+
+no debe existir bridge operativo hacia Orders, Documents o Inventory hasta decisión explícita y validación real.
+
+Motivo:
+
+separar checkout interno real de pago externo real permite validar el contrato transaccional de app-base sin acoplarse tempranamente a un provider.
 Motivo:
 
 ShopItem representa la publicación comercial concreta de un Product dentro de una Shop activa.
@@ -97,6 +139,26 @@ Product conserva catálogo maestro.
 
 Orders, Documents e Inventory conservan ownership de operación formal, formalización documental y stock.
 
+
+Decisión validada sobre disponibilidad del carrito:
+
+si un ShopItem deja de cumplir la publicación efectiva luego de haber sido agregado al carrito, la línea debe conservarse como no disponible.
+
+Reglas:
+
+el checkout debe bloquearse
+
+el carrito no debe vaciarse automáticamente
+
+la línea debe marcarse con disponibilidad falsa
+
+el customer debe eliminar manualmente el ítem no disponible antes de continuar
+
+el frontend representa el estado preparado por backend
+
+Motivo:
+
+un bloqueo recuperable no debe destruir el estado del carrito ni ocultar la línea que requiere corrección.
 IMAGEN PÚBLICA SEGURA DE PRODUCTO PUBLICADO
 
 Decisión vigente:
@@ -132,6 +194,30 @@ no reutilizar attachments.preview
 
 no mostrar imagen pública si la publicación efectiva no está validada
 
+
+Decisión complementaria validada:
+
+la preview interna autorizada de shops puede usar attachments.preview mediante payload preparado.
+
+Lectura:
+
+preview interna pertenece al plano interno autenticado.
+
+tienda pública externa pertenece al plano customer.
+
+Reglas:
+
+attachments.preview puede usarse en preview interna autorizada
+
+attachments.preview no debe reutilizarse como imagen pública de tienda
+
+la imagen pública futura debe vivir en ruta propia de self_service_sales
+
+la imagen pública futura debe validar publicación efectiva antes de exponer archivo
+
+Motivo:
+
+la misma imagen puede ser visible en diagnóstico interno y no estar autorizada como recurso público externo si no pasa por el contrato de publicación efectiva.
 no convertir la ruta pública de imagen en acceso interno al tenant
 
 Estado:

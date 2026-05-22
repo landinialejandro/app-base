@@ -82,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00021
 
 REGLA GENERAL
 
@@ -422,7 +422,55 @@ Product conserva catálogo maestro
 
 operation_enabled = false debe bloquear operación de carrito en backend
 
+
+la disponibilidad efectiva debe revalidarse en backend antes de checkout
+
+un ShopItem válido al agregarse puede dejar de estar disponible antes de checkout
+
+un ítem no disponible debe bloquear checkout
+
+un ítem no disponible no debe vaciar automáticamente el carrito
+
+el carrito debe conservar la línea marcada para corrección manual cuando el contexto siga siendo válido
+
+el frontend solo debe representar is_available, availability_message y estado de bloqueo preparados por backend
 checkout simulado no equivale a checkout real
+
+checkout backend real interno con provider externo simulado no equivale a pago real externo
+
+checkout backend real interno con provider externo simulado no equivale a operación comercial formal completa
+
+Regla adicional para integraciones externas de pago:
+
+si una capa satélite externa incorpora checkout o provider de pago, debe validarse que:
+
+el checkout backend sea real aunque el provider externo esté simulado
+
+solo se simule la comunicación externa con el provider
+
+el provider se implemente detrás de frontera explícita, gateway, service o contrato equivalente
+
+el provider no se implemente directamente en controller
+
+el provider no se implemente directamente en JS
+
+los montos no se acepten desde frontend como fuente de verdad
+
+precios, cantidades, moneda, disponibilidad, tenant, customer, relación customer-tienda y operation_enabled se recalculen o validen en backend
+
+exista request factory o paquete transaccional interno cuando corresponda
+
+exista idempotencia backend cuando corresponda
+
+se persistan request y response del provider cuando corresponda
+
+no se cree Order, Document ni InventoryMovement sin bridge operativo explícito y validado
+
+Regla:
+
+provider simulado no debe convertirse en doctrina de pago real.
+
+Provider real futuro no debe convertirse en autoridad interna de negocio.
 Regla adicional para contrato material Inventory/Orders:
 
 si una capacidad mueve, entrega, aplica, consume, devuelve o regulariza materiales, debe distinguirse entre:

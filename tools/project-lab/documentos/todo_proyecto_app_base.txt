@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -828,7 +828,7 @@ creación de Document posterior al pago
 
 reserva o movimiento de stock
 
-renombrar route name self_service_sales.checkout.simulate a nombre definitivo cuando se decida
+renombre de route name self_service_sales.checkout.simulate a self_service_sales.checkout.process aplicado y validado
 
 definir formalización interna posterior al pago aprobado
 

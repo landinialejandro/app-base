@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00036
+SECTION_VERSION: 00037
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -494,7 +494,7 @@ Checkout interno real con provider externo simulado no equivale a operación com
 
 Provider externo simulado no equivale a pago real externo.
 
-Route name legacy self_service_sales.checkout.simulate no define la lectura conceptual vigente del checkout.
+Route name vigente self_service_sales.checkout.process acompaña la lectura conceptual actual del checkout.
 
 Regla:
 

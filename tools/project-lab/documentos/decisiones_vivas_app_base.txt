@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00022
 
 DECISIONES VIGENTES
 
@@ -198,11 +198,11 @@ separar checkout interno real de pago externo real permite validar el contrato t
 
 Decisión adicional vigente:
 
-mantener temporalmente el route name self_service_sales.checkout.simulate por compatibilidad del corte actual.
+el route name vigente del checkout externo es self_service_sales.checkout.process.
 
 Regla:
 
-ese nombre de ruta no define la lectura conceptual final del checkout.
+el nombre de ruta vigente debe acompañar la lectura conceptual actual del checkout.
 
 El comportamiento vigente debe leerse como checkout interno real con provider externo simulado.
 Motivo:

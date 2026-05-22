@@ -11,7 +11,7 @@
         <div class="shop-status-panel__line">
             <strong>{{ $externalCustomer['display_name'] }}</strong>
             <span>·</span>
-            <span>{{ $externalCustomer['operation_enabled'] ? 'Operación habilitada' : 'Operación pendiente' }}</span>
+            <span>{{ \App\Support\Catalogs\SelfServiceStoreCustomerCatalog::operationLabel((bool) $externalCustomer['operation_enabled']) }}</span>
         </div>
 
         <div class="shop-status-panel__actions">

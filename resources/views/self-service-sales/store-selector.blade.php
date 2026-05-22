@@ -67,8 +67,8 @@
                                     <td>{{ $storeSelectorRow['party_label'] }}</td>
                                     <td>{{ $storeSelectorRow['identity_label'] }}</td>
                                     <td>
-                                        <span class="status-badge {{ $storeSelectorRow['operation_enabled'] ? 'status-badge--done' : 'status-badge--pending' }}">
-                                            {{ $storeSelectorRow['operation_enabled'] ? 'Habilitada' : 'Pendiente' }}
+                                        <span class="status-badge {{ \App\Support\Catalogs\SelfServiceStoreCustomerCatalog::operationBadgeClass((bool) $storeSelectorRow['operation_enabled']) }}">
+                                            {{ \App\Support\Catalogs\SelfServiceStoreCustomerCatalog::operationShortLabel((bool) $storeSelectorRow['operation_enabled']) }}
                                         </span>
                                     </td>
                                     <td>

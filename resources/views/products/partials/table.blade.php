@@ -66,7 +66,11 @@
                         </td>
                         <td>{{ $product->unit_label ?? '—' }}</td>
                         <td>{{ ProductCatalog::label($product->kind) }}</td>
-                        <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
+                        <td>
+                            <span class="status-badge {{ ProductCatalog::activeBadgeClass((bool) $product->is_active) }}">
+                                {{ ProductCatalog::activeLabel((bool) $product->is_active) }}
+                            </span>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

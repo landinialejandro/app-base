@@ -1,19 +1,7 @@
 {{-- FILE: resources/views/shops/partials/table.blade.php | V2 --}}
 
 @php
-    use App\Models\Shop;
-
-    $statusLabels = [
-        Shop::STATUS_DRAFT => 'Borrador',
-        Shop::STATUS_ACTIVE => 'Activa',
-        Shop::STATUS_INACTIVE => 'Inactiva',
-    ];
-
-    $statusClasses = [
-        Shop::STATUS_DRAFT => 'status-badge--muted',
-        Shop::STATUS_ACTIVE => 'status-badge--success',
-        Shop::STATUS_INACTIVE => 'status-badge--neutral',
-    ];
+    use App\Support\Catalogs\ShopCatalog;
 @endphp
 
 @if ($shops->count())
@@ -43,8 +31,8 @@
                             @endif
                         </td>
                         <td>
-                            <span class="status-badge {{ $statusClasses[$shop->status] ?? '' }}">
-                                {{ $statusLabels[$shop->status] ?? $shop->status }}
+                            <span class="status-badge {{ ShopCatalog::badgeClass($shop->status) }}">
+                                {{ ShopCatalog::statusLabel($shop->status, $shop->status) }}
                             </span>
                         </td>
                         <td>

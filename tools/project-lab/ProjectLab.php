@@ -889,6 +889,8 @@ class ProjectLab
         }
 
         $output = "[OK] Modo: lab_patch\n";
+        $applied = 0;
+        $failed = 0;
 
         foreach ($patches as $index => $patch) {
             $patchNumber = $index + 1;
@@ -896,14 +898,24 @@ class ProjectLab
             $output .= $result['output'];
 
             if (! ($result['ok'] ?? false)) {
-                $output .= "[ERROR] Proceso detenido en patch {$patchNumber}/{$total}. No se aplican patches siguientes.";
-                $this->log('LAB_PATCH_ERROR', $patch['file'] ?? 'sin-archivo', $output);
+                $failed++;
+                $output .= "\n[WARN] Patch {$patchNumber}/{$total} omitido por error. Se continúa con los patches siguientes.\n";
+                $this->log('LAB_PATCH_PARTIAL_ERROR', $patch['file'] ?? 'sin-archivo', $result['output']);
 
-                return $output;
+                continue;
             }
+
+            $applied++;
         }
 
-        $output .= "[OK] Proceso finalizado. Patches aplicados: {$total}";
+        if ($failed > 0) {
+            $output .= "[WARN] Proceso finalizado con errores parciales. Patches aplicados: {$applied}. Patches omitidos: {$failed}. Total: {$total}";
+            $this->log('LAB_PATCH_PARTIAL', 'lab-patch', $output);
+
+            return $output;
+        }
+
+        $output .= "[OK] Proceso finalizado. Patches aplicados: {$applied}";
         $this->log('LAB_PATCH', 'lab-patch', $output);
 
         return $output;

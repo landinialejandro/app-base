@@ -4,6 +4,8 @@
 
 namespace App\Support\Inventory;
 
+use App\Support\Catalogs\StatusVocabulary;
+
 use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\InventoryMovement;
@@ -940,13 +942,13 @@ private function resolveDocumentItemRowActions(array $hostPack): array
     private function materialConsistencyBadge(string $status, bool $isAmbiguous): string
     {
         if ($isAmbiguous) {
-            return 'status-badge--warning';
+            return StatusVocabulary::badgeClass(StatusVocabulary::WARNING);
         }
 
         return match ($status) {
             InventoryMaterialBalanceService::CONSISTENCY_FORMAL => 'status-badge--done',
             InventoryMaterialBalanceService::CONSISTENCY_AMBIGUOUS,
-            InventoryMaterialBalanceService::CONSISTENCY_NOT_FORMALIZABLE => 'status-badge--warning',
+            InventoryMaterialBalanceService::CONSISTENCY_NOT_FORMALIZABLE => StatusVocabulary::badgeClass(StatusVocabulary::WARNING),
             default => 'status-badge--neutral',
         };
     }

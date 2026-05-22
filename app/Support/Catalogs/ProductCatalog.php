@@ -33,6 +33,21 @@ class ProductCatalog extends BaseCatalog
         return static::$statuses[$value] ?? $default;
     }
 
+    public static function activeLabel(bool $value): ?string
+    {
+        return StatusVocabulary::activeLabel($value);
+    }
+
+    public static function activeBadgeClass(bool $value): string
+    {
+        return StatusVocabulary::activeBadgeClass($value);
+    }
+
+    public static function activePresentation(bool $value): array
+    {
+        return StatusVocabulary::activePresentation($value);
+    }
+
 
     public static function activityTrackedFields(): array
     {

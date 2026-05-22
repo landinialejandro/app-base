@@ -107,9 +107,9 @@
                     {{ ProductCatalog::label($product->kind) }}
                 </x-show-summary-item-detail-block>
 
-                <x-show-summary-item-detail-block label="Activo">
-                    <span class="status-badge {{ $product->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
-                        {{ $product->is_active ? 'Sí' : 'No' }}
+                <x-show-summary-item-detail-block label="Estado">
+                    <span class="status-badge {{ ProductCatalog::activeBadgeClass((bool) $product->is_active) }}">
+                        {{ ProductCatalog::activeLabel((bool) $product->is_active) }}
                     </span>
                 </x-show-summary-item-detail-block>
 

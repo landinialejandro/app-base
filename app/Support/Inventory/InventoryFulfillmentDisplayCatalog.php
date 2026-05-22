@@ -4,6 +4,8 @@
 
 namespace App\Support\Inventory;
 
+use App\Support\Catalogs\StatusVocabulary;
+
 class InventoryFulfillmentDisplayCatalog
 {
     public const STATUS_DRAFT = 'draft';
@@ -24,14 +26,14 @@ class InventoryFulfillmentDisplayCatalog
         self::STATUS_CANCELLED => 'Cancelada',
     ];
 
-    protected static array $badges = [
-        self::STATUS_DRAFT => 'status-badge--pending',
-        self::STATUS_PENDING_APPROVAL => 'status-badge--warning',
-        self::STATUS_APPROVED => 'status-badge--warning',
-        self::STATUS_PARTIALLY_FULFILLED => 'status-badge--in-progress',
-        self::STATUS_FULFILLED => 'status-badge--done',
-        self::STATUS_CLOSED => 'status-badge--done',
-        self::STATUS_CANCELLED => 'status-badge--cancelled',
+    protected static array $statusIntentions = [
+        self::STATUS_DRAFT => StatusVocabulary::DRAFT,
+        self::STATUS_PENDING_APPROVAL => StatusVocabulary::PENDING,
+        self::STATUS_APPROVED => StatusVocabulary::APPROVED,
+        self::STATUS_PARTIALLY_FULFILLED => StatusVocabulary::PARTIAL,
+        self::STATUS_FULFILLED => StatusVocabulary::COMPLETED,
+        self::STATUS_CLOSED => StatusVocabulary::CLOSED,
+        self::STATUS_CANCELLED => StatusVocabulary::CANCELLED,
     ];
 
     public static function label(?string $status, string $default = '—'): string
@@ -39,8 +41,17 @@ class InventoryFulfillmentDisplayCatalog
         return $status !== null ? (static::$labels[$status] ?? $default) : $default;
     }
 
+    public static function statusIntention(?string $status): ?string
+    {
+        if ($status === null || $status === '') {
+            return null;
+        }
+
+        return static::$statusIntentions[$status] ?? $status;
+    }
+
     public static function badgeClass(?string $status, string $default = 'status-badge--neutral'): string
     {
-        return $status !== null ? (static::$badges[$status] ?? $default) : $default;
+        return StatusVocabulary::badgeClass(static::statusIntention($status), $default);
     }
 }

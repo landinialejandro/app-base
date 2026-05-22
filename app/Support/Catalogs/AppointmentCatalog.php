@@ -30,10 +30,10 @@ class AppointmentCatalog extends BaseCatalog
         self::STATUS_CANCELLED => 'Cancelado',
     ];
 
-    protected static array $badges = [
-        self::STATUS_SCHEDULED => 'status-badge--pending',
-        self::STATUS_COMPLETED => 'status-badge--done',
-        self::STATUS_CANCELLED => 'status-badge--cancelled',
+    protected static array $statusIntentions = [
+        self::STATUS_SCHEDULED => StatusVocabulary::SCHEDULED,
+        self::STATUS_COMPLETED => StatusVocabulary::COMPLETED,
+        self::STATUS_CANCELLED => StatusVocabulary::CANCELLED,
     ];
 
     protected static array $kinds = [

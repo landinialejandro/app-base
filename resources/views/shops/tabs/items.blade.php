@@ -1,14 +1,10 @@
 {{-- FILE: resources/views/shops/tabs/items.blade.php | V2 --}}
 
 @php
-    $trailQuery = $trailQuery ?? [];
-    use App\Models\ShopItem;
+    use App\Support\Catalogs\ShopCatalog;
 
-    $statuses = [
-        ShopItem::STATUS_PUBLISHED => 'Publicados',
-        ShopItem::STATUS_DRAFT => 'Borradores',
-        ShopItem::STATUS_HIDDEN => 'Ocultos',
-    ];
+    $trailQuery = $trailQuery ?? [];
+    $statuses = ShopCatalog::itemFilterLabels();
 
     $canUpdateShop = auth()->user()?->can('update', $shop) === true;
 @endphp

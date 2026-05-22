@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceSalesCartController.php | V2
+// FILE: app/Http/Controllers/SelfServiceSalesCartController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -8,6 +8,7 @@ use App\Models\SelfServiceCartItem;
 use App\Models\Tenant;
 use App\Support\SelfServiceSales\SelfServiceCartPresenter;
 use App\Support\SelfServiceSales\SelfServiceCartService;
+use App\Support\SelfServiceSales\SelfServiceCheckoutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,7 +18,8 @@ class SelfServiceSalesCartController extends Controller
 {
     public function __construct(
         protected SelfServiceCartService $carts,
-        protected SelfServiceCartPresenter $presenter
+        protected SelfServiceCartPresenter $presenter,
+        protected SelfServiceCheckoutService $checkout
     ) {
     }
 
@@ -88,13 +90,18 @@ class SelfServiceSalesCartController extends Controller
     public function checkout(Request $request, Tenant $tenant): JsonResponse
     {
         return $this->respond(function () use ($request, $tenant) {
-            $cart = $this->carts->simulateCheckout($request, $tenant);
+            $result = $this->checkout->checkout($request, $tenant);
 
-            return response()->json($this->presenter->error(
-                'Función no implementada todavía: pago final.',
-                $cart,
-                $tenant
-            ));
+            $payload = $this->presenter->presentCheckout(
+                $result['cart'],
+                $tenant,
+                $result['payment'],
+                $result['message']
+            );
+
+            $payload['ok'] = (bool) $result['ok'];
+
+            return response()->json($payload);
         }, $request, $tenant);
     }
 

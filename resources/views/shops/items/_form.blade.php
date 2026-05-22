@@ -1,18 +1,14 @@
 {{-- FILE: resources/views/shops/items/_form.blade.php | V1 --}}
 
 @php
-    use App\Models\ShopItem;
+    use App\Support\Catalogs\ShopCatalog;
     use App\Support\Products\ProductLinked;
 
     $trailQuery = $trailQuery ?? [];
 
     $mode = $mode ?? 'create';
 
-    $statusLabels = [
-        ShopItem::STATUS_DRAFT => 'Borrador',
-        ShopItem::STATUS_PUBLISHED => 'Publicado',
-        ShopItem::STATUS_HIDDEN => 'Oculto',
-    ];
+    $statusLabels = ShopCatalog::itemStatusLabels();
 @endphp
 
 @if ($mode === 'create')
@@ -76,7 +72,7 @@
     <label class="form-label" for="status">Estado</label>
     <select id="status" name="status" class="form-control">
         @foreach ($statusLabels as $value => $label)
-            <option value="{{ $value }}" @selected(old('status', $item->status ?? ShopItem::STATUS_DRAFT) === $value)>
+            <option value="{{ $value }}" @selected(old('status', $item->status ?? ShopCatalog::defaultItemStatus()) === $value)>
                 {{ $label }}
             </option>
         @endforeach

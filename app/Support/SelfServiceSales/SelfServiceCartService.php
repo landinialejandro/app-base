@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCartService.php | V1
+// FILE: app/Support/SelfServiceSales/SelfServiceCartService.php | V2
 
 namespace App\Support\SelfServiceSales;
 
@@ -101,7 +101,7 @@ class SelfServiceCartService
         return $this->freshCart($cart);
     }
 
-    public function simulateCheckout(Request $request, Tenant $tenant): SelfServiceCart
+    public function checkoutableCart(Request $request, Tenant $tenant): SelfServiceCart
     {
         $cart = $this->currentCart($request, $tenant);
 

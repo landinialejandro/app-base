@@ -19,7 +19,7 @@
 
         @if($externalCustomer)
             <p>{{ $externalCustomer['display_name'] }} · {{ $externalCustomer['identity_label'] }}</p>
-            <p>Estado: {{ $externalCustomer['operation_enabled'] ? 'operación habilitada' : 'operación pendiente' }}.</p>
+            <p>Estado: {{ mb_strtolower(\App\Support\Catalogs\SelfServiceStoreCustomerCatalog::operationLabel((bool) $externalCustomer['operation_enabled'])) }}.</p>
         @else
             <p>Estás navegando como visitante.</p>
             <p>Podés registrarte o ingresar desde los accesos de la tienda.</p>

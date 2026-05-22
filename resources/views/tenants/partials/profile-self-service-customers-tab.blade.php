@@ -7,18 +7,7 @@
     $selfServiceCustomerStatusCounts = $selfServiceCustomerStatusCounts ?? [];
     $canManageSelfServiceCustomers = $canManageSelfServiceCustomers ?? false;
 
-    $storeStatusLabels = [
-        'active' => 'Activa',
-        'blocked' => 'Bloqueada',
-        'cancelled' => 'Cancelada',
-    ];
-
-    $storeStatusBadgeClasses = [
-        'active' => 'status-badge--done',
-        'blocked' => 'status-badge--expired',
-        'cancelled' => 'status-badge--cancelled',
-    ];
-
+// eleminar
     $identityStageLabels = [
         'email_confirmed' => 'Email confirmado',
         'operational_identity_completed' => 'Identidad operativa completa',
@@ -91,8 +80,8 @@
                                 ?: ($storeCustomer->party_id ? ('Party #' . $storeCustomer->party_id) : '—');
 
                             $storeStatus = $storeCustomer->status;
-                            $storeStatusLabel = $storeStatusLabels[$storeStatus] ?? $storeStatus;
-                            $storeStatusBadgeClass = $storeStatusBadgeClasses[$storeStatus] ?? 'status-badge--pending';
+                            $storeStatusLabel = \App\Support\Catalogs\SelfServiceStoreCustomerCatalog::statusLabel($storeStatus, $storeStatus);
+                            $storeStatusBadgeClass = \App\Support\Catalogs\SelfServiceStoreCustomerCatalog::badgeClass($storeStatus, 'status-badge--pending');
 
                             $identityStage = $storeCustomer->identity_stage;
                             $identityStageLabel = $identityStageLabels[$identityStage] ?? $identityStage;
@@ -131,8 +120,8 @@
                             <td>{{ $storeCustomer->terms_accepted_at?->format('d/m/Y H:i') ?? '—' }}</td>
 
                             <td>
-                                <span class="status-badge {{ $operationEnabled ? 'status-badge--done' : 'status-badge--pending' }}">
-                                    {{ $operationEnabled ? 'Habilitada' : 'Bloqueada' }}
+                                <span class="status-badge {{ \App\Support\Catalogs\SelfServiceStoreCustomerCatalog::operationBadgeClass($operationEnabled) }}">
+                                    {{ \App\Support\Catalogs\SelfServiceStoreCustomerCatalog::operationShortLabel($operationEnabled) }}
                                 </span>
                             </td>
 

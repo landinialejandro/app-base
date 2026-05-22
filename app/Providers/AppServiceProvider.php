@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Support\Auth\RecordScopeResolver;
 use App\Support\Auth\RolePermissionResolver;
 use App\Support\Auth\Security;
+use App\Support\SelfServiceSales\Payments\SelfServicePaymentGateway;
+use App\Support\SelfServiceSales\Payments\SimulatedExternalPaymentGateway;
 use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -30,6 +32,11 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(RecordScopeResolver::class),
             );
         });
+
+        $this->app->bind(
+            SelfServicePaymentGateway::class,
+            SimulatedExternalPaymentGateway::class,
+        );
     }
 
     /**

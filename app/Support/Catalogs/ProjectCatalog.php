@@ -15,9 +15,9 @@ class ProjectCatalog extends BaseCatalog
         self::STATUS_CLOSED => 'Cerrado',
     ];
 
-    protected static array $badges = [
-        self::STATUS_ACTIVE => 'status-badge--done',
-        self::STATUS_CLOSED => 'status-badge--cancelled',
+    protected static array $statusIntentions = [
+        self::STATUS_ACTIVE => StatusVocabulary::ACTIVE,
+        self::STATUS_CLOSED => StatusVocabulary::CLOSED,
     ];
 
     public static function statuses(): array

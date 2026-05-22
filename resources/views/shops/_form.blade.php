@@ -1,13 +1,9 @@
 {{-- FILE: resources/views/shops/_form.blade.php | V1 --}}
 
 @php
-    use App\Models\Shop;
+    use App\Support\Catalogs\ShopCatalog;
 
-    $statusLabels = [
-        Shop::STATUS_DRAFT => 'Borrador',
-        Shop::STATUS_ACTIVE => 'Activa',
-        Shop::STATUS_INACTIVE => 'Inactiva',
-    ];
+    $statusLabels = ShopCatalog::statusLabels();
 @endphp
 
 <div class="form-group">
@@ -29,7 +25,7 @@
     <label class="form-label" for="status">Estado</label>
     <select id="status" name="status" class="form-control">
         @foreach ($statusLabels as $value => $label)
-            <option value="{{ $value }}" @selected(old('status', $shop->status ?? Shop::STATUS_DRAFT) === $value)>
+            <option value="{{ $value }}" @selected(old('status', $shop->status ?? ShopCatalog::defaultStatus()) === $value)>
                 {{ $label }}
             </option>
         @endforeach

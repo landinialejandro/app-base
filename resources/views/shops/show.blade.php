@@ -6,21 +6,9 @@
 
 @section('content')
     @php
-        use App\Models\Shop;
+        use App\Support\Catalogs\ShopCatalog;
         use App\Support\Ui\HostTabs;
         use App\Support\Navigation\NavigationTrail;
-
-        $statusLabels = [
-            Shop::STATUS_DRAFT => 'Borrador',
-            Shop::STATUS_ACTIVE => 'Activa',
-            Shop::STATUS_INACTIVE => 'Inactiva',
-        ];
-
-        $statusClasses = [
-            Shop::STATUS_DRAFT => 'status-badge--muted',
-            Shop::STATUS_ACTIVE => 'status-badge--success',
-            Shop::STATUS_INACTIVE => 'status-badge--neutral',
-        ];
 
         $items = $shop->items ?? collect();
 
@@ -52,7 +40,7 @@
         <x-breadcrumb :items="NavigationTrail::toBreadcrumbItems($navigationTrail)" />
 
         <x-page-header title="Detalle de tienda">
-            @if ($shop->status !== Shop::STATUS_ACTIVE)
+            @if (! ShopCatalog::isActiveStatus($shop->status))
                 @can('update', $shop)
                     <form method="POST" action="{{ route('shops.activate', $shop) }}">
                         @csrf
@@ -87,8 +75,8 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Estado">
-                <span class="status-badge {{ $statusClasses[$shop->status] ?? '' }}">
-                    {{ $statusLabels[$shop->status] ?? $shop->status }}
+                <span class="status-badge {{ ShopCatalog::badgeClass($shop->status) }}">
+                    {{ ShopCatalog::statusLabel($shop->status, $shop->status) }}
                 </span>
             </x-show-summary-item>
 

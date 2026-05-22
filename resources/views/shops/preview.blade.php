@@ -6,34 +6,9 @@
 
 @section('content')
     @php
-        use App\Models\Shop;
-        use App\Models\ShopItem;
+        use App\Support\Catalogs\ShopCatalog;
         use App\Support\Products\ProductLinked;
         use App\Support\Navigation\NavigationTrail;
-
-        $shopStatusLabels = [
-            Shop::STATUS_DRAFT => 'Borrador',
-            Shop::STATUS_ACTIVE => 'Activa',
-            Shop::STATUS_INACTIVE => 'Inactiva',
-        ];
-
-        $shopStatusClasses = [
-            Shop::STATUS_DRAFT => 'status-badge--muted',
-            Shop::STATUS_ACTIVE => 'status-badge--success',
-            Shop::STATUS_INACTIVE => 'status-badge--neutral',
-        ];
-
-        $itemStatusLabels = [
-            ShopItem::STATUS_DRAFT => 'Borrador',
-            ShopItem::STATUS_PUBLISHED => 'Publicado',
-            ShopItem::STATUS_HIDDEN => 'Oculto',
-        ];
-
-        $itemStatusClasses = [
-            ShopItem::STATUS_DRAFT => 'status-badge--muted',
-            ShopItem::STATUS_PUBLISHED => 'status-badge--success',
-            ShopItem::STATUS_HIDDEN => 'status-badge--neutral',
-        ];
 
         $publicVisibleItemsCount = $publicVisibleItemsCount ?? 0;
         $navigationTrail = $navigationTrail ?? [];
@@ -59,8 +34,8 @@
                 <div class="summary-inline-card">
                     <div class="summary-inline-label">Estado interno</div>
                     <div class="summary-inline-value">
-                        <span class="status-badge {{ $shopStatusClasses[$shop->status] ?? '' }}">
-                            {{ $shopStatusLabels[$shop->status] ?? $shop->status }}
+                        <span class="status-badge {{ ShopCatalog::badgeClass($shop->status) }}">
+                            {{ ShopCatalog::statusLabel($shop->status, $shop->status) }}
                         </span>
                     </div>
                 </div>
@@ -100,7 +75,7 @@
                                 @php
                                     $product = $item->product;
                                     $productThumb = $product ? ($productThumbs->get($product->id) ?? null) : null;
-                                    $isPubliclyVisible = $item->status === ShopItem::STATUS_PUBLISHED
+                                    $isPubliclyVisible = ShopCatalog::isItemPublishedStatus($item->status)
                                         && $item->is_visible === true
                                         && $shop->isActive()
                                         && $product !== null
@@ -113,7 +88,7 @@
                                         $reasons[] = 'La tienda no está activa.';
                                     }
 
-                                    if ($item->status !== ShopItem::STATUS_PUBLISHED) {
+                                    if (! ShopCatalog::isItemPublishedStatus($item->status)) {
                                         $reasons[] = 'El artículo no está publicado.';
                                     }
 
@@ -177,13 +152,13 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="status-badge {{ $itemStatusClasses[$item->status] ?? '' }}">
-                                            {{ $itemStatusLabels[$item->status] ?? $item->status }}
+                                        <span class="status-badge {{ ShopCatalog::itemBadgeClass($item->status) }}">
+                                            {{ ShopCatalog::itemStatusLabel($item->status, $item->status) }}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="status-badge {{ $isPubliclyVisible ? 'status-badge--success' : 'status-badge--muted' }}">
-                                            {{ $isPubliclyVisible ? 'Sí' : 'No' }}
+                                        <span class="status-badge {{ ShopCatalog::publicVisibilityBadgeClass($isPubliclyVisible) }}">
+                                            {{ ShopCatalog::publicVisibilityLabel($isPubliclyVisible) }}
                                         </span>
                                     </td>
                                     <td>

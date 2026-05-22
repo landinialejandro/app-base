@@ -22,18 +22,15 @@ class TaskCatalog extends BaseCatalog
 
     public const PRIORITY_URGENT = 'urgent';
 
-    protected static array $statuses = [
-        self::STATUS_PENDING => 'Pendiente',
-        self::STATUS_IN_PROGRESS => 'En progreso',
+    protected static array $statusLabels = [
         self::STATUS_DONE => 'Finalizada',
-        self::STATUS_CANCELLED => 'Cancelada',
     ];
 
-    protected static array $badges = [
-        self::STATUS_PENDING => 'status-badge--pending',
-        self::STATUS_IN_PROGRESS => 'status-badge--in-progress',
-        self::STATUS_DONE => 'status-badge--done',
-        self::STATUS_CANCELLED => 'status-badge--cancelled',
+    protected static array $statusIntentions = [
+        self::STATUS_PENDING => StatusVocabulary::PENDING,
+        self::STATUS_IN_PROGRESS => StatusVocabulary::IN_PROGRESS,
+        self::STATUS_DONE => StatusVocabulary::DONE,
+        self::STATUS_CANCELLED => StatusVocabulary::CANCELLED,
     ];
 
     protected static array $priorities = [
@@ -71,6 +68,45 @@ class TaskCatalog extends BaseCatalog
         }
 
         return static::$priorityBadges[$value] ?? $default;
+    }
+
+    public static function statusLabels(): array
+    {
+        return [
+            self::STATUS_PENDING => StatusVocabulary::label(self::STATUS_PENDING),
+            self::STATUS_IN_PROGRESS => StatusVocabulary::label(self::STATUS_IN_PROGRESS),
+            self::STATUS_DONE => static::$statusLabels[self::STATUS_DONE],
+            self::STATUS_CANCELLED => StatusVocabulary::label(self::STATUS_CANCELLED),
+        ];
+    }
+
+    public static function statusIntention(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return static::$statusIntentions[$value] ?? $value;
+    }
+
+    public static function statusLabel(?string $value, ?string $default = '—'): ?string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        return static::$statusLabels[$value]
+            ?? StatusVocabulary::label(static::statusIntention($value), $default);
+    }
+
+    public static function label(?string $value): string
+    {
+        return static::statusLabel($value, $value) ?? (string) $value;
+    }
+
+    public static function badgeClass(?string $value): string
+    {
+        return StatusVocabulary::badgeClass(static::statusIntention($value), '');
     }
 
 

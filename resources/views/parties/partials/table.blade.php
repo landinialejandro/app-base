@@ -71,9 +71,8 @@
                         <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
                         <td>{{ $roleLabels->isNotEmpty() ? $roleLabels->implode(', ') : '—' }}</td>
                         <td>
-                            <span
-                                class="status-badge {{ $party->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
-                                {{ $party->is_active ? 'Sí' : 'No' }}
+                            <span class="status-badge {{ PartyCatalog::activeBadgeClass((bool) $party->is_active) }}">
+                                {{ PartyCatalog::activeLabel((bool) $party->is_active) }}
                             </span>
                         </td>
                     </tr>

@@ -25,20 +25,10 @@
                         @php
                             $invitationUrl = route('invitation.accept.show', $invitation->token);
                             $expiresAt = $invitation->expires_at;
-                            $isExpired = $expiresAt && $expiresAt->isPast();
-                            $isExpiringSoon = $expiresAt && !$isExpired && now()->diffInHours($expiresAt, false) <= 48;
-
-                            $expirationBadgeClass = $isExpired
-                                ? 'status-badge status-badge--expired'
-                                : ($isExpiringSoon
-                                    ? 'status-badge status-badge--expiring'
-                                    : 'status-badge status-badge--sent');
-
-                            $expirationLabel = $isExpired
-                                ? 'Vencida'
-                                : ($isExpiringSoon
-                                    ? 'Próxima a vencer'
-                                    : 'Disponible');
+                            $expirationPresentation = \App\Support\Catalogs\StatusVocabulary::expirationPresentation($expiresAt);
+                            $isExpired = $expirationPresentation['isExpired'];
+                            $expirationBadgeClass = $expirationPresentation['badgeClass'];
+                            $expirationLabel = $expirationPresentation['label'];
 
                             $humanDiff = $expiresAt
                                 ? ($isExpired

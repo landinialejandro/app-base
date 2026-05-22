@@ -118,9 +118,9 @@
                     {{ $party->tax_id ?: '—' }}
                 </x-show-summary-item-detail-block>
 
-                <x-show-summary-item-detail-block label="Activo">
-                    <span class="status-badge {{ $party->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
-                        {{ $party->is_active ? 'Sí' : 'No' }}
+                <x-show-summary-item-detail-block label="Estado">
+                    <span class="status-badge {{ PartyCatalog::activeBadgeClass((bool) $party->is_active) }}">
+                        {{ PartyCatalog::activeLabel((bool) $party->is_active) }}
                     </span>
                 </x-show-summary-item-detail-block>
 

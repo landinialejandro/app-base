@@ -8,6 +8,8 @@ abstract class BaseCatalog
     protected static array $statuses = [];
     protected static array $labels = [];
     protected static array $badges = [];
+    protected static array $statusIntentions = [];
+    protected static array $statusContextLabels = [];
 
     public static function kinds(): array
     {
@@ -37,8 +39,50 @@ abstract class BaseCatalog
             ?? (string) $value;
     }
 
+    public static function statusIntention(?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return static::$statusIntentions[$value] ?? $value;
+    }
+
+    public static function statusLabel(?string $value, ?string $default = '—'): ?string
+    {
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        if (array_key_exists($value, static::$statusContextLabels)) {
+            return static::$statusContextLabels[$value];
+        }
+
+        if (array_key_exists($value, static::$statuses)) {
+            return static::$statuses[$value];
+        }
+
+        if (static::$statusIntentions !== []) {
+            return StatusVocabulary::label(static::statusIntention($value), $default);
+        }
+
+        return $default;
+    }
+
     public static function badgeClass(?string $value): string
     {
-        return static::$badges[$value] ?? '';
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        if (array_key_exists($value, static::$badges)) {
+            return static::$badges[$value];
+        }
+
+        if (static::$statusIntentions !== []) {
+            return StatusVocabulary::badgeClass(static::statusIntention($value), '');
+        }
+
+        return '';
     }
 }

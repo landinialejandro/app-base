@@ -34,6 +34,12 @@
     const cartItems = document.querySelector('[data-cart-items]');
     const cartTotal = document.querySelector('[data-cart-total]');
     const checkoutTotal = document.querySelector('[data-checkout-total]');
+    const checkoutMessage = document.querySelector('[data-checkout-message]');
+    const checkoutStatus = document.querySelector('[data-checkout-status]');
+    const checkoutPaymentStatus = document.querySelector('[data-checkout-payment-status]');
+    const checkoutPaymentId = document.querySelector('[data-checkout-payment-id]');
+    const checkoutPaymentReference = document.querySelector('[data-checkout-payment-reference]');
+    const checkoutPaymentAmount = document.querySelector('[data-checkout-payment-amount]');
     const checkoutButtons = Array.from(document.querySelectorAll('[data-checkout-open]'));
     const filterEmpty = document.querySelector('[data-filter-empty]');
 
@@ -339,6 +345,48 @@
         show(notImplementedModal);
     };
 
+    const renderCheckoutPayment = (payment = null, message = 'Conectando con pasarela de pago…') => {
+        if (checkoutMessage) {
+            checkoutMessage.textContent = message;
+        }
+
+        if (checkoutStatus) {
+            checkoutStatus.hidden = true;
+            checkoutStatus.textContent = '';
+        }
+
+        if (checkoutPaymentStatus) {
+            checkoutPaymentStatus.textContent = payment?.status_label || payment?.status || 'Procesando';
+        }
+
+        if (checkoutPaymentId) {
+            checkoutPaymentId.textContent = payment?.external_payment_id || '—';
+        }
+
+        if (checkoutPaymentReference) {
+            checkoutPaymentReference.textContent = payment?.external_reference || '—';
+        }
+
+        if (checkoutPaymentAmount) {
+            checkoutPaymentAmount.textContent = payment?.amount_label || '—';
+        }
+
+        if (payment?.status === 'approved') {
+            if (checkoutMessage) {
+                checkoutMessage.textContent = 'Pago aprobado en entorno simulado.';
+            }
+
+            checkoutButtons.forEach((button) => {
+                button.disabled = true;
+            });
+        }
+
+        if (payment && payment.status !== 'approved' && checkoutStatus) {
+            checkoutStatus.hidden = false;
+            checkoutStatus.textContent = 'El pago no fue aprobado. El carrito permanece activo.';
+        }
+    };
+
     const openCheckout = async () => {
         if (!requireCartExperience()) {
             return;
@@ -351,13 +399,16 @@
         }
 
         try {
+            renderCheckoutPayment(null, 'Conectando con pasarela de pago…');
+            show(checkoutPanel);
+
             const payload = await requestJson(checkoutUrl, {
                 method: 'POST',
                 body: JSON.stringify({}),
             });
 
             handleCartPayload(payload);
-            show(checkoutPanel);
+            renderCheckoutPayment(payload.payment || null, payload.message || 'Pago procesado.');
         } catch (error) {
             handleError(error);
         }

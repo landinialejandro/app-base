@@ -1,20 +1,8 @@
 {{-- FILE: resources/views/shops/tabs/items-table.blade.php | V4 --}}
 
 @php
-    use App\Models\ShopItem;
+    use App\Support\Catalogs\ShopCatalog;
     use App\Support\Products\ProductLinked;
-
-    $statusLabels = [
-        ShopItem::STATUS_DRAFT => 'Borrador',
-        ShopItem::STATUS_PUBLISHED => 'Publicado',
-        ShopItem::STATUS_HIDDEN => 'Oculto',
-    ];
-
-    $statusClasses = [
-        ShopItem::STATUS_DRAFT => 'status-badge--muted',
-        ShopItem::STATUS_PUBLISHED => 'status-badge--success',
-        ShopItem::STATUS_HIDDEN => 'status-badge--neutral',
-    ];
 
     $canUpdateShop = $canUpdateShop ?? false;
     $trailQuery = $trailQuery ?? [];
@@ -64,8 +52,8 @@
                             @endif
                         </td>
                         <td>
-                            <span class="status-badge {{ $statusClasses[$item->status] ?? '' }}">
-                                {{ $statusLabels[$item->status] ?? $item->status }}
+                            <span class="status-badge {{ ShopCatalog::itemBadgeClass($item->status) }}">
+                                {{ ShopCatalog::itemStatusLabel($item->status, $item->status) }}
                             </span>
                         </td>
                         <td>
@@ -82,8 +70,8 @@
                                 </x-button-tool>
 
                                 @php
-                                    $isPublished = $item->status === ShopItem::STATUS_PUBLISHED;
-                                    $nextStatus = $isPublished ? ShopItem::STATUS_HIDDEN : ShopItem::STATUS_PUBLISHED;
+                                    $isPublished = ShopCatalog::isItemPublishedStatus($item->status);
+                                    $nextStatus = ShopCatalog::nextItemToggleStatus($item->status);
                                     $visibilityActionTitle = $isPublished ? 'Ocultar artículo' : 'Publicar artículo';
                                 @endphp
 

@@ -57,12 +57,12 @@ class DocumentCatalog extends BaseCatalog
         self::STATUS_CANCELLED => 'Cancelado',
     ];
 
-    protected static array $badges = [
-        self::STATUS_DRAFT => 'status-badge--pending',
-        self::STATUS_PENDING_APPROVAL => 'status-badge--warning',
-        self::STATUS_APPROVED => 'status-badge--warning',
-        self::STATUS_CLOSED => 'status-badge--done',
-        self::STATUS_CANCELLED => 'status-badge--cancelled',
+    protected static array $statusIntentions = [
+        self::STATUS_DRAFT => StatusVocabulary::DRAFT,
+        self::STATUS_PENDING_APPROVAL => StatusVocabulary::PENDING,
+        self::STATUS_APPROVED => StatusVocabulary::APPROVED,
+        self::STATUS_CLOSED => StatusVocabulary::CLOSED,
+        self::STATUS_CANCELLED => StatusVocabulary::CANCELLED,
     ];
 
     protected static array $sequenceDefinitions = [
@@ -149,13 +149,18 @@ class DocumentCatalog extends BaseCatalog
         return static::$statuses[$value] ?? $default;
     }
 
-    public static function badgeClass(?string $value, ?string $default = 'status-badge--neutral'): string
+    public static function statusIntention(?string $value): ?string
     {
         if ($value === null) {
-            return $default;
+            return null;
         }
 
-        return static::$badges[$value] ?? $default;
+        return static::$statusIntentions[$value] ?? $value;
+    }
+
+    public static function badgeClass(?string $value, ?string $default = 'status-badge--neutral'): string
+    {
+        return StatusVocabulary::badgeClass(static::statusIntention($value), $default);
     }
 
     public static function isValidGroup(?string $group): bool

@@ -46,10 +46,10 @@ class AssetCatalog extends BaseCatalog
         self::STATUS_ARCHIVED => 'Archivado',
     ];
 
-    protected static array $badges = [
-        self::STATUS_ACTIVE => 'status-badge--done',
-        self::STATUS_INACTIVE => 'status-badge--pending',
-        self::STATUS_ARCHIVED => 'status-badge--cancelled',
+    protected static array $statusIntentions = [
+        self::STATUS_ACTIVE => StatusVocabulary::ACTIVE,
+        self::STATUS_INACTIVE => StatusVocabulary::INACTIVE,
+        self::STATUS_ARCHIVED => StatusVocabulary::ARCHIVED,
     ];
 
     public static function relationshipTypes(): array

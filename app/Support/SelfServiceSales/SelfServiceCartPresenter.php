@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCartPresenter.php | V2
+// FILE: app/Support/SelfServiceSales/SelfServiceCartPresenter.php | V3
 
 namespace App\Support\SelfServiceSales;
 
@@ -12,6 +12,7 @@ use App\Models\Tenant;
 class SelfServiceCartPresenter
 {
     public const ITEM_UNAVAILABLE_MESSAGE = 'Este producto ya no está disponible. Eliminalo del carrito para continuar.';
+
     public function present(SelfServiceCart $cart, Tenant $tenant, string $message = 'Carrito actualizado.'): array
     {
         $items = $cart->items->map(function ($item) use ($tenant) {
@@ -51,11 +52,38 @@ class SelfServiceCartPresenter
             'message' => $message,
             'cart' => [
                 'id' => $cart->id,
+                'status' => $cart->status,
                 'items' => $items,
                 'total' => $total,
                 'total_label' => $this->money($total),
             ],
         ];
+    }
+
+    public function presentCheckout(
+        SelfServiceCart $cart,
+        Tenant $tenant,
+        array $payment,
+        string $message = 'Pago procesado.'
+    ): array {
+        $payload = $this->present($cart, $tenant, $message);
+
+        $payload['payment'] = [
+            'provider' => $payment['provider'] ?? null,
+            'provider_target' => $payment['provider_target'] ?? null,
+            'status' => $payment['status'] ?? null,
+            'status_label' => $payment['status_label'] ?? null,
+            'status_detail' => $payment['status_detail'] ?? null,
+            'external_payment_id' => $payment['external_payment_id'] ?? null,
+            'external_preference_id' => $payment['external_preference_id'] ?? null,
+            'external_reference' => $payment['external_reference'] ?? null,
+            'amount' => $payment['amount'] ?? null,
+            'amount_label' => $this->money((float) ($payment['amount'] ?? 0)),
+            'currency' => $payment['currency'] ?? 'ARS',
+            'simulated' => (bool) ($payment['raw']['simulated'] ?? false),
+        ];
+
+        return $payload;
     }
 
     public function empty(string $message): array
@@ -65,6 +93,7 @@ class SelfServiceCartPresenter
             'message' => $message,
             'cart' => [
                 'id' => null,
+                'status' => null,
                 'items' => [],
                 'total' => 0,
                 'total_label' => $this->money(0),

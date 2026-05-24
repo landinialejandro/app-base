@@ -88,7 +88,7 @@ Contrato compacto = formato principal.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00053
+SECTION_VERSION: 00058
 
 [PRINCIPIOS]
 Simplicidad.
@@ -172,6 +172,14 @@ Si existe checkout o pago externo, debe delegar en service de caso de uso y fron
 No calcula saldos materiales si el ownership pertenece a Inventory.
 No administra ledger material formal si pertenece a Inventory.
 
+
+No decide stock comprometible si el ownership pertenece a Inventory.
+
+No compromete stock si no existe frontera explícita con Inventory.
+
+No crea Order desde checkout externo si existe service o bridge operativo definido para formalización.
+
+No crea Document desde checkout externo si no existe política documental explícita.
 [SEGURIDAD]
 Validación crítica vive en backend, Security, Policy, service o contrato oficial.
 Blade no autoriza.
@@ -766,6 +774,30 @@ Activar tienda no habilita operación comercial completa.
 Catálogo publicado no habilita operación comercial completa.
 
 
+Tienda pública exhibe.
+
+Backend decide.
+
+Cada módulo ejecuta según ownership.
+
+Reglas:
+
+/shop/{tenant:slug} no decide precio final.
+
+/shop/{tenant:slug} no decide stock.
+
+/shop/{tenant:slug} no decide disponibilidad real.
+
+/shop/{tenant:slug} no compromete stock.
+
+/shop/{tenant:slug} no procesa pago por sí misma.
+
+/shop/{tenant:slug} no crea Order.
+
+/shop/{tenant:slug} no crea Document.
+
+/shop/{tenant:slug} no crea InventoryMovement.
+
 Carrito persistente externo no habilita operación comercial completa.
 
 Ítem no disponible en carrito bloquea checkout.
@@ -776,6 +808,10 @@ Reglas:
 
 revalidar disponibilidad en backend antes de checkout
 
+
+validar stock comprometible en backend antes de iniciar pago cuando corresponda
+
+comprometer stock mediante frontera explícita con Inventory cuando corresponda
 marcar línea no disponible mediante payload preparado
 
 permitir eliminación manual del ítem no disponible
@@ -791,6 +827,18 @@ Provider externo simulado no equivale a checkout completamente simulado.
 SelfServiceCart checked_out no crea Orders, Documents ni InventoryMovements.
 
 
+SelfServiceCart checked_out no equivale a stock comprometido si Inventory no confirmó compromiso backend.
+
+SelfServiceCart checked_out no equivale a stock movido.
+
+Carrito cargado no reserva stock.
+
+Agregar al carrito no garantiza disponibilidad futura.
+
+Comprar ahora no debe crear un flujo paralelo.
+
+Comprar ahora debe reutilizar el mismo pipeline backend de checkout.
+
 La simulación vigente queda limitada a la comunicación externa con el provider.
 
 Checkout interno real con provider externo simulado no equivale a operación comercial formal completa.
@@ -805,6 +853,22 @@ el provider simulado representa solo la respuesta externa esperada
 
 no crear Orders, Documents ni InventoryMovements sin bridge operativo explícito y validado
 
+
+Bridge objetivo pendiente de implementación:
+
+SelfServiceCart checked_out
+↓
+Order group = shop
+
+Lectura:
+
+Orders formaliza la venta interna cuando exista bridge operativo explícito.
+
+Documents emite comprobante cuando corresponda por política documental o fiscal posterior.
+
+Inventory compromete stock y mueve stock físico solo mediante sus contratos propios.
+
+Comprometer stock no equivale a mover stock físico.
 Patrón vigente para provider externo reemplazable:
 
 Controller

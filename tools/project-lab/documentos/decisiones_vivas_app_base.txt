@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00026
 
 DECISIONES VIGENTES
 
@@ -147,7 +147,7 @@ Lectura:
 
 ya no debe leerse como checkout completamente simulado.
 
-app-base debe validar internamente carrito, disponibilidad, cantidades, precios, moneda, tenant, customer externo, relación customer-tienda y operation_enabled.
+app-base debe validar internamente carrito, disponibilidad, cantidades, precios, moneda, tenant, customer externo, relación customer-tienda, operation_enabled y stock comprometible cuando corresponda.
 
 La simulación vigente queda limitada a la comunicación con el provider externo.
 
@@ -190,7 +190,32 @@ relación formal con Document
 relación formal con InventoryMovement
 Regla:
 
-no debe existir bridge operativo hacia Orders, Documents o Inventory hasta decisión explícita y validación real.
+no debe existir bridge operativo hacia Orders, Documents o Inventory hasta decisión explícita, contrato implementado y validación real.
+
+Decisión explícita vigente pendiente de implementación:
+
+SelfServiceCart checked_out
+→ Order group = shop
+
+Lectura:
+
+Order group = shop será el registro interno de seguimiento de la venta cuando exista bridge operativo implementado.
+
+Reglas:
+
+SelfServiceCart checked_out no equivale todavía a Order creada.
+
+SelfServiceCart checked_out no equivale a Document emitido.
+
+SelfServiceCart checked_out no equivale a InventoryMovement creado.
+
+SelfServiceCart checked_out no equivale a stock movido.
+
+SelfServiceCart checked_out no equivale a stock comprometido si Inventory no confirmó compromiso backend.
+
+Document posterior queda bajo política documental, fiscal o comercial explícita.
+
+InventoryMovement posterior queda bajo contrato propio de Inventory.
 
 Motivo:
 
@@ -214,6 +239,30 @@ Product conserva catálogo maestro.
 Orders, Documents e Inventory conservan ownership de operación formal, formalización documental y stock.
 
 
+Decisión vigente adicional:
+
+Comprar ahora no debe crear un flujo paralelo.
+
+Comprar ahora debe reutilizar el mismo pipeline backend de checkout.
+
+Lectura:
+
+la diferencia puede estar en la experiencia de entrada del usuario, pero no en la autoridad backend.
+
+Reglas:
+
+el frontend no calcula stock.
+
+el frontend no decide disponibilidad.
+
+el frontend no compromete stock.
+
+el frontend no crea Order.
+
+el frontend no crea Document.
+
+el frontend no mueve stock.
+
 Decisión validada sobre disponibilidad del carrito:
 
 si un ShopItem deja de cumplir la publicación efectiva luego de haber sido agregado al carrito, la línea debe conservarse como no disponible.
@@ -233,6 +282,48 @@ el frontend representa el estado preparado por backend
 Motivo:
 
 un bloqueo recuperable no debe destruir el estado del carrito ni ocultar la línea que requiere corrección.
+
+Decisión vigente adicional sobre stock de tienda:
+
+el carrito no reserva stock.
+
+Agregar al carrito no garantiza disponibilidad futura.
+
+El stock se compromete recién durante checkout cuando exista frontera backend implementada con Inventory.
+
+La tienda pública no opera sobre stock físico total.
+
+Debe operar sobre stock comprometible calculado por backend.
+
+Reglas:
+
+Inventory decide stock comprometible.
+
+Inventory valida compromiso.
+
+Inventory compromete stock cuando corresponda.
+
+Inventory mueve stock físico solo cuando exista entrega, retiro, despacho, consumo o cumplimiento real.
+
+Comprometer stock no equivale a mover stock físico.
+
+Regla de concurrencia vigente:
+
+first committed.
+
+Si dos customers compiten por stock, continúa quien primero obtiene compromiso atómico backend válido.
+
+No se reasigna stock por mayor cantidad, mayor importe ni conveniencia comercial.
+
+Regla de umbrales vigente:
+
+stock objetivo = umbral deseado.
+
+stock protegido = límite absoluto.
+
+El stock protegido no puede atravesarse.
+
+El stock objetivo solo puede atravesarse si existe política explícita de margen de avance.
 IMAGEN PÚBLICA SEGURA DE PRODUCTO PUBLICADO
 
 Decisión vigente:

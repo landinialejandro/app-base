@@ -142,7 +142,7 @@ Detalle técnico puede evolucionar sin alterar doctrina.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00043
+SECTION_VERSION: 00046
 
 [AUTORIDAD CENTRAL]
 Decisión final = backend / capa central de seguridad.
@@ -205,6 +205,13 @@ Configuración interna ≠ operación externa.
 * respuesta visual de provider externo
 * redirect visual de pago
 
+
+* stock mostrado visualmente
+* disponibilidad calculada en frontend
+* botón de pagar visible
+* cantidad solicitada por customer
+* stock comprometible inferido fuera de Inventory
+* compromiso de stock no confirmado por backend
 [MÍNIMO ACOPLE]
 Consumidor no reinterpreta seguridad de otro módulo.
 
@@ -257,6 +264,46 @@ No debe confiar en datos económicos, estado visual, redirect, pantalla de éxit
 Debe operar mediante frontera explícita reemplazable cuando dependa de provider externo.
 
 El detalle de clases, servicios, bindings, payloads y persistencia pertenece a documentos especializados.
+
+Regla vigente adicional para checkout externo:
+
+todo checkout externo también es acción crítica cuando puede comprometer stock.
+
+Debe validar backend antes de comprometer stock, iniciar pago, cerrar carrito o producir efectos internos.
+
+No debe confiar en:
+
+stock calculado por frontend
+stock mostrado visualmente
+cantidad visible en pantalla
+disponibilidad no revalidada
+estado visual del botón de pago
+prioridad comercial del pedido
+monto mayor como criterio de preferencia
+
+El stock comprometible pertenece a Inventory.
+
+shops y self_service_sales pueden solicitar validación o compromiso mediante frontera explícita.
+
+No pueden decidir compromiso por sí mismos.
+
+Regla de concurrencia:
+
+first committed.
+
+Si dos operaciones compiten por stock, continúa la que primero obtiene compromiso atómico backend válido.
+
+No se reasigna stock por mayor cantidad, mayor importe ni conveniencia comercial.
+
+Regla de umbrales:
+
+stock objetivo = umbral deseado.
+
+stock protegido = límite absoluto.
+
+El stock protegido no puede atravesarse.
+
+El stock objetivo solo puede atravesarse si existe política explícita de margen de avance.
 [AUTONOMÍA MODULAR]
 Módulo autónomo ≠ acceso libre.
 
@@ -311,6 +358,16 @@ SelfServiceCart checked_out ≠ formalización documental/fiscal completa.
 
 SelfServiceCart checked_out ≠ Order, Document ni InventoryMovement.
 
+
+SelfServiceCart checked_out ≠ stock comprometido si Inventory no confirmó compromiso backend.
+
+SelfServiceCart checked_out ≠ stock movido.
+
+Carrito cargado ≠ stock reservado.
+
+Agregar al carrito ≠ disponibilidad futura garantizada.
+
+Checkout visible ≠ operación garantizada.
 [RECURSOS INTERNOS CONSUMIDOS POR PLANO EXTERNO]
 Todo recurso interno consumido por un plano externo conserva autorización interna propia.
 
@@ -378,7 +435,7 @@ Todo pago o checkout externo debe validar backend antes de producir efectos inte
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 [ACCESO PÚBLICO]
 Previo o externo a operación interna autenticada.
@@ -677,6 +734,37 @@ SelfServiceCart checked_out no equivale a formalización documental/fiscal compl
 
 El primer cierre de checkout real interno no debe crear Orders, Documents ni InventoryMovements sin bridge operativo definido.
 
+
+El checkout externo con stock debe validar backend:
+
+tenant correcto
+customer externo correcto
+relación customer-tienda válida
+operation_enabled
+Shop activa
+ShopItem publicado y visible
+Product activo
+precio backend
+cantidad solicitada
+stock comprometible
+compromiso atómico cuando corresponda
+provider o pago según frontera explícita
+
+Reglas:
+
+frontend no calcula stock
+frontend no muestra stock interno
+frontend no decide disponibilidad
+frontend no compromete stock
+frontend no mueve stock
+frontend no crea Order
+frontend no crea Document
+
+Comprometer stock no equivale a mover stock físico.
+
+Inventory valida y compromete.
+
+Inventory mueve stock físico solo cuando corresponda por entrega, retiro, despacho, consumo o cumplimiento real.
 [PAGO / PROVIDER EXTERNO]
 Provider externo de pago debe operar detrás de frontera explícita.
 

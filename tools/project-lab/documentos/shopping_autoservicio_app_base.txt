@@ -10,7 +10,7 @@ GESTIÓN: Documento rector inicial para la capacidad self_service_sales como cap
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 OBJETIVO DEL DOCUMENTO
 
@@ -69,6 +69,13 @@ evitar que la tienda pública se confunda con administración interna de shops
 evitar que el carrito persistente se confunda con checkout real, pago real, orden, documento o movimiento de stock
 evitar que imágenes públicas futuras reutilicen rutas internas de Attachments
 
+
+evitar que la tienda pública se confunda con autoridad de precio, stock, disponibilidad real, compromiso de stock, pago, orden, documento, movimiento material o autorización
+evitar que el carrito se confunda con reserva de stock
+evitar que agregar al carrito se confunda con disponibilidad futura garantizada
+evitar que el checkout se confunda con compromiso de stock si Inventory no interviene mediante frontera explícita
+evitar que SelfServiceCart checked_out se confunda con Order creada hasta que exista bridge operativo explícito
+evitar que una futura compra directa duplique el pipeline backend de checkout
 No define:
 
 implementación técnica completa
@@ -339,6 +346,37 @@ el backend genera idempotency_key
 
 el backend persiste request y response en SelfServiceCart.meta
 
+
+Regla adicional de stock:
+
+el carrito no reserva stock.
+
+Agregar al carrito no garantiza disponibilidad futura.
+
+El stock solo puede comprometerse durante checkout mediante validación backend y frontera explícita con Inventory cuando exista implementación real.
+
+La tienda no debe operar sobre stock físico total como fuente directa de venta.
+
+Debe operar sobre stock comprometible calculado por backend.
+
+Comprometer stock no equivale a mover stock físico.
+
+El movimiento físico debe ocurrir luego, según entrega, retiro, consumo, despacho o cumplimiento real.
+
+Regla adicional de formalización futura:
+
+SelfServiceCart checked_out no equivale a Order creada mientras no exista bridge operativo implementado.
+
+Bridge objetivo decidido pendiente de implementación:
+
+SelfServiceCart checked_out
+→ Order group = shop
+
+Lectura:
+
+la Order group = shop será el registro interno de seguimiento de la venta cuando el bridge exista.
+
+Document posterior e InventoryMovement posterior deben quedar bajo política explícita y contrato validado.
 Estado de cierre vigente:
 
 si el provider simulado devuelve approved, SelfServiceCart.status pasa a checked_out.
@@ -420,7 +458,7 @@ Toda evolución futura debe validarse contra documentación vigente, código rea
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 NATURALEZA DE SHOPPING AUTOSERVICIO
 
@@ -511,6 +549,50 @@ Security conserva autorización.
 
 self_service_sales conserva la experiencia comercial autogestiva, el registro externo, la identidad externa, la relación customer-tienda, el consumo de publicación comercial, el carrito persistente externo inicial, el saldo futuro, las fichas futuras, los movimientos comerciales futuros, el consumo por QR futuro y la exposición pública segura futura de imágenes comerciales publicadas.
 
+
+Regla adicional:
+
+la tienda pública exhibe una publicación comercial controlada.
+
+No decide operación.
+
+No calcula precio final.
+
+No calcula stock.
+
+No decide disponibilidad real.
+
+No compromete stock.
+
+No procesa pago por sí misma.
+
+No crea Order.
+
+No crea Document.
+
+No crea InventoryMovement.
+
+No autoriza.
+
+Lectura:
+
+la tienda pública puede iniciar una intención externa de compra.
+
+El proceso real debe resolverse en backend mediante módulos dueños y fronteras explícitas.
+
+Regla:
+
+shops publica.
+
+Products valida catálogo.
+
+Inventory valida stock comprometible y compromiso cuando exista contrato implementado.
+
+Orders formaliza la venta interna cuando exista bridge operativo explícito.
+
+Documents emite comprobante cuando corresponda por política posterior.
+
+Security gobierna autorización.
 Primer corte operativo validado:
 
 self_service_sales ya cuenta con una primera implementación centrada en:
@@ -638,7 +720,7 @@ Attachment is_image = true
 <<END SECTION>>
 
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO
 
@@ -687,6 +769,34 @@ Route names vigentes:
 
 shops.*
 
+
+Evolución interna decidida pendiente de implementación:
+
+/shops/{shop}
+
+Lectura:
+
+Shop Profile / Gestión de tienda.
+
+Debe pertenecer al plano interno autorizado.
+
+No debe confundirse con la tienda pública externa.
+
+No debe desplazar tenant/profile.
+
+tenant/profile conserva gobierno general del tenant.
+
+La gestión operativa interna de tienda debe concentrarse en shops cuando exista implementación real.
+
+Puede organizar, según contrato futuro validado:
+
+artículos publicados
+clientes tienda
+carritos
+ventas u órdenes
+pagos
+stock comprometido o disponibilidad interna
+configuración comercial
 Vista previa interna vigente:
 
 /shops/{shop}/preview

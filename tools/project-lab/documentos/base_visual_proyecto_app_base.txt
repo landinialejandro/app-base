@@ -44,7 +44,7 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00015
 
 ESTRUCTURA GENERAL DE PÁGINA
 
@@ -159,6 +159,26 @@ el usuario debe poder identificar la línea afectada y eliminarla manualmente
 el botón de pago debe quedar bloqueado mientras exista al menos un ítem no disponible
 
 
+la tienda pública no debe mostrar stock interno ni cantidades disponibles como dato operativo directo
+
+la tienda pública no debe exponer stock físico, stock objetivo, stock protegido, comprometido, margen ni cupos internos
+
+si existe bloqueo por stock, debe representarse como mensaje genérico recuperable
+
+Mensaje recomendado:
+
+Este producto no está disponible en la cantidad solicitada. Modificá el carrito para continuar.
+
+Reglas:
+
+el mensaje público no debe revelar stock interno
+
+el mensaje público no debe prometer disponibilidad futura
+
+el mensaje público debe orientar corrección manual del carrito
+
+el bloqueo visual debe conservar el carrito cuando el error sea recuperable
+
 Regla visual para checkout interno real con provider externo simulado:
 
 el panel público de checkout puede representar resultado de pago simulado aprobado cuando el backend devuelve payload autorizado.
@@ -271,6 +291,70 @@ Regla:
 
 la administración interna de shops no debe resolverse como pantalla pública ni como vista self_service_sales customer.
 
+
+Base esperada para Shop Profile interno:
+
+/shops/{shop} puede evolucionar como perfil interno de tienda cuando exista implementación real.
+
+Lectura visual:
+
+Shop Profile / Gestión de tienda.
+
+Debe usar gramática interna:
+
+x-page
+x-breadcrumb
+x-page-header
+cards
+tabs
+acciones internas autorizadas
+lenguaje operativo interno
+payload preparado por backend
+
+No debe usar gramática pública mobile commerce.
+
+No debe usar sesión externa self_service_sales.*.
+
+No debe resolverse como vista customer.
+
+No debe desplazar tenant/profile.
+
+tenant/profile conserva gobierno general del tenant.
+
+La gestión interna de tienda puede organizar visualmente, según contrato futuro validado:
+
+resumen
+artículos
+clientes tienda
+carritos
+ventas u órdenes
+pagos
+stock comprometido o disponibilidad interna
+configuración comercial
+
+La lectura interna de stock en Shop Profile puede mostrar, cuando exista contrato backend validado:
+
+stock físico
+stock objetivo
+stock protegido
+comprometido
+disponible normal
+disponible con margen
+estado interno
+
+Reglas:
+
+estos datos pertenecen al plano interno autorizado
+
+no deben exponerse en /shop/{tenant:slug}
+
+deben llegar preparados por backend
+
+Blade no debe calcular stock comprometible
+
+Blade no debe decidir disponibilidad real
+
+Blade no debe interpretar políticas de margen
 Base esperada para vista previa interna de Shop:
 
 la vista previa interna debe usar formato de pantalla interna.

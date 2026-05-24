@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00034
+SECTION_VERSION: 00037
 
 REGLA GENERAL
 
@@ -107,6 +107,27 @@ ruta pública de imagen de tienda no equivale a preview interna de Attachment
 attachments.preview no equivale a imagen pública de producto publicado
 administración interna de tienda no equivale a tienda pública customer
 
+tienda pública no equivale a autoridad de venta
+
+tienda pública no decide precio final
+
+tienda pública no decide stock
+
+tienda pública no decide disponibilidad real
+
+tienda pública no compromete stock
+
+tienda pública no crea Order
+
+tienda pública no crea Document
+
+tienda pública no crea InventoryMovement
+
+carrito cargado no equivale a stock reservado
+
+agregar al carrito no equivale a disponibilidad futura garantizada
+
+checkout visible no equivale a compromiso de stock
 customer externo no equivale a administrador interno de tienda
 
 administración interna de shops pertenece al plano interno
@@ -297,6 +318,18 @@ Lectura:
 
 /shops representa administración interna estándar de tiendas del tenant
 
+
+/shops/{shop} representa evolución interna prevista como Shop Profile / Gestión de tienda cuando exista implementación real
+
+/shops/{shop} pertenece al plano interno autorizado
+
+/shops/{shop} no es tienda pública customer
+
+/shops/{shop} no reemplaza tenant/profile
+
+tenant/profile conserva gobierno general del tenant
+
+shops concentra gestión operativa interna de tienda cuando exista contrato implementado
 Recorrido externo vigente:
 
 /tienda
@@ -407,6 +440,40 @@ dashboard interno o sección interna autorizada
 
 → activación interna
 
+
+Recorrido interno previsto de Shop Profile cuando exista implementación real:
+
+dashboard interno o sección interna autorizada
+
+→ shops.*
+
+→ /shops/{shop}
+
+→ resumen
+
+→ artículos
+
+→ clientes
+
+→ carritos
+
+→ ventas u órdenes
+
+→ pagos
+
+→ stock comprometido o disponibilidad
+
+→ configuración
+
+Lectura:
+
+este recorrido pertenece al plano interno autorizado.
+
+No pertenece al plano externo customer.
+
+No debe usar la gramática pública mobile commerce.
+
+No debe habilitar customer externo ni sesión self_service_sales.*.
 Lectura del recorrido interno:
 
 la administración interna de shops requiere User autenticado, Membership vigente, tenant activo y autorización backend efectiva.

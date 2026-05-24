@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00037
+SECTION_VERSION: 00040
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -71,6 +71,9 @@ SelfServiceCart → SelfServiceCartItem
 SelfServiceCartItem → ShopItem
 ShopItem → Product
 
+SelfServiceCart checked_out → Order group = shop cuando exista bridge operativo explícito
+Payment → registro formal de pago futuro cuando se implemente
+PaymentAttempt → intento concreto contra provider futuro cuando se implemente
 Relaciones transversales relevantes:
 
 orders → inventory mediante hooks, líneas y capacidades oficiales cuando corresponda
@@ -469,6 +472,30 @@ cart.meta registra request y response del provider simulado en el primer corte v
 Agregar al carrito no mueve stock.
 
 
+Agregar al carrito no reserva stock.
+
+Agregar al carrito no garantiza disponibilidad futura.
+
+El stock comprometible pertenece a Inventory.
+
+El compromiso de stock solo puede resolverse mediante frontera backend explícita con Inventory cuando exista implementación real.
+
+Comprometer stock no equivale a mover stock físico.
+
+Lectura conceptual:
+
+ShopItem
+↓
+política comercial de venta
+
+Inventory
+↓
+stock físico, stock comprometible y compromiso/reserva cuando exista contrato implementado
+
+Order group = shop
+↓
+venta interna vinculada al compromiso cuando exista bridge operativo explícito
+
 Si un ShopItem deja de cumplir la publicación efectiva después de haber sido agregado, la línea del carrito puede conservarse como no disponible.
 
 Lectura:
@@ -547,6 +574,38 @@ No se creó relación formal con Order.
 No se creó relación formal con Document.
 
 No se creó relación formal con InventoryMovement.
+
+Bridge objetivo decidido pendiente de implementación:
+
+SelfServiceCart checked_out
+↓
+Order group = shop
+
+Lectura:
+
+SelfServiceCart conserva origen externo, líneas externas, customer externo, relación customer-tienda y trazabilidad del checkout.
+
+Order group = shop formaliza internamente el seguimiento operativo de la venta cuando exista bridge explícito.
+
+Reglas:
+
+SelfServiceCart checked_out no equivale a Document emitido.
+
+SelfServiceCart checked_out no equivale a comprobante fiscal.
+
+SelfServiceCart checked_out no equivale a stock movido.
+
+SelfServiceCart checked_out no equivale a stock comprometido si Inventory no confirmó compromiso backend.
+
+Order group = shop no reemplaza SelfServiceCart.
+
+SelfServiceCart no reemplaza Order.
+
+Payment futuro no reemplaza SelfServiceCart.
+
+PaymentAttempt futuro no reemplaza Payment.
+
+PaymentAttempt futuro no reemplaza provider externo.
 Reglas:
 
 checkout backend real interno con provider simulado no crea por sí mismo Order

@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00020
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -816,13 +816,13 @@ integración real con Mercado Pago
 
 integración real con MODO
 
-Payment como entidad propia si se decide
+Payment como entidad propia cuando se implemente pago real
 
-PaymentAttempt como entidad propia si se decide
+PaymentAttempt como entidad propia cuando se implemente provider real
 
 tabla de pagos si se decide
 
-creación de Order posterior al pago
+creación de Order group = shop posterior al checkout aprobado mediante bridge operativo explícito
 
 creación de Document posterior al pago
 
@@ -832,6 +832,40 @@ renombre de route name self_service_sales.checkout.simulate a self_service_sales
 
 definir formalización interna posterior al pago aprobado
 
+
+Prioridad posterior decidida antes de provider real:
+
+definir Shop Profile interno en /shops/{shop}
+
+auditar Shop, ShopItem, policies, rutas y vistas actuales
+
+auditar Orders para agregar group = shop
+
+auditar Inventory para definir si existe o no capacidad vigente de reserva, compromiso o stock comprometible
+
+diseñar compromiso de stock atómico
+
+diseñar política de stock por tienda o producto:
+
+stock objetivo
+
+stock protegido
+
+margen de avance
+
+cupo de tienda
+
+límites por checkout
+
+crear Payment como entidad propia cuando se implemente pago real
+
+crear PaymentAttempt como entidad propia cuando se implemente provider real
+
+integrar checkout aprobado con creación de Order group = shop
+
+diseñar compra directa reutilizando el pipeline backend de checkout
+
+integrar Mercado Pago, MODO u otro provider real después de cerrar stock, bridge a Order y back office interno de tienda
 Reglas:
 
 checkout interno real con provider externo simulado no equivale a pago real externo
@@ -844,6 +878,34 @@ SelfServiceCart checked_out no equivale a Document creado
 
 SelfServiceCart checked_out no equivale a stock movido
 
+
+SelfServiceCart checked_out no equivale a stock comprometido si Inventory no confirmó compromiso backend
+
+Carrito cargado no equivale a stock reservado
+
+Agregar al carrito no garantiza disponibilidad futura
+
+Checkout visible no equivale a operación garantizada
+
+Regla de stock decidida pendiente de implementación:
+
+first committed
+
+Lectura:
+
+si dos customers compiten por stock, continúa quien primero obtiene compromiso atómico backend válido.
+
+No se reasigna stock por mayor cantidad, mayor importe ni conveniencia comercial.
+
+Regla de umbrales decidida pendiente de implementación:
+
+stock objetivo = umbral deseado
+
+stock protegido = límite absoluto
+
+El stock protegido no puede atravesarse.
+
+El stock objetivo solo puede atravesarse si existe política explícita de margen de avance.
 Regla:
 
 no implementar operación comercial real por inferencia a partir de catálogo publicado.

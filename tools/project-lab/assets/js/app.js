@@ -1389,9 +1389,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (textarea) {
         textarea.addEventListener("input", function () {
-            this.style.height = "auto";
-            this.style.height =
-                Math.min(Math.max(this.scrollHeight, 200), 600) + "px";
         });
     }
 
@@ -1446,6 +1443,89 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // ==================== ATAJOS ====================
 
+function runProjectLabTextareaShortcut(tool) {
+    const textarea = document.getElementById("labInput");
+
+    if (!textarea) {
+        return;
+    }
+
+    textarea.focus();
+
+    if (tool === "tinker") {
+        runTinkerAjax();
+        return;
+    }
+
+    runLabTool(tool, false);
+}
+
+function isProjectLabEditableTarget(target) {
+    if (!target) {
+        return false;
+    }
+
+    const tagName = String(target.tagName || "").toLowerCase();
+
+    return (
+        tagName === "textarea" ||
+        tagName === "input" ||
+        tagName === "select" ||
+        target.isContentEditable
+    );
+}
+
+function shouldHandleProjectLabShortcut(event) {
+    return event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
+}
+
+function normalizeProjectLabShortcutKey(event) {
+    return String(event.key || "").toLowerCase();
+}
+
+document.addEventListener("keydown", function (event) {
+    if (!shouldHandleProjectLabShortcut(event)) {
+        return;
+    }
+
+    const target = event.target;
+
+    if (isProjectLabEditableTarget(target) && target.id !== "labInput") {
+        return;
+    }
+
+    const shortcuts = {
+        q: "code",
+        w: "docs",
+        e: "audit",
+        r: "tinker",
+    };
+
+    const tool = shortcuts[normalizeProjectLabShortcutKey(event)];
+
+    if (!tool) {
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    runProjectLabTextareaShortcut(tool);
+});
+
+function lockProjectLabMainTextareaResize() {
+    const textarea = document.getElementById("labInput");
+
+    if (!textarea) {
+        return;
+    }
+
+    textarea.style.resize = "vertical";
+    textarea.style.overflow = "auto";
+    textarea.style.minHeight = textarea.style.minHeight || "320px";
+}
+
+document.addEventListener("DOMContentLoaded", lockProjectLabMainTextareaResize);
 document.addEventListener("keydown", function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();

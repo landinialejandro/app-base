@@ -1,12 +1,14 @@
 *.log
 *.bak
 *.zip
-.DS_Store
 .env
 .env.backup
 .env.production
 .phpactor.json
 .phpunit.result.cache
+# macOS AppleDouble / resource fork files
+._*
+.DS_Store
 /.fleet
 /.idea
 /.nova

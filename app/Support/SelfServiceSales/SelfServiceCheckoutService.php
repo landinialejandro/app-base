@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V4
+// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V5
 
 namespace App\Support\SelfServiceSales;
 
@@ -9,6 +9,7 @@ use App\Models\SelfServiceCartItem;
 use App\Models\Shop;
 use App\Models\ShopItem;
 use App\Models\Tenant;
+use App\Support\Inventory\InventoryShopStockAvailabilityService;
 use App\Support\SelfServiceSales\Payments\SelfServicePaymentGateway;
 use App\Support\SelfServiceSales\Payments\SelfServicePaymentRequestFactory;
 use App\Support\Shops\ShopItemCommercialPolicyResolver;
@@ -19,11 +20,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class SelfServiceCheckoutService
 {
     public const MESSAGE_CHECKOUT_DISABLED = 'El checkout de esta tienda no está disponible en este momento.';
+    public const MESSAGE_STOCK_NOT_AVAILABLE = InventoryShopStockAvailabilityService::MESSAGE_STOCK_NOT_AVAILABLE;
 
     public function __construct(
         protected SelfServiceCartService $carts,
         protected SelfServicePaymentRequestFactory $paymentRequests,
-        protected SelfServicePaymentGateway $gateway
+        protected SelfServicePaymentGateway $gateway,
+        protected InventoryShopStockAvailabilityService $stockAvailability
     ) {
     }
 
@@ -145,6 +148,12 @@ class SelfServiceCheckoutService
             if ($maxQuantity !== null && (int) $cartItem->quantity > (int) $maxQuantity) {
                 throw new HttpException(422, SelfServiceCartService::MESSAGE_MAX_QUANTITY_EXCEEDED);
             }
+
+            $this->stockAvailability->ensureAvailable(
+                $shopItem,
+                $commercialPolicy,
+                $cartItem->quantity,
+            );
         }
     }
 }

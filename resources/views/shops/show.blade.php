@@ -1,8 +1,8 @@
-{{-- FILE: resources/views/shops/show.blade.php | V2 --}}
+{{-- FILE: resources/views/shops/show.blade.php | V3 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Detalle de tienda')
+@section('title', 'Gestión de tienda')
 
 @section('content')
     @php
@@ -14,6 +14,34 @@
 
         $navigationTrail = $navigationTrail ?? [];
         $trailQuery = $trailQuery ?? NavigationTrail::toQuery($navigationTrail);
+        $tabsLabel = 'Secciones de gestión de tienda';
+
+        $upcomingContracts = [
+            [
+                'title' => 'Clientes tienda',
+                'text' => 'Contrato interno pendiente para vincular clientes externos con gestión autorizada de tienda.',
+            ],
+            [
+                'title' => 'Carritos externos',
+                'text' => 'Contrato interno pendiente para leer intención externa sin convertirla en operación real desde la tienda pública.',
+            ],
+            [
+                'title' => 'Ventas / Órdenes',
+                'text' => 'Contrato interno pendiente para que Orders tome ownership de la orden cuando exista integración habilitada.',
+            ],
+            [
+                'title' => 'Pagos',
+                'text' => 'Contrato interno pendiente para que Payments gobierne intentos, estados y conciliación.',
+            ],
+            [
+                'title' => 'Stock comprometible',
+                'text' => 'Contrato interno pendiente para que Inventory defina disponibilidad real y compromiso de stock.',
+            ],
+            [
+                'title' => 'Configuración comercial',
+                'text' => 'Contrato interno pendiente para reglas operativas de tienda sin decidir precio, stock ni autorización pública.',
+            ],
+        ];
 
         $tabItems = collect([
             [
@@ -39,7 +67,7 @@
 
         <x-breadcrumb :items="NavigationTrail::toBreadcrumbItems($navigationTrail)" />
 
-        <x-page-header title="Detalle de tienda">
+        <x-page-header title="Gestión de tienda">
             @if (! ShopCatalog::isActiveStatus($shop->status))
                 @can('update', $shop)
                     <form method="POST" action="{{ route('shops.activate', $shop) }}">
@@ -97,14 +125,35 @@
                     {{ $shop->description ?: '—' }}
                 </x-show-summary-item-detail-block>
 
-                <x-show-summary-item-detail-block label="Lectura externa" full>
-                    Esta tienda configura qué catálogo se publica hacia la tienda externa. No genera compras, pagos,
-                    órdenes, documentos, movimientos de stock, fichas ni QR.
+                <x-show-summary-item-detail-block label="Lectura interna" full>
+                    Esta pantalla pertenece al plano interno autorizado. La tienda pública exhibe el catálogo publicado;
+                    la operación real se resuelve en backend mediante los módulos dueños: shops, Products, Inventory,
+                    Payments, Orders, Documents y Security.
                 </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
 
-        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" label="Secciones de la tienda" />
+        <x-card>
+            <div class="dashboard-section-header">
+                <h2 class="dashboard-section-title">Perfil operativo de tienda</h2>
+                <p class="dashboard-section-text">
+                    Este espacio concentra la gestión interna de la tienda. Por ahora mantiene la administración del
+                    catálogo publicado y deja visibles los próximos contratos internos sin simular funcionalidad activa.
+                </p>
+            </div>
+
+            <div class="summary-inline-grid">
+                @foreach ($upcomingContracts as $contract)
+                    <div class="summary-inline-card">
+                        <span class="summary-inline-label">{{ $contract['title'] }}</span>
+                        <strong>Próximo contrato interno</strong>
+                        <span>{{ $contract['text'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </x-card>
+
+        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
 
     </x-page>
 @endsection

@@ -1,0 +1,873 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Audiencia y usos del producto
+DOC_SLUG: audiencia_usos_producto_app_base
+DOC_VERSION: 00001
+TIPO: producto-estratégico
+ESTADO: activo
+GESTIÓN: Documento rector para definir para quién se construye app-base, qué usos reales debe sostener, qué sabe o no sabe su audiencia, qué le frustra, qué objeciones tiene y cómo esta información debe orientar IA, UX, copy, documentación y evolución del producto.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
+OBJETIVO DEL DOCUMENTO
+
+Este documento define la audiencia y los usos reales del producto app-base.
+
+Su función es evitar que el sistema, la documentación, la IA, la UX, el copy o las futuras funcionalidades se optimicen en abstracto.
+
+Debe responder:
+
+para quién se construye app-base
+qué tipos de usuarios lo usan
+qué quieren lograr
+qué saben
+qué no saben
+qué les frustra
+qué objeciones tienen
+en qué contextos reales trabajan
+qué usos principales debe sostener el sistema
+qué usos son secundarios
+para quién no es el producto
+qué se sabe con evidencia
+qué todavía se asume
+cómo debe cambiar el trabajo de una IA después de leer este documento
+
+No define:
+
+arquitectura técnica
+seguridad y permisos
+pricing detallado
+modelo comercial completo
+implementación de módulos
+roadmap operativo
+componentes visuales
+rutas
+tablas
+controllers
+contratos de Project Lab
+
+Regla:
+
+este documento define destinatarios, usos y contexto humano-operativo.
+
+No reemplaza documentos de arquitectura, seguridad, monetización, navegación, UI ni implementación.
+<<END SECTION>>
+
+<<SECTION: PRINCIPIO RECTOR>>
+SECTION_VERSION: 00001
+
+PRINCIPIO RECTOR
+
+La IA no sabe para quién se construye si la audiencia no está documentada.
+
+Un agente puede leer código, rutas, tests, issues, documentación, convenciones y arquitectura.
+
+Aun así puede construir algo incorrecto si no entiende:
+
+para quién existe el producto
+qué problema real intenta resolver
+qué usuario lo opera
+qué lenguaje comprende ese usuario
+qué contexto de uso condiciona la experiencia
+qué frustración se busca reducir
+qué objeción debe anticiparse
+qué usos no deben orientar el diseño
+
+Regla:
+
+sin audiencia documentada, la IA completa huecos.
+
+Cuando la IA completa huecos, tiende a producir:
+
+interfaces genéricas
+copies genéricos
+documentación genérica
+features genéricas
+prioridades genéricas
+flujos que funcionan técnicamente pero no acompañan al usuario real
+
+Regla:
+
+la audiencia no es un accesorio de marketing.
+
+La audiencia es contexto operativo para arquitectura de experiencia, documentación, IA, priorización y comunicación.
+
+Regla final:
+
+app-base no debe optimizar en abstracto.
+
+Debe evolucionar para usuarios, usos y contextos reales.
+<<END SECTION>>
+
+<<SECTION: AUDIENCIA PRINCIPAL>>
+SECTION_VERSION: 00001
+
+AUDIENCIA PRINCIPAL
+
+La audiencia principal de app-base son pequeñas y medianas empresas, emprendimientos operativos, equipos de trabajo y unidades de gestión que necesitan ordenar su actividad diaria sin adoptar un ERP enterprise pesado.
+
+Lectura vigente:
+
+app-base está pensado para organizaciones que necesitan una base profesional para operar con más claridad, continuidad y control.
+
+No se orienta solamente a empresas con alta madurez tecnológica.
+
+Debe poder acompañar empresas que:
+
+trabajan con información dispersa
+dependen de tareas, agenda, órdenes, productos, documentos o stock
+necesitan ordenar procesos sin sobredimensionar la herramienta
+requieren trazabilidad y control progresivo
+pueden crecer por etapas
+necesitan claridad antes que complejidad
+valoran comenzar simple y ampliar cuando exista necesidad real
+
+Regla:
+
+el sistema debe absorber complejidad técnica.
+
+El usuario no debe estar obligado a comprender arquitectura, tablas, permisos, relaciones internas ni contratos modulares para operar.
+<<END SECTION>>
+
+<<SECTION: AUDIENCIAS INTERNAS DEL SISTEMA>>
+SECTION_VERSION: 00001
+
+AUDIENCIAS INTERNAS DEL SISTEMA
+
+Dentro del plano interno autenticado, app-base debe contemplar distintos perfiles de uso.
+
+[OWNER / FUNDADOR]
+
+Necesita:
+
+crear y gobernar la empresa
+mantener control general
+invitar colaboradores
+definir roles
+comprender el estado operativo
+conservar autoridad estructural
+
+Sabe:
+
+qué necesita ordenar en su empresa
+quiénes participan
+qué procesos le importan
+
+Puede no saber:
+
+cómo se modela técnicamente un tenant
+cómo funcionan permisos internos
+qué módulo debe resolver cada proceso
+cómo se implementa seguridad o trazabilidad
+
+Frustraciones típicas:
+
+sistemas demasiado complejos
+dependencia técnica para iniciar
+interfaces que no explican qué hacer
+pérdida de control sobre usuarios o información
+herramientas rígidas que obligan a adaptar la empresa al software
+
+
+[ADMINISTRADOR]
+
+Necesita:
+
+acompañar la gestión operativa fuerte
+coordinar usuarios, datos y procesos
+resolver configuraciones permitidas
+mantener orden sin ser owner
+
+Sabe:
+
+cómo se organiza la operación diaria
+qué datos deben estar disponibles
+qué usuarios necesitan trabajar
+
+Puede no saber:
+
+qué restricciones no puede modificar por no ser owner
+qué acciones requieren autoridad superior
+qué límites son de seguridad y no de interfaz
+
+Frustraciones típicas:
+
+no entender por qué una acción está bloqueada
+no diferenciar gobierno estructural de gestión operativa
+no tener señales claras de disponibilidad o restricción
+
+
+[OPERADOR]
+
+Necesita:
+
+registrar, consultar y actualizar actividad diaria
+trabajar rápido
+evitar pasos innecesarios
+comprender estados y próximos pasos
+
+Sabe:
+
+qué tarea debe realizar
+qué información concreta tiene delante
+qué resultado operativo necesita
+
+Puede no saber:
+
+qué módulo es dueño de una relación
+qué permisos aplican
+qué implicancias tiene un estado
+qué información es obligatoria o contextual
+
+Frustraciones típicas:
+
+formularios largos
+campos que no entiende
+errores técnicos
+pantallas con demasiadas opciones
+tener que cargar dos veces la misma información
+
+
+[ADMINISTRATIVO]
+
+Necesita:
+
+ordenar datos, documentos, registros, contactos y seguimiento interno.
+
+Sabe:
+
+qué información debe quedar registrada
+qué comprobantes o datos deben conservarse
+qué procesos deben quedar claros
+
+Puede no saber:
+
+qué automatizaciones existen
+qué relación hay entre documentos, órdenes, contactos o productos
+qué dato es snapshot y qué dato es vínculo gestionado
+
+Frustraciones típicas:
+
+duplicación de carga
+falta de continuidad entre módulos
+dificultad para encontrar información
+pantallas que no distinguen lo importante de lo accesorio
+
+
+[COMERCIAL]
+
+Necesita:
+
+gestionar clientes, seguimiento, oportunidades, tienda, publicaciones o actividad comercial.
+
+Sabe:
+
+qué cliente o contacto importa
+qué acción comercial debe realizar
+qué información necesita para avanzar
+
+Puede no saber:
+
+qué parte pertenece a Parties, Shops, Orders o Documents
+qué implica una publicación externa
+qué diferencia hay entre cliente interno gestionado y customer externo
+
+Frustraciones típicas:
+
+no encontrar historial
+no entender estados comerciales
+no poder pasar de intención comercial a acción operativa
+
+
+[TÉCNICO / SERVICIO]
+
+Necesita:
+
+consultar órdenes de servicio
+ver datos de activo o contraparte
+registrar actividad técnica
+trabajar con información clara en contexto operativo
+
+Sabe:
+
+qué trabajo debe realizar
+qué activo o cliente está involucrado
+qué información técnica necesita
+
+Puede no saber:
+
+cómo se formalizan documentos
+cómo se gestiona stock
+qué reglas de cierre aplican
+qué parte pertenece a Orders, Assets o Inventory
+
+Frustraciones típicas:
+
+pantallas administrativas no adaptadas al trabajo técnico
+demasiada carga textual
+falta de contexto del activo
+dificultad para ver qué falta para cerrar
+<<END SECTION>>
+
+<<SECTION: AUDIENCIAS EXTERNAS DEL SISTEMA>>
+SECTION_VERSION: 00001
+
+AUDIENCIAS EXTERNAS DEL SISTEMA
+
+app-base también contempla audiencias externas cuando el tenant habilita planos públicos o comerciales.
+
+[CUSTOMER EXTERNO]
+
+Necesita:
+
+acceder a una tienda pública
+identificarse como cliente externo cuando corresponda
+ver catálogo publicado
+operar carrito si está habilitado
+comprender si puede o no operar
+recibir mensajes claros ante bloqueos
+
+Sabe:
+
+qué producto o servicio busca
+qué tienda o empresa quiere usar
+qué acción quiere realizar
+
+Puede no saber:
+
+qué es un tenant
+qué es un ShopItem
+qué diferencia hay entre visitante, customer confirmado y customer habilitado
+qué implica operación habilitada
+qué parte del checkout es simulada o real
+
+Frustraciones típicas:
+
+no entender por qué no puede comprar
+ver productos pero no poder operar
+mensajes que parecen técnicos
+confusión entre acceso externo e ingreso al sistema interno
+
+
+[VISITANTE PÚBLICO]
+
+Necesita:
+
+comprender qué ofrece una tienda, landing o entrada pública
+explorar sin acceder al panel interno
+diferenciar tienda pública de sistema interno
+
+Sabe:
+
+que está interactuando con una empresa o tienda
+
+Puede no saber:
+
+qué capacidades internas existen
+qué datos están protegidos
+qué pasos requiere convertirse en customer operativo
+
+Frustraciones típicas:
+
+confusión entre login interno y acceso externo
+formularios excesivos
+promesas de acción que luego no están habilitadas
+
+
+[CLIENTE EMPRESARIAL POTENCIAL]
+
+Necesita:
+
+entender qué problema resuelve app-base
+ver si el producto aplica a su empresa
+distinguir planes, alcance, valor y posibilidad de crecimiento
+
+Sabe:
+
+qué desorden o necesidad tiene su organización
+qué herramientas usa actualmente
+qué le molesta de sus procesos
+
+Puede no saber:
+
+qué módulos necesita
+qué nivel de implementación requiere
+si SaaS estándar alcanza o necesita implementación particular
+
+Frustraciones típicas:
+
+software que promete demasiado
+planes poco claros
+lenguaje demasiado técnico
+no entender si el producto sirve para su rubro
+<<END SECTION>>
+
+<<SECTION: USOS PRINCIPALES DEL SISTEMA>>
+SECTION_VERSION: 00001
+
+USOS PRINCIPALES DEL SISTEMA
+
+app-base debe sostener usos operativos reales.
+
+Usos principales:
+
+organizar contactos y relaciones de negocio
+registrar y seguir órdenes de trabajo, venta, compra o servicio
+gestionar tareas y pendientes
+organizar agenda, turnos o actividades programadas
+generar y consultar documentos operativos
+gestionar productos y referencias comerciales
+acompañar inventario, movimientos o control de stock cuando corresponda
+publicar productos o tienda cuando el tenant habilite capacidad comercial externa
+permitir trabajo por roles dentro de una empresa
+mantener trazabilidad operativa
+reducir fricción administrativa
+preparar automatización progresiva e IA asistiva
+
+Regla:
+
+los usos principales deben orientar la evolución del sistema.
+
+No se deben priorizar features que sean atractivas técnicamente pero no reduzcan fricción real de la audiencia principal.
+<<END SECTION>>
+
+<<SECTION: USOS SECUNDARIOS O DERIVADOS>>
+SECTION_VERSION: 00001
+
+USOS SECUNDARIOS O DERIVADOS
+
+app-base puede sostener usos secundarios o derivados cuando exista contrato y necesidad real.
+
+Usos secundarios posibles:
+
+reportes operativos
+lecturas consolidadas
+asistencia IA sobre datos estructurados
+publicación externa de tienda
+checkout externo progresivo
+servicios y mantenimiento como universo semántico
+resúmenes contextuales de producto
+lecturas de actividad operativa
+automatizaciones guiadas
+ayudas contextuales
+onboarding por rubro
+plantillas de trabajo
+integraciones futuras con proveedores externos
+
+Regla:
+
+uso secundario no debe invadir ownership de módulos principales.
+
+Regla adicional:
+
+uso secundario no debe convertirse en complejidad visible si la audiencia principal no lo necesita todavía.
+<<END SECTION>>
+
+<<SECTION: CONTEXTOS REALES DE USO>>
+SECTION_VERSION: 00001
+
+CONTEXTOS REALES DE USO
+
+app-base debe poder adaptarse a contextos operativos diversos.
+
+Contextos posibles:
+
+empresa pequeña que quiere ordenar actividad diaria
+equipo que necesita coordinar tareas y agenda
+organización con órdenes de trabajo o servicio
+empresa con productos, compras, ventas o stock
+servicio técnico o mantenimiento liviano
+actividad comercial con tienda pública controlada
+emprendimiento que necesita pasar de planillas dispersas a sistema organizado
+empresa que empieza simple y luego requiere más estructura
+
+Reglas:
+
+el sistema debe comenzar simple.
+
+La complejidad debe activarse por necesidad operativa real.
+
+El producto no debe exigir que la empresa tenga madurez ERP avanzada desde el primer uso.
+
+El producto debe poder crecer sin obligar a rehacer el sistema.
+<<END SECTION>>
+
+<<SECTION: CONOCIMIENTOS DE LA AUDIENCIA>>
+SECTION_VERSION: 00001
+
+CONOCIMIENTOS DE LA AUDIENCIA
+
+La audiencia puede conocer:
+
+su actividad
+sus clientes
+sus productos
+sus servicios
+sus tareas
+sus problemas cotidianos
+sus colaboradores
+sus urgencias
+su forma actual de organizarse
+
+La audiencia puede no conocer:
+
+arquitectura SaaS
+multi-tenancy
+tenant activo
+membership
+roles internos
+ownership modular
+contratos de seguridad
+surfaces
+hooks
+selectors
+snapshots
+catálogos
+status vocabulary
+estructura de tablas
+rutas
+controllers
+providers
+runtime
+Project Lab
+
+Regla:
+
+la interfaz, el copy, la documentación de usuario final y la IA no deben exigir que la audiencia comprenda la arquitectura interna.
+
+Regla:
+
+cuando una regla interna sea necesaria, debe traducirse a una explicación operativa clara.
+<<END SECTION>>
+
+<<SECTION: FRUSTRACIONES DE LA AUDIENCIA>>
+SECTION_VERSION: 00001
+
+FRUSTRACIONES DE LA AUDIENCIA
+
+Frustraciones que app-base debe reducir:
+
+desorden operativo
+información dispersa
+planillas aisladas
+duplicación de carga
+falta de seguimiento
+pérdida de contexto
+dificultad para saber qué está pendiente
+errores por falta de trazabilidad
+pantallas sobrecargadas
+lenguaje técnico innecesario
+sistemas que requieren demasiada configuración inicial
+software que obliga a trabajar como el software quiere
+falta de control sobre accesos
+miedo a perder información
+no saber qué acción corresponde después
+no diferenciar datos internos de datos públicos
+no entender por qué una operación está bloqueada
+
+Regla:
+
+cada nueva funcionalidad debe evaluarse según si reduce o aumenta estas frustraciones.
+
+Regla:
+
+si una mejora técnica aumenta carga cognitiva del usuario sin necesidad operativa real, debe revisarse.
+<<END SECTION>>
+
+<<SECTION: OBJECIONES Y RESISTENCIAS>>
+SECTION_VERSION: 00001
+
+OBJECIONES Y RESISTENCIAS
+
+Objeciones posibles frente a app-base:
+
+no quiero un sistema complejo
+no tengo tiempo para configurar todo
+mi empresa es chica
+ya uso planillas
+no sé si necesito todos los módulos
+me preocupa perder el control de la información
+me preocupa invitar colaboradores
+no sé si mis empleados van a usarlo
+no quiero pagar por algo que no entiendo
+no quiero depender de soporte para todo
+no quiero que la tecnología me complique más
+no sé si sirve para mi rubro
+no quiero exponer información interna
+no entiendo la diferencia entre tienda pública y panel interno
+
+Respuestas de producto esperadas:
+
+empezar simple
+activar complejidad solo cuando haga falta
+explicar con lenguaje claro
+mostrar control sobre empresa y accesos
+no obligar a usar todos los módulos desde el inicio
+ofrecer recorridos progresivos
+separar plano interno y plano externo
+mostrar beneficios operativos concretos
+evitar promesas excesivas
+
+Regla:
+
+el producto debe anticipar objeciones sin responder con tecnicismos.
+<<END SECTION>>
+
+<<SECTION: PARA QUIÉN NO ES APP-BASE>>
+SECTION_VERSION: 00001
+
+PARA QUIÉN NO ES APP-BASE
+
+app-base no está pensado como:
+
+ERP enterprise pesado
+sistema contable/fiscal completo por sí mismo
+sistema bancario
+pasarela de pago propia
+sistema de BI avanzado como núcleo inicial
+herramienta exclusiva para desarrolladores
+framework técnico genérico
+constructor visual no-code
+sistema sin control de permisos
+plataforma pública abierta sin tenant
+marketplace generalista
+red social
+sistema de e-commerce masivo sin operación interna
+solución cerrada para un único rubro
+
+No es adecuado para:
+
+organizaciones que necesitan únicamente una landing estática
+usuarios que buscan solo una planilla digital
+empresas que requieren personalización extrema sin implementación particular
+operaciones que exigen contabilidad, fiscalidad o pagos reales completos sin desarrollo de contratos específicos
+usuarios que esperan operar sin reglas de seguridad ni trazabilidad
+
+Regla:
+
+definir para quién no es el producto evita que la IA, el copy o el roadmap intenten satisfacer audiencias incompatibles.
+<<END SECTION>>
+
+<<SECTION: EVIDENCIA DISPONIBLE>>
+SECTION_VERSION: 00001
+
+EVIDENCIA DISPONIBLE
+
+Evidencias actuales del proyecto:
+
+app-base se define como SaaS multi-tenant sobre Laravel
+el sistema busca operar empresas con aislamiento por tenant
+el producto no se concibe como suma de CRUDs
+la documentación vigente prioriza claridad, ownership, seguridad y evolución modular
+la monetización vigente posiciona app-base como plataforma de gestión y crecimiento
+el contenido de bienvenida se dirige a usuarios no técnicos
+Shopping Autoservicio separa customer externo de User y Membership
+Servicio y mantenimiento se define como capa satélite productiva y no como CRUD ordinario
+la IA se define como capa transversal asistiva y no como módulo aislado
+Project Lab existe como herramienta local técnica, no como función del producto final
+
+Regla:
+
+la evidencia debe provenir de documentación activa, código real, runtime, auditorías o decisiones validadas.
+
+No debe confundirse intuición comercial con evidencia.
+<<END SECTION>>
+
+<<SECTION: SUPUESTOS PENDIENTES DE VALIDACIÓN>>
+SECTION_VERSION: 00001
+
+SUPUESTOS PENDIENTES DE VALIDACIÓN
+
+Supuestos actuales que deben tratarse como hipótesis hasta tener evidencia suficiente:
+
+los clientes objetivo priorizan orden y claridad por sobre personalización extrema
+las empresas pequeñas prefieren comenzar con configuración mínima
+el lenguaje no técnico mejora adopción inicial
+la posibilidad de crecer por módulos mejora percepción de valor
+la tienda pública resulta útil como extensión comercial para ciertos tenants
+Servicio y mantenimiento puede ser atractivo para operaciones con activos, órdenes y stock
+la IA aportará valor si reduce fricción y no si agrega complejidad
+los usuarios valoran más continuidad operativa que cantidad de features
+los perfiles internos necesitan diferencias claras de rol y autoridad
+
+Regla:
+
+un supuesto no debe redactarse como doctrina cerrada.
+
+Debe marcarse como supuesto hasta validarse con uso real, entrevistas, feedback, ventas, soporte, pruebas o evidencia operativa.
+<<END SECTION>>
+
+<<SECTION: IMPLICANCIAS PARA IA>>
+SECTION_VERSION: 00001
+
+IMPLICANCIAS PARA IA
+
+Una IA que trabaje sobre app-base debe usar este documento para ajustar su criterio.
+
+Después de leer audiencia y usos, la IA debe:
+
+evitar interfaces genéricas
+evitar copy genérico
+evitar documentación genérica
+evitar features sin destinatario
+evitar automatizaciones sin caso de uso
+evitar lenguaje técnico para usuario final
+distinguir usuario interno, customer externo y visitante público
+preguntar qué audiencia afecta una nueva funcionalidad
+preguntar qué uso real sostiene una decisión
+preguntar qué frustración reduce una mejora
+preguntar qué objeción debe anticipar un texto
+preguntar qué evidencia existe y qué se está asumiendo
+no proponer complejidad si no responde a uso real
+no confundir cliente comercial con usuario operativo
+no confundir customer externo con membership interna
+no confundir landing, tienda pública y panel interno
+
+Regla:
+
+la IA debe optimizar para la audiencia documentada, no para un usuario abstracto.
+
+Regla adicional:
+
+si una tarea afecta UX, copy, onboarding, documentación de usuario o priorización de producto, la IA debe consultar este documento antes de proponer.
+<<END SECTION>>
+
+<<SECTION: IMPLICANCIAS PARA UX Y COPY>>
+SECTION_VERSION: 00001
+
+IMPLICANCIAS PARA UX Y COPY
+
+La UX y el copy de app-base deben orientarse a claridad operativa.
+
+Reglas:
+
+usar lenguaje simple
+explicar acciones desde el beneficio operativo
+evitar nombres técnicos internos
+evitar obligar al usuario a comprender módulos como arquitectura
+distinguir panel interno de plano público
+distinguir administración interna de tienda pública
+distinguir acceso de usuario interno de acceso customer externo
+explicar bloqueos con mensajes accionables
+mostrar próximos pasos cuando corresponda
+reducir carga cognitiva
+evitar pantallas con opciones innecesarias
+mantener consistencia entre módulos
+usar lenguaje por rubro cuando exista contexto suficiente
+
+No usar como lenguaje principal:
+
+tenant
+membership
+scope
+policy
+surface
+hook
+selector
+snapshot
+payload
+provider
+runtime
+constraint
+frontend
+backend
+CRUD
+
+Regla:
+
+estos términos pueden existir en documentación técnica.
+
+No deben dominar la experiencia de usuario final.
+<<END SECTION>>
+
+<<SECTION: IMPLICANCIAS PARA FEATURES Y ROADMAP>>
+SECTION_VERSION: 00001
+
+IMPLICANCIAS PARA FEATURES Y ROADMAP
+
+Toda feature nueva debería poder responder:
+
+para qué audiencia se construye
+qué uso real sostiene
+qué frustración reduce
+qué objeción anticipa
+qué dato necesita
+qué complejidad agrega
+qué complejidad elimina
+qué documento especializado afecta
+qué evidencia justifica su prioridad
+qué riesgo existe si se implementa en abstracto
+
+Regla:
+
+una feature técnicamente interesante no debe priorizarse si no tiene audiencia, uso o necesidad clara.
+
+Regla adicional:
+
+si una feature responde a un usuario experto pero perjudica al usuario principal no técnico, debe diseñarse como capacidad avanzada, contextual o progresiva.
+<<END SECTION>>
+
+<<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>
+SECTION_VERSION: 00001
+
+RELACIÓN CON OTROS DOCUMENTOS
+
+Este documento debe leerse junto con:
+
+<DOC_REF slug="estandar_documental_app_base">Estándar documental del proyecto</DOC_REF>
+
+Define cómo documentamos, cómo se crean documentos y qué preguntas debe responder cada documento.
+
+<DOC_REF slug="indice_documental_app_base">Índice documental del proyecto</DOC_REF>
+
+Define dónde ubicar este documento dentro del mapa documental activo.
+
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+
+Define arquitectura estable, propósito general y naturaleza del sistema.
+
+<DOC_REF slug="monetizacion_proyecto_app_base">Monetización del proyecto</DOC_REF>
+
+Define modelo comercial, propuesta de valor, planes y posicionamiento.
+
+<DOC_REF slug="welcome_usuario_app_base">Bienvenida y guía de uso</DOC_REF>
+
+Traduce parte de esta lectura a contenido para usuario final no técnico.
+
+<DOC_REF slug="capa_ia_operativa_app_base">Capa IA operativa</DOC_REF>
+
+Define cómo la IA debe funcionar como capa transversal y asistiva dentro del sistema.
+
+Regla:
+
+audiencia y usos orienta destinatario y contexto.
+
+No reemplaza arquitectura, seguridad, monetización ni contenido final de usuario.
+<<END SECTION>>
+
+<<SECTION: REGLA FINAL>>
+SECTION_VERSION: 00001
+
+REGLA FINAL
+
+Antes de diseñar una pantalla, escribir copy, proponer una feature, generar documentación para usuario o pedir asistencia IA sobre evolución del producto, debe poder responderse:
+
+para quién es
+qué uso sostiene
+qué sabe esa persona
+qué no sabe
+qué le frustra
+qué objeción puede tener
+qué evidencia existe
+qué estamos asumiendo
+para quién no es
+
+Si no se puede responder, no se debe completar por intuición.
+
+NO SE ASUME.
+
+NO SE SUPONE.
+<<END SECTION>>

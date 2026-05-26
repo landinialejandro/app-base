@@ -1,0 +1,756 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Estándar documental del proyecto
+DOC_SLUG: estandar_documental_app_base
+DOC_VERSION: 00001
+TIPO: gobernanza-documental
+ESTADO: activo
+GESTIÓN: Documento rector para definir cómo se documenta el proyecto app-base, qué debe responder cada documento, cómo evitar duplicación documental y cómo iniciar documentación en futuros proyectos.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
+OBJETIVO DEL DOCUMENTO
+
+Este documento define el estándar documental del proyecto app-base.
+
+Su función es establecer cómo se documenta, qué se documenta, qué preguntas debe responder cada documento y cómo evitar documentación redundante, ambigua o dispersa.
+
+Debe servir para:
+
+ordenar la creación de documentos nuevos
+definir preguntas rectoras por tipo de documento
+distinguir doctrina, evidencia, decisión, pendiente, supuesto y contenido usuario final
+evitar duplicación entre documentos activos
+mantener documentación útil para humanos e IA
+preparar una base reutilizable para futuros proyectos
+evitar que la IA optimice en abstracto por falta de contexto documental
+preservar continuidad entre sesiones técnicas
+preservar fronteras documentales claras
+
+No define:
+
+arquitectura general del sistema
+seguridad y autorización
+reglas completas de módulos
+navegación real del sistema
+base visual
+componentes Blade
+roadmap operativo
+decisiones vivas concretas
+errores históricos
+contenido final de usuario
+pricing
+audiencia específica del producto
+
+Regla:
+
+este documento define cómo documentar.
+
+No reemplaza el contenido especializado de cada documento activo.
+<<END SECTION>>
+
+<<SECTION: PRINCIPIOS DEL ESTÁNDAR DOCUMENTAL>>
+SECTION_VERSION: 00001
+
+PRINCIPIOS DEL ESTÁNDAR DOCUMENTAL
+
+[PRINCIPIO 1]
+Todo documento debe responder una necesidad real de continuidad.
+
+[PRINCIPIO 2]
+Todo documento debe tener una pregunta principal clara.
+
+[PRINCIPIO 3]
+Todo documento debe declarar qué responde y qué no responde.
+
+[PRINCIPIO 4]
+Un documento no debe existir por comodidad, simetría o acumulación narrativa.
+
+[PRINCIPIO 5]
+Una sección nueva no debe crearse si el contenido encaja en una sección existente.
+
+[PRINCIPIO 6]
+La documentación debe reducir ambigüedad futura.
+
+[PRINCIPIO 7]
+La documentación debe ayudar a decidir, implementar, auditar, explicar o continuar.
+
+[PRINCIPIO 8]
+La documentación para IA debe ser explícita, compacta, trazable y con fronteras claras.
+
+[PRINCIPIO 9]
+La documentación para usuario final debe ser clara, no técnica y orientada al uso.
+
+[PRINCIPIO 10]
+No se documenta para llenar archivos.
+
+Se documenta para evitar errores, sostener continuidad y orientar decisiones futuras.
+
+Regla:
+
+si una frase no ayuda a una persona, una IA o una auditoría futura a decidir mejor, debe eliminarse o compactarse.
+<<END SECTION>>
+
+<<SECTION: TIPOS DE DOCUMENTOS>>
+SECTION_VERSION: 00001
+
+TIPOS DE DOCUMENTOS
+
+El proyecto distingue familias documentales.
+
+[RECTORES]
+
+Definen doctrina estable de alto impacto.
+
+Ejemplos:
+
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+Función:
+
+establecer reglas de máxima precedencia en su materia.
+
+No deben contener:
+
+historial
+backlog
+detalle coyuntural
+implementaciones puntuales
+narrativa extensa innecesaria
+
+[ESPECIALIZADOS]
+
+Definen un frente, capa, herramienta, mapa o dominio específico.
+
+Ejemplos:
+
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
+
+<DOC_REF slug="shopping_autoservicio_app_base">Shopping Autoservicio</DOC_REF>
+
+<DOC_REF slug="capa_ia_operativa_app_base">Capa IA operativa</DOC_REF>
+
+Función:
+
+desarrollar doctrina, reglas, límites y lectura operativa de un frente específico.
+
+No deben absorber doctrina general que pertenece a rectores.
+
+[MAPAS]
+
+Ordenan relaciones, entidades, navegación, componentes o estructura visual.
+
+Ejemplos:
+
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
+
+<DOC_REF slug="mapa_navegacion_relaciones_app_base">Mapa de navegación y relaciones</DOC_REF>
+
+<DOC_REF slug="mapa_componentes_app_base">Mapa de componentes del sistema</DOC_REF>
+
+Función:
+
+hacer visible una estructura del sistema.
+
+No deben convertirse en doctrina general, backlog ni historial.
+
+[MEMORIA OPERATIVA]
+
+Conservan decisiones, patrones y errores aprendidos.
+
+Ejemplos:
+
+<DOC_REF slug="decisiones_vivas_app_base">Decisiones vivas del proyecto</DOC_REF>
+
+<DOC_REF slug="patrones_validados_app_base">Patrones validados del proyecto</DOC_REF>
+
+<DOC_REF slug="errores_y_lecciones_app_base">Errores y lecciones del proyecto</DOC_REF>
+
+Función:
+
+evitar rediscusión, repetir soluciones validadas o repetir errores.
+
+No deben reemplazar documentos rectores ni especializados.
+
+[ROADMAP OPERATIVO]
+
+Concentra pendientes reales y líneas activas.
+
+Ejemplo:
+
+<DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
+
+Función:
+
+ordenar trabajo pendiente.
+
+No debe contener doctrina estable como fuente primaria.
+
+[PRODUCTO Y AUDIENCIA]
+
+Definen para quién se construye, con qué usos, objeciones, frustraciones, contexto y lenguaje esperado.
+
+Ejemplo previsto:
+
+<DOC_REF slug="audiencia_usos_producto_app_base">Audiencia y usos del producto</DOC_REF>
+
+Función:
+
+evitar optimización abstracta y orientar evolución del producto desde destinatarios reales.
+
+No debe definir arquitectura, permisos, pricing ni implementación.
+
+[USUARIO FINAL]
+
+Explica el sistema a usuarios no técnicos.
+
+Ejemplo:
+
+<DOC_REF slug="welcome_usuario_app_base">Bienvenida y guía de uso</DOC_REF>
+
+Función:
+
+acompañar comprensión y uso.
+
+No debe contener doctrina técnica interna.
+<<END SECTION>>
+
+<<SECTION: PREGUNTAS RECTORAS POR DOCUMENTO>>
+SECTION_VERSION: 00001
+
+PREGUNTAS RECTORAS POR DOCUMENTO
+
+Todo documento activo debe poder responder explícitamente:
+
+qué pregunta principal responde
+qué preguntas secundarias responde
+qué preguntas no responde
+qué decisiones futuras ayuda a tomar
+qué errores futuros ayuda a evitar
+qué otro documento debe consultarse si la pregunta queda fuera de su frontera
+
+Regla:
+
+si no puede formularse la pregunta principal de un documento, el documento está mal definido o su contenido debe integrarse en otro documento.
+
+Matriz base:
+
+contexto_fijo_proyecto_app_base
+Pregunta principal:
+¿Qué es app-base y cómo debe leerse arquitectónicamente?
+
+seguridad_acceso_proyecto_app_base
+Pregunta principal:
+¿Qué está permitido, para quién, bajo qué tenant y con qué autorización?
+
+convenciones_proyecto_app_base
+Pregunta principal:
+¿Qué reglas repetibles deben respetarse al implementar?
+
+plantilla_inicio_chats_proyecto_app_base
+Pregunta principal:
+¿Cómo debe iniciarse un nuevo chat técnico sin perder continuidad?
+
+guia_project_lab_proyecto_app_base
+Pregunta principal:
+¿Cómo se usa Project Lab para auditar, validar, aplicar y registrar evidencia?
+
+mapa_entidades_app_base
+Pregunta principal:
+¿Qué entidades existen y cómo se relacionan conceptualmente?
+
+mapa_navegacion_relaciones_app_base
+Pregunta principal:
+¿Cómo se recorre el sistema y qué relaciones son visibles para el usuario?
+
+base_visual_proyecto_app_base
+Pregunta principal:
+¿Cómo debe verse y componerse visualmente el sistema?
+
+mapa_componentes_app_base
+Pregunta principal:
+¿Qué componentes visuales existen y dónde corresponde ubicarlos?
+
+checklist_modulos_nuevos_app_base
+Pregunta principal:
+¿Qué debe validarse antes de considerar integrada una capacidad, módulo o frente?
+
+decisiones_vivas_app_base
+Pregunta principal:
+¿Qué decisiones vigentes ya no deben rediscutirse?
+
+patrones_validados_app_base
+Pregunta principal:
+¿Qué soluciones repetibles ya fueron validadas?
+
+errores_y_lecciones_app_base
+Pregunta principal:
+¿Qué errores no deben repetirse?
+
+todo_proyecto_app_base
+Pregunta principal:
+¿Qué tareas reales, pendientes o líneas activas siguen abiertas?
+
+capa_ia_operativa_app_base
+Pregunta principal:
+¿Cómo debe entenderse la IA dentro del sistema?
+
+shopping_autoservicio_app_base
+Pregunta principal:
+¿Qué es self_service_sales y cómo opera como capa satélite externa?
+
+paquete_servicios_mantenimiento_app_base
+Pregunta principal:
+¿Cómo se lee Servicio y mantenimiento dentro del ecosistema?
+
+monetizacion_proyecto_app_base
+Pregunta principal:
+¿Cómo genera valor e ingresos el proyecto?
+
+welcome_usuario_app_base
+Pregunta principal:
+¿Cómo se explica el sistema al usuario final no técnico?
+
+indice_documental_app_base
+Pregunta principal:
+¿Qué documentos existen, qué responde cada uno y cómo se consultan?
+
+audiencia_usos_producto_app_base
+Pregunta principal:
+¿Para quién se construye app-base, en qué usos y con qué necesidades reales?
+
+estandar_documental_app_base
+Pregunta principal:
+¿Cómo documentamos y cómo iniciamos documentación en futuros proyectos?
+<<END SECTION>>
+
+<<SECTION: ESTRUCTURA MÍNIMA DE DOCUMENTO ACTIVO>>
+SECTION_VERSION: 00001
+
+ESTRUCTURA MÍNIMA DE DOCUMENTO ACTIVO
+
+Todo documento activo debe tener:
+
+METADATOS
+OBJETIVO DEL DOCUMENTO
+secciones temáticas con SECTION_VERSION cuando corresponda
+fronteras explícitas
+reglas o criterios si el documento es doctrinal
+relación con otros documentos si la materia lo requiere
+
+Metadatos mínimos:
+
+TÍTULO
+DOC_SLUG
+DOC_VERSION
+TIPO
+ESTADO
+GESTIÓN
+
+Reglas:
+
+DOC_SLUG es identidad documental estable.
+
+No usar nombres físicos de archivo como referencia narrativa si existe DOC_SLUG.
+
+DOC_VERSION expresa versión global.
+
+SECTION_VERSION expresa evolución interna de sección.
+
+Las referencias internas deben usar DOC_REF cuando correspondan.
+
+Regla:
+
+la estructura mínima no obliga a que todos los documentos tengan la misma cantidad de secciones.
+
+Obliga a que todo documento tenga identidad, función, frontera y trazabilidad.
+<<END SECTION>>
+
+<<SECTION: CRITERIOS PARA CREAR DOCUMENTOS NUEVOS>>
+SECTION_VERSION: 00001
+
+CRITERIOS PARA CREAR DOCUMENTOS NUEVOS
+
+Un documento nuevo corresponde cuando:
+
+la materia no pertenece claramente a un documento existente
+mezclarla en otro documento produciría ambigüedad futura
+la materia tendrá evolución propia
+la materia será consultada de forma recurrente
+la materia afecta a personas, IA, auditorías o decisiones futuras
+la nueva frontera documental evita duplicación o deriva
+la pregunta principal no está respondida por otro documento activo
+
+No corresponde crear documento nuevo cuando:
+
+el contenido es solo una nota menor
+el contenido es una decisión puntual
+el contenido es un pendiente operativo
+el contenido es un error ya aprendido
+el contenido pertenece a una sección existente
+el contenido solo existe por comodidad narrativa
+el contenido duplica doctrina ya vigente
+
+Regla:
+
+documento nuevo requiere pregunta principal propia.
+
+Sin pregunta principal propia, no hay documento nuevo.
+<<END SECTION>>
+
+<<SECTION: CRITERIOS PARA CREAR SECCIONES NUEVAS>>
+SECTION_VERSION: 00001
+
+CRITERIOS PARA CREAR SECCIONES NUEVAS
+
+Una sección nueva corresponde cuando:
+
+el contenido no encaja en ninguna sección existente
+la sección evita ambigüedad futura
+la granularidad nueva será útil para lectura, auditoría o actualización
+existe ubicación clara dentro del documento
+el nombre de sección expresa una frontera real
+
+No corresponde crear sección nueva cuando:
+
+la sección solo mejora estilo
+la sección repite otra regla
+la sección separa artificialmente contenido conectado
+la sección agrega narrativa sin decisión
+la sección existe solo para que el texto parezca más ordenado
+
+Regla:
+
+sección nueva debe responder una pregunta interna clara.
+
+Si no hay pregunta interna, integrar en sección existente.
+<<END SECTION>>
+
+<<SECTION: CRITERIOS PARA ACTUALIZAR DOCUMENTOS EXISTENTES>>
+SECTION_VERSION: 00001
+
+CRITERIOS PARA ACTUALIZAR DOCUMENTOS EXISTENTES
+
+Actualizar un documento existente corresponde cuando:
+
+cambia doctrina vigente
+se valida una decisión nueva
+se corrige una regla errónea
+se detecta una contradicción
+se consolida un patrón nuevo
+se registra una lección importante
+se cierra una línea operativa real
+se modifica una frontera documental
+se incorpora evidencia que cambia el criterio futuro
+
+No corresponde actualizar por:
+
+preferencia de redacción
+duplicación narrativa
+detalle transitorio sin impacto futuro
+resultado parcial no validado
+idea no decidida
+hipótesis no auditada
+cambio cosmético sin impacto
+
+Regla:
+
+no actualizar documentos por inercia.
+
+Todo cambio documental debe tener motivo, frontera y utilidad futura.
+<<END SECTION>>
+
+<<SECTION: EVIDENCIA, DECISIÓN, DOCTRINA, PENDIENTE Y SUPUESTO>>
+SECTION_VERSION: 00001
+
+EVIDENCIA, DECISIÓN, DOCTRINA, PENDIENTE Y SUPUESTO
+
+[EVIDENCIA]
+
+Dato observado, salida real, auditoría, runtime, Project Lab, prueba, archivo, ruta, esquema o comportamiento validado.
+
+Debe responder:
+
+qué se observó
+dónde se observó
+cuándo importa
+qué confirma
+qué no confirma
+
+[DECISIÓN]
+
+Criterio aprobado que condiciona futuras acciones.
+
+Debe responder:
+
+qué se decidió
+por qué se decidió
+qué evita
+qué documentos afecta
+qué no implica
+
+[DOCTRINA]
+
+Regla estable que orienta diseño, implementación, seguridad, navegación, UI o documentación.
+
+Debe responder:
+
+qué principio rige
+dónde aplica
+qué prohíbe
+qué habilita
+qué documento especializado la gobierna
+
+[PENDIENTE]
+
+Trabajo real aún no cerrado.
+
+Debe responder:
+
+qué falta hacer
+por qué importa
+qué evidencia falta
+qué documento o frente afecta
+
+[SUPUESTO]
+
+Idea plausible pero no validada.
+
+Debe responder:
+
+qué se cree
+por qué se cree
+qué evidencia falta
+qué riesgo tiene asumirlo
+cómo se validará
+
+Regla:
+
+no mezclar evidencia, decisión, doctrina, pendiente y supuesto como si tuvieran el mismo peso.
+
+Regla final:
+
+un supuesto no debe redactarse como doctrina.
+<<END SECTION>>
+
+<<SECTION: DOCUMENTACIÓN ORIENTADA A IA>>
+SECTION_VERSION: 00001
+
+DOCUMENTACIÓN ORIENTADA A IA
+
+La documentación orientada a IA debe permitir que un agente comprenda:
+
+qué existe
+para qué existe
+para quién existe
+qué puede hacer
+qué no puede hacer
+qué documento debe leer
+qué frontera no debe cruzar
+qué dato falta
+qué no debe suponer
+qué evidencia necesita
+qué documento prevalece
+qué acción requiere autorización o validación
+
+Reglas:
+
+la IA no debe reconstruir doctrina desde conversaciones dispersas
+
+la IA no debe inferir audiencia, uso, permisos, ownership, navegación ni contexto operativo si existe documento que debe definirlo
+
+la IA debe usar documentos como contratos de lectura
+
+la IA debe diferenciar:
+
+arquitectura
+seguridad
+convenciones
+audiencia
+usos
+navegación
+UI
+componentes
+herramientas
+memoria operativa
+pendientes
+
+Regla:
+
+documentar para IA no significa escribir más.
+
+Significa escribir con fronteras más claras.
+<<END SECTION>>
+
+<<SECTION: DOCUMENTACIÓN ORIENTADA A USUARIO FINAL>>
+SECTION_VERSION: 00001
+
+DOCUMENTACIÓN ORIENTADA A USUARIO FINAL
+
+La documentación orientada a usuario final debe usar lenguaje claro, no técnico y orientado al valor práctico.
+
+Debe responder:
+
+qué puede hacer el usuario
+para qué le sirve
+cómo empieza
+qué decisiones conserva bajo control
+qué debe comprender sin conocer arquitectura
+qué acciones puede realizar
+qué límites debe conocer sin lenguaje técnico excesivo
+
+No debe exponer:
+
+doctrina interna
+permisos internos detallados
+nombres de clases
+rutas internas
+tablas
+constraints
+contratos técnicos
+historial de implementación
+
+Regla:
+
+el usuario final no debe hablar como la base de datos.
+
+El sistema debe traducir complejidad técnica en experiencia comprensible.
+<<END SECTION>>
+
+<<SECTION: PLANTILLA BASE PARA NUEVOS PROYECTOS>>
+SECTION_VERSION: 00001
+
+PLANTILLA BASE PARA NUEVOS PROYECTOS
+
+Todo nuevo proyecto debería iniciar con una base documental mínima.
+
+Documentos mínimos sugeridos:
+
+contexto_fijo_proyecto
+seguridad_acceso_proyecto
+estandar_documental_proyecto
+indice_documental_proyecto
+audiencia_usos_producto
+convenciones_proyecto
+plantilla_inicio_chats_proyecto
+todo_proyecto
+
+Preguntas mínimas iniciales:
+
+qué es el proyecto
+para quién se construye
+qué problema resuelve
+qué usos principales sostiene
+qué usuarios no son destinatarios
+qué reglas de seguridad son críticas
+qué arquitectura base tiene
+qué documentación se leerá primero
+qué no se debe asumir
+qué evidencia será necesaria para cerrar cambios
+qué documentos especializados faltan
+
+Regla:
+
+la base documental mínima debe permitir iniciar trabajo sin depender de memoria conversacional.
+
+Regla adicional:
+
+no todos los proyectos requieren la misma cantidad de documentos especializados.
+
+La especialización documental debe crecer por necesidad real.
+<<END SECTION>>
+
+<<SECTION: REGLA DE NO REFORMA INNECESARIA>>
+SECTION_VERSION: 00001
+
+REGLA DE NO REFORMA INNECESARIA
+
+Este estándar no habilita refactor documental masivo por sí mismo.
+
+Los documentos actuales se conservan como base vigente.
+
+Toda reforma futura debe justificar:
+
+qué problema documental corrige
+qué ambigüedad elimina
+qué duplicación reduce
+qué frontera mejora
+qué riesgo futuro evita
+qué documento especializado queda más claro
+
+No corresponde reformar por:
+
+naming imperfecto pero ya comprendido
+preferencia estética
+simetría documental
+orden abstracto
+ansiedad de normalización
+deseo de rehacer todo
+
+Regla:
+
+la documentación debe evolucionar de forma progresiva, útil y controlada.
+
+No debe convertirse en un proyecto paralelo que bloquee el desarrollo real.
+<<END SECTION>>
+
+<<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>
+SECTION_VERSION: 00001
+
+RELACIÓN CON OTROS DOCUMENTOS
+
+Este documento debe leerse junto con:
+
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+
+Define convenciones estructurales, formato documental vigente y reglas repetibles de implementación.
+
+<DOC_REF slug="indice_documental_app_base">Índice documental del proyecto</DOC_REF>
+
+Debe listar documentos activos, preguntas principales, función, frontera y lectura recomendada por frente.
+
+<DOC_REF slug="audiencia_usos_producto_app_base">Audiencia y usos del producto</DOC_REF>
+
+Debe definir para quién se construye app-base, qué usos sostiene, qué sabe la audiencia, qué le frustra, qué objeciones tiene y qué no debe asumir la IA.
+
+<DOC_REF slug="plantilla_inicio_chats_proyecto_app_base">Plantilla de inicio de chats del proyecto</DOC_REF>
+
+Ordena el inicio de nuevos chats técnicos y la lectura mínima obligatoria.
+
+Regla:
+
+este documento define cómo documentar.
+
+El índice documental define qué documentos existen.
+
+Audiencia y usos define para quién se construye.
+
+La plantilla de inicio define cómo comenzar una sesión técnica.
+<<END SECTION>>
+
+<<SECTION: REGLA FINAL>>
+SECTION_VERSION: 00001
+
+REGLA FINAL
+
+Todo documento debe poder responder:
+
+qué pregunta contesta
+qué pregunta no contesta
+qué decisión futura ayuda a tomar
+qué error futuro ayuda a evitar
+qué frontera documental protege
+
+Si no puede responder eso, debe revisarse su existencia, su nombre, su contenido o su ubicación documental.
+
+NO SE ASUME.
+
+NO SE SUPONE.
+
+La documentación debe hacer explícito lo que una persona o una IA no debería inventar.
+<<END SECTION>>

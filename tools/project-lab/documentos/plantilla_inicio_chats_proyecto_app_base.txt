@@ -143,7 +143,7 @@ Si una información solo ordena cómo empezar un chat, corresponde a esta planti
 <<END SECTION>>
 
 <<SECTION: DOCUMENTOS DE REFERENCIA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 DOCUMENTOS DE REFERENCIA
 
@@ -152,6 +152,14 @@ Documentos rectores iniciales:
 <DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
 
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+Documentos de gobernanza documental:
+
+<DOC_REF slug="estandar_documental_app_base">Estándar documental del proyecto</DOC_REF>
+
+<DOC_REF slug="indice_documental_app_base">Índice documental del proyecto</DOC_REF>
+
+<DOC_REF slug="audiencia_usos_producto_app_base">Audiencia y usos del producto</DOC_REF>
 
 Documento de convenciones:
 
@@ -200,6 +208,8 @@ Regla:
 no todos los documentos deben leerse en todos los chats.
 
 Después de los dos rectores y esta plantilla, se deben leer solo los documentos especializados necesarios para el frente activo.
+
+Los documentos de gobernanza documental deben consultarse cuando el frente activo sea documentación, creación de documentos, organización documental, audiencia, usos, copy, UX, IA aplicada a documentación o continuidad entre proyectos.
 <<END SECTION>>
 
 <<SECTION: IDENTIFICACIÓN DEL FRENTE ACTIVO>>

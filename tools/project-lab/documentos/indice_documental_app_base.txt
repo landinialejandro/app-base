@@ -1,0 +1,1046 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Índice documental del proyecto
+DOC_SLUG: indice_documental_app_base
+DOC_VERSION: 00001
+TIPO: gobernanza-documental
+ESTADO: activo
+GESTIÓN: Documento rector para listar, clasificar y orientar la lectura de los documentos activos del proyecto app-base, definiendo función, pregunta principal, frontera y lectura recomendada por frente.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
+OBJETIVO DEL DOCUMENTO
+
+Este documento define el índice documental activo del proyecto app-base.
+
+Su función es ordenar qué documentos existen, qué responde cada uno, cuándo deben leerse y qué frontera documental protege cada documento.
+
+Debe servir para:
+
+identificar documentos activos
+clasificar documentos por familia
+definir la pregunta principal de cada documento
+orientar lectura por frente activo
+evitar recorrer documentos innecesarios
+evitar duplicación documental
+evitar contradicciones por uso de documento incorrecto
+facilitar continuidad entre sesiones
+facilitar intervención de otras personas o sistemas IA
+mantener trazabilidad documental del proyecto
+
+No define:
+
+contenido completo de cada documento
+doctrina interna de cada frente
+reglas técnicas de implementación
+seguridad detallada
+arquitectura completa
+navegación completa
+UI completa
+roadmap operativo
+historial de cambios
+audiencia y usos del producto
+
+Regla:
+
+este documento indica dónde leer.
+
+No reemplaza la lectura del documento especializado correspondiente.
+<<END SECTION>>
+
+<<SECTION: PRINCIPIO GENERAL DE LECTURA DOCUMENTAL>>
+SECTION_VERSION: 00001
+
+PRINCIPIO GENERAL DE LECTURA DOCUMENTAL
+
+La documentación activa debe leerse según necesidad real.
+
+No todos los documentos deben leerse en todos los chats, auditorías o intervenciones.
+
+Orden base para trabajo técnico:
+
+1. contexto_fijo_proyecto_app_base
+
+2. seguridad_acceso_proyecto_app_base
+
+3. plantilla_inicio_chats_proyecto_app_base
+
+4. documento especializado del frente activo
+
+5. código real, runtime, auditoría o evidencia Project Lab cuando corresponda
+
+Regla:
+
+los documentos rectores dan marco.
+
+Los documentos especializados dan materia.
+
+Project Lab y runtime dan evidencia.
+
+No se debe resolver un frente desde memoria, analogía o documento incorrecto.
+
+NO SE ASUME.
+
+NO SE SUPONE.
+<<END SECTION>>
+
+<<SECTION: FAMILIAS DOCUMENTALES>>
+SECTION_VERSION: 00001
+
+FAMILIAS DOCUMENTALES
+
+[RECTORES]
+
+Documentos de máxima estabilidad y precedencia en su materia.
+
+Función:
+
+definir doctrina estructural o de seguridad.
+
+Documentos:
+
+contexto_fijo_proyecto_app_base
+seguridad_acceso_proyecto_app_base
+
+[GOBERNANZA DOCUMENTAL]
+
+Documentos que ordenan cómo se documenta y cómo se consultan documentos.
+
+Documentos:
+
+estandar_documental_app_base
+indice_documental_app_base
+
+[INICIO Y CONTINUIDAD]
+
+Documentos que orientan nuevas sesiones, lectura inicial y continuidad técnica.
+
+Documentos:
+
+plantilla_inicio_chats_proyecto_app_base
+
+[CONVENCIONES]
+
+Documentos que definen reglas repetibles de implementación, estructura y contratos transversales.
+
+Documentos:
+
+convenciones_proyecto_app_base
+
+[OPERATIVOS TÉCNICOS]
+
+Documentos que definen herramientas, contratos de ejecución, auditoría o validación.
+
+Documentos:
+
+guia_project_lab_proyecto_app_base
+
+[MAPAS ESTRUCTURALES]
+
+Documentos que ordenan entidades, navegación, visualidad o componentes.
+
+Documentos:
+
+mapa_entidades_app_base
+mapa_navegacion_relaciones_app_base
+base_visual_proyecto_app_base
+mapa_componentes_app_base
+
+[CONTROL DE INTEGRACIÓN]
+
+Documentos que ordenan validación de módulos, capacidades, capas o reconversiones.
+
+Documentos:
+
+checklist_modulos_nuevos_app_base
+
+[MEMORIA OPERATIVA]
+
+Documentos que conservan decisiones, patrones y lecciones.
+
+Documentos:
+
+decisiones_vivas_app_base
+patrones_validados_app_base
+errores_y_lecciones_app_base
+
+[ROADMAP OPERATIVO]
+
+Documentos que concentran pendientes, líneas activas y deuda real.
+
+Documentos:
+
+todo_proyecto_app_base
+
+[CAPAS Y FRENTES ESPECIALIZADOS]
+
+Documentos que desarrollan doctrina específica de una capa, frente o universo funcional.
+
+Documentos:
+
+capa_ia_operativa_app_base
+shopping_autoservicio_app_base
+paquete_servicios_mantenimiento_app_base
+
+[PRODUCTO, MERCADO Y USUARIO]
+
+Documentos que ordenan valor, monetización, audiencia, usos o comunicación hacia usuario final.
+
+Documentos:
+
+monetizacion_proyecto_app_base
+welcome_usuario_app_base
+audiencia_usos_producto_app_base
+<<END SECTION>>
+
+<<SECTION: MATRIZ DE DOCUMENTOS ACTIVOS>>
+SECTION_VERSION: 00001
+
+MATRIZ DE DOCUMENTOS ACTIVOS
+
+contexto_fijo_proyecto_app_base
+
+Título:
+Contexto fijo del proyecto
+
+Familia:
+rector arquitectónico
+
+Pregunta principal:
+¿Qué es app-base y cómo debe leerse arquitectónicamente?
+
+Función:
+definir el marco arquitectónico estable del sistema.
+
+Debe leerse cuando:
+la intervención afecte arquitectura, ownership, multi-tenancy, capas funcionales, clasificación conceptual de módulos o crecimiento estructural.
+
+No debe usarse para:
+permisos detallados, navegación específica, UI, roadmap, implementación puntual o seguridad especializada.
+
+
+seguridad_acceso_proyecto_app_base
+
+Título:
+Seguridad y acceso del proyecto
+
+Familia:
+rector de seguridad
+
+Pregunta principal:
+¿Qué está permitido, para quién, bajo qué tenant y con qué autorización?
+
+Función:
+definir doctrina oficial de acceso, autorización, aislamiento y acciones críticas.
+
+Debe leerse cuando:
+la intervención afecte permisos, scopes, constraints, tenant activo, acceso interno, plano externo, acciones críticas o IA/automatización con impacto operativo.
+
+No debe usarse para:
+navegación visual, UI, roadmap, estructura física del código o detalle funcional completo de módulos.
+
+
+estandar_documental_app_base
+
+Título:
+Estándar documental del proyecto
+
+Familia:
+gobernanza documental
+
+Pregunta principal:
+¿Cómo documentamos y cómo iniciamos documentación en futuros proyectos?
+
+Función:
+definir criterios para crear, actualizar, organizar y diferenciar documentos.
+
+Debe leerse cuando:
+se cree un documento nuevo, se proponga una sección nueva, se audite documentación o se inicie documentación de otro proyecto.
+
+No debe usarse para:
+resolver doctrina específica de seguridad, arquitectura, UI, módulos o roadmap.
+
+
+indice_documental_app_base
+
+Título:
+Índice documental del proyecto
+
+Familia:
+gobernanza documental
+
+Pregunta principal:
+¿Qué documentos existen, qué responde cada uno y cómo se consultan?
+
+Función:
+mapear documentos activos, familias, preguntas principales, fronteras y lectura recomendada.
+
+Debe leerse cuando:
+se necesite decidir qué documento consultar, actualizar o crear.
+
+No debe usarse para:
+reemplazar el contenido especializado de cada documento.
+
+
+plantilla_inicio_chats_proyecto_app_base
+
+Título:
+Plantilla de inicio de chats del proyecto
+
+Familia:
+inicio y continuidad
+
+Pregunta principal:
+¿Cómo debe iniciarse un nuevo chat técnico sin perder continuidad?
+
+Función:
+ordenar lectura inicial, regla NO SE ASUME / NO SE SUPONE y metodología mínima de continuidad.
+
+Debe leerse cuando:
+se inicie un nuevo chat técnico, se retome un frente o se necesite ordenar evidencia mínima.
+
+No debe usarse para:
+contener toda la doctrina del proyecto ni reemplazar documentos rectores o especializados.
+
+
+convenciones_proyecto_app_base
+
+Título:
+Convenciones del proyecto
+
+Familia:
+convenciones
+
+Pregunta principal:
+¿Qué reglas repetibles deben respetarse al implementar?
+
+Función:
+definir criterios de implementación, ownership, integración, helpers, surfaces, hooks, selectors, snapshots, estados, migraciones, seeders y documentación.
+
+Debe leerse cuando:
+se proponga código, estructura, módulo, helper, surface, hook, selector, seeder, migración o contrato repetible.
+
+No debe usarse para:
+arquitectura general, seguridad completa, navegación, UI completa, memoria histórica o backlog.
+
+
+guia_project_lab_proyecto_app_base
+
+Título:
+Guía operativa de Project Lab
+
+Familia:
+operativo técnico
+
+Pregunta principal:
+¿Cómo se usa Project Lab para auditar, validar, aplicar y registrar evidencia?
+
+Función:
+definir uso local de Project Lab, contratos code/docs/audit/lab_patch, validaciones, límites y salida operativa.
+
+Debe leerse cuando:
+se prepare auditoría, patch, actualización documental, validación runtime, Tinker, Artisan o uso de IA desde Project Lab.
+
+No debe usarse para:
+doctrina funcional general del sistema, seguridad completa del producto o reglas profundas de módulos.
+
+
+mapa_entidades_app_base
+
+Título:
+Mapa de entidades
+
+Familia:
+mapa estructural
+
+Pregunta principal:
+¿Qué entidades existen y cómo se relacionan conceptualmente?
+
+Función:
+describir entidades, relaciones conceptuales, ownership y posición de módulos dentro del ecosistema.
+
+Debe leerse cuando:
+se intervenga modelo de dominio, relaciones, ownership conceptual, entidades nuevas o vínculos entre módulos.
+
+No debe usarse para:
+navegación real, UI, permisos detallados o base visual.
+
+
+mapa_navegacion_relaciones_app_base
+
+Título:
+Mapa de navegación y relaciones
+
+Familia:
+mapa estructural
+
+Pregunta principal:
+¿Cómo se recorre el sistema y qué relaciones son visibles para el usuario?
+
+Función:
+documentar navegación, recorridos funcionales, rutas conceptuales y relaciones visibles.
+
+Debe leerse cuando:
+se modifiquen rutas, breadcrumbs, trails, navegación interna, navegación pública externa o recorridos entre módulos.
+
+No debe usarse para:
+modelo profundo de entidades, reglas visuales detalladas o seguridad doctrinal.
+
+
+base_visual_proyecto_app_base
+
+Título:
+Base visual del proyecto
+
+Familia:
+mapa visual
+
+Pregunta principal:
+¿Cómo debe verse y componerse visualmente el sistema?
+
+Función:
+definir estructura visual común, composición de pantallas, patrones visuales y gramática interna/externa.
+
+Debe leerse cuando:
+se modifiquen vistas, layouts, pantallas públicas, pantallas internas, cards, tabs, headers, estados visuales o experiencia UI.
+
+No debe usarse para:
+reglas de negocio, autorización, arquitectura modular profunda o roadmap.
+
+
+mapa_componentes_app_base
+
+Título:
+Mapa de componentes del sistema
+
+Familia:
+mapa visual
+
+Pregunta principal:
+¿Qué componentes visuales existen y dónde corresponde ubicarlos?
+
+Función:
+identificar componentes Blade, partials, responsabilidad visual y ubicación canónica.
+
+Debe leerse cuando:
+se cree, reutilice, mueva o reemplace un componente visual.
+
+No debe usarse para:
+reglas de negocio, contratos de seguridad, navegación funcional o arquitectura general.
+
+
+checklist_modulos_nuevos_app_base
+
+Título:
+Checklist oficial para crear módulos nuevos
+
+Familia:
+control de integración
+
+Pregunta principal:
+¿Qué debe validarse antes de considerar integrada una capacidad, módulo o frente?
+
+Función:
+forzar consistencia conceptual, seguridad, dominio, UI, navegación, runtime y documentación en módulos, capas, subcapas o reconversiones.
+
+Debe leerse cuando:
+se cree o reconvierta un módulo, capa satélite, capacidad transversal, universo semántico, entrada pública externa o automatización relevante.
+
+No debe usarse para:
+desarrollar narrativamente toda la doctrina de cada módulo.
+
+
+decisiones_vivas_app_base
+
+Título:
+Decisiones vivas del proyecto
+
+Familia:
+memoria operativa
+
+Pregunta principal:
+¿Qué decisiones vigentes ya no deben rediscutirse?
+
+Función:
+registrar decisiones aprobadas, criterios vigentes e impacto arquitectónico.
+
+Debe leerse cuando:
+se sospeche que un tema ya fue decidido o que una intervención puede contradecir una decisión vigente.
+
+No debe usarse para:
+roadmap, historial completo, issues técnicos o documentación doctrinal primaria.
+
+
+patrones_validados_app_base
+
+Título:
+Patrones validados del proyecto
+
+Familia:
+memoria operativa
+
+Pregunta principal:
+¿Qué soluciones repetibles ya fueron validadas?
+
+Función:
+registrar patrones técnicos y funcionales aprobados en uso real.
+
+Debe leerse cuando:
+se necesite repetir una solución ya validada o evitar variantes locales innecesarias.
+
+No debe usarse para:
+decisiones no validadas, pendientes o ideas.
+
+
+errores_y_lecciones_app_base
+
+Título:
+Errores y lecciones del proyecto
+
+Familia:
+memoria operativa
+
+Pregunta principal:
+¿Qué errores no deben repetirse?
+
+Función:
+transformar errores reales en aprendizaje reutilizable.
+
+Debe leerse cuando:
+aparezca un problema similar a uno ya detectado o se quiera evitar una regresión conceptual/técnica.
+
+No debe usarse para:
+doctrina primaria, backlog general o decisiones nuevas no validadas.
+
+
+todo_proyecto_app_base
+
+Título:
+Todo del proyecto
+
+Familia:
+roadmap operativo
+
+Pregunta principal:
+¿Qué tareas reales, pendientes o líneas activas siguen abiertas?
+
+Función:
+concentrar pendientes reales, tareas de mejora y líneas activas de evolución.
+
+Debe leerse cuando:
+se planifiquen próximos pasos, líneas activas o deuda técnica.
+
+No debe usarse para:
+doctrina estable, contratos de seguridad, convenciones o mapas conceptuales.
+
+
+capa_ia_operativa_app_base
+
+Título:
+Capa IA operativa
+
+Familia:
+frente especializado
+
+Pregunta principal:
+¿Cómo debe entenderse la IA dentro del sistema?
+
+Función:
+definir IA como capa transversal, asistiva, progresiva y no como módulo aislado.
+
+Debe leerse cuando:
+se diseñe asistencia IA, automatización, datos estructurados para IA, prompts operativos, agentes o consumo IA de documentación/sistema.
+
+No debe usarse para:
+proveedor final, modelo definitivo, prompts finales, implementación técnica cerrada o costos futuros.
+
+
+shopping_autoservicio_app_base
+
+Título:
+Shopping Autoservicio
+
+Familia:
+frente especializado
+
+Pregunta principal:
+¿Qué es self_service_sales y cómo opera como capa satélite externa?
+
+Función:
+definir doctrina funcional de tienda pública, customer externo, carrito, checkout, shops y plano externo.
+
+Debe leerse cuando:
+se intervenga /tienda, /shop, self_service_sales, carrito externo, customer externo, shops como publicación o checkout externo.
+
+No debe usarse para:
+administración interna completa de todos los módulos, seguridad general o pagos reales no implementados.
+
+
+paquete_servicios_mantenimiento_app_base
+
+Título:
+Paquete de servicios y mantenimiento
+
+Familia:
+frente especializado
+
+Pregunta principal:
+¿Cómo se lee Servicio y mantenimiento dentro del ecosistema?
+
+Función:
+definir mantenimiento como capa satélite productiva sobre módulos existentes.
+
+Debe leerse cuando:
+se intervenga /service, órdenes de servicio, mantenimiento, paquete de trabajo, operación técnica o recorridos de servicio.
+
+No debe usarse para:
+reemplazar Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties u OperationalActivity.
+
+
+monetizacion_proyecto_app_base
+
+Título:
+Monetización del proyecto
+
+Familia:
+producto y mercado
+
+Pregunta principal:
+¿Cómo genera valor e ingresos el proyecto?
+
+Función:
+definir modelo comercial, pricing, planes, propuesta de valor y líneas comerciales.
+
+Debe leerse cuando:
+se trabaje pricing, landing comercial, planes, membresías, enterprise, portabilidad o posicionamiento comercial.
+
+No debe usarse para:
+arquitectura técnica, seguridad, implementación puntual o reglas funcionales de módulos.
+
+
+welcome_usuario_app_base
+
+Título:
+Bienvenida y guía de uso
+
+Familia:
+usuario final
+
+Pregunta principal:
+¿Cómo se explica el sistema al usuario final no técnico?
+
+Función:
+acompañar primeros pasos, comprensión general, módulos y uso inicial.
+
+Debe leerse cuando:
+se redacte onboarding, ayuda contextual, contenido UX o explicación para usuario final.
+
+No debe usarse para:
+doctrina técnica, permisos internos, implementación o arquitectura.
+
+
+audiencia_usos_producto_app_base
+
+Título:
+Audiencia y usos del producto
+
+Familia:
+producto y audiencia
+
+Pregunta principal:
+¿Para quién se construye app-base, en qué usos y con qué necesidades reales?
+
+Función:
+definir audiencia, usos, conocimientos, frustraciones, objeciones, contexto de uso y límites de destinatarios.
+
+Debe leerse cuando:
+se diseñe UX, copy, onboarding, IA asistiva, features, documentación de usuario, landing o priorización de producto.
+
+No debe usarse para:
+pricing detallado, permisos, arquitectura interna, implementación o roadmap.
+<<END SECTION>>
+
+<<SECTION: LECTURA RECOMENDADA POR FRENTE ACTIVO>>
+SECTION_VERSION: 00001
+
+LECTURA RECOMENDADA POR FRENTE ACTIVO
+
+[SEGURIDAD]
+
+Leer:
+
+contexto_fijo_proyecto_app_base
+seguridad_acceso_proyecto_app_base
+convenciones_proyecto_app_base
+documento especializado del módulo o frente
+código real / runtime / Project Lab
+
+[ARQUITECTURA GENERAL]
+
+Leer:
+
+contexto_fijo_proyecto_app_base
+convenciones_proyecto_app_base
+mapa_entidades_app_base
+decisiones_vivas_app_base
+
+[DOCUMENTACIÓN]
+
+Leer:
+
+estandar_documental_app_base
+indice_documental_app_base
+convenciones_proyecto_app_base
+plantilla_inicio_chats_proyecto_app_base
+
+[PROJECT LAB]
+
+Leer:
+
+guia_project_lab_proyecto_app_base
+convenciones_proyecto_app_base
+estandar_documental_app_base si afecta documentación
+
+[UI / VISTAS]
+
+Leer:
+
+base_visual_proyecto_app_base
+mapa_componentes_app_base
+convenciones_proyecto_app_base
+documento especializado del frente activo
+
+[NAVEGACIÓN]
+
+Leer:
+
+mapa_navegacion_relaciones_app_base
+contexto_fijo_proyecto_app_base
+seguridad_acceso_proyecto_app_base si hay acceso o plano externo
+documento especializado del frente activo
+
+[ENTIDADES / MODELO DE DOMINIO]
+
+Leer:
+
+mapa_entidades_app_base
+contexto_fijo_proyecto_app_base
+convenciones_proyecto_app_base
+documento especializado del módulo o frente
+
+[MÓDULO NUEVO / RECONVERSIÓN]
+
+Leer:
+
+checklist_modulos_nuevos_app_base
+contexto_fijo_proyecto_app_base
+seguridad_acceso_proyecto_app_base
+convenciones_proyecto_app_base
+mapa_entidades_app_base
+mapa_navegacion_relaciones_app_base
+base_visual_proyecto_app_base
+documento especializado si existe
+
+[IA]
+
+Leer:
+
+capa_ia_operativa_app_base
+audiencia_usos_producto_app_base
+seguridad_acceso_proyecto_app_base
+contexto_fijo_proyecto_app_base
+estandar_documental_app_base si consume documentación
+
+[SHOPPING AUTOSERVICIO]
+
+Leer:
+
+shopping_autoservicio_app_base
+seguridad_acceso_proyecto_app_base
+mapa_navegacion_relaciones_app_base
+mapa_entidades_app_base
+base_visual_proyecto_app_base
+convenciones_proyecto_app_base
+
+[SERVICIO Y MANTENIMIENTO]
+
+Leer:
+
+paquete_servicios_mantenimiento_app_base
+contexto_fijo_proyecto_app_base
+seguridad_acceso_proyecto_app_base
+mapa_entidades_app_base
+mapa_navegacion_relaciones_app_base
+convenciones_proyecto_app_base
+
+[MONETIZACIÓN / LANDING COMERCIAL]
+
+Leer:
+
+monetizacion_proyecto_app_base
+audiencia_usos_producto_app_base
+welcome_usuario_app_base
+base_visual_proyecto_app_base si afecta pantalla
+
+[USUARIO FINAL / ONBOARDING]
+
+Leer:
+
+welcome_usuario_app_base
+audiencia_usos_producto_app_base
+monetizacion_proyecto_app_base si afecta propuesta de valor
+base_visual_proyecto_app_base si afecta interfaz
+
+[ROADMAP / PRÓXIMOS PASOS]
+
+Leer:
+
+todo_proyecto_app_base
+decisiones_vivas_app_base
+patrones_validados_app_base
+errores_y_lecciones_app_base
+documento especializado del frente activo
+<<END SECTION>>
+
+<<SECTION: PRECEDENCIA DOCUMENTAL>>
+SECTION_VERSION: 00001
+
+PRECEDENCIA DOCUMENTAL
+
+Regla general:
+
+el documento especializado prevalece en su propia materia.
+
+Precedencia por materia:
+
+arquitectura general:
+contexto_fijo_proyecto_app_base
+
+seguridad, acceso y autorización:
+seguridad_acceso_proyecto_app_base
+
+convenciones de implementación:
+convenciones_proyecto_app_base
+
+uso de Project Lab:
+guia_project_lab_proyecto_app_base
+
+documentación y estructura documental:
+estandar_documental_app_base
+
+mapa y lectura de documentos:
+indice_documental_app_base
+
+entidades y relaciones conceptuales:
+mapa_entidades_app_base
+
+navegación y recorridos:
+mapa_navegacion_relaciones_app_base
+
+visualidad general:
+base_visual_proyecto_app_base
+
+componentes:
+mapa_componentes_app_base
+
+módulos nuevos, capas y reconversiones:
+checklist_modulos_nuevos_app_base
+
+decisiones vigentes:
+decisiones_vivas_app_base
+
+patrones validados:
+patrones_validados_app_base
+
+errores aprendidos:
+errores_y_lecciones_app_base
+
+pendientes:
+todo_proyecto_app_base
+
+IA:
+capa_ia_operativa_app_base
+
+shopping / self_service_sales:
+shopping_autoservicio_app_base
+
+servicio y mantenimiento:
+paquete_servicios_mantenimiento_app_base
+
+monetización:
+monetizacion_proyecto_app_base
+
+usuario final:
+welcome_usuario_app_base
+
+audiencia y usos:
+audiencia_usos_producto_app_base
+
+Regla:
+
+si una contradicción afecta seguridad, prevalece seguridad_acceso_proyecto_app_base.
+
+Si una contradicción afecta arquitectura estructural, prevalece contexto_fijo_proyecto_app_base salvo materia especializada más concreta.
+
+Si una contradicción afecta un frente especializado, prevalece el documento especializado en su materia siempre que no contradiga seguridad ni arquitectura rectora.
+
+Si una contradicción afecta documentación, prevalece estandar_documental_app_base para criterio documental e indice_documental_app_base para mapa de documentos.
+<<END SECTION>>
+
+<<SECTION: CRITERIOS PARA USO POR IA>>
+SECTION_VERSION: 00001
+
+CRITERIOS PARA USO POR IA
+
+Una IA que intervenga en app-base debe usar este índice para decidir qué leer antes de responder, auditar, proponer, documentar o generar código.
+
+Reglas:
+
+no leer todos los documentos por reflejo si el frente activo es acotado
+
+no responder desde memoria si existe documento especializado aplicable
+
+no usar un documento de memoria como fuente primaria de doctrina si existe documento rector o especializado
+
+no usar todo_proyecto_app_base como doctrina estable
+
+no usar welcome_usuario_app_base para deducir arquitectura
+
+no usar monetizacion_proyecto_app_base para deducir permisos
+
+no usar contexto_fijo_proyecto_app_base para resolver permisos detallados
+
+no usar seguridad_acceso_proyecto_app_base para resolver UI
+
+no usar base_visual_proyecto_app_base para autorizar acciones
+
+no usar mapa_navegacion_relaciones_app_base para deducir ownership de entidades
+
+no usar mapa_entidades_app_base para deducir navegación real
+
+no usar decisiones_vivas_app_base como reemplazo de evidencia runtime
+
+no usar errores_y_lecciones_app_base como prueba de error vigente sin auditoría
+
+Regla final:
+
+la IA debe leer el documento correcto para la pregunta correcta.
+
+Si falta evidencia, debe pedirla.
+
+NO SE ASUME.
+
+NO SE SUPONE.
+<<END SECTION>>
+
+<<SECTION: DOCUMENTOS CANDIDATOS O FALTANTES>>
+SECTION_VERSION: 00002
+
+DOCUMENTOS CANDIDATOS O FALTANTES
+
+Documento creado en esta línea:
+
+estandar_documental_app_base
+
+Función:
+
+definir cómo documentamos, qué pregunta responde cada documento y cómo iniciar documentación en futuros proyectos.
+
+Estado:
+
+activo.
+
+
+Documento creado en esta línea:
+
+indice_documental_app_base
+
+Función:
+
+mapear documentos activos, lectura recomendada, fronteras y precedencia.
+
+Estado:
+
+activo.
+
+
+Documento creado en esta línea:
+
+audiencia_usos_producto_app_base
+
+Función:
+
+definir para quién se construye app-base, qué usos principales sostiene, qué sabe la audiencia, qué le frustra, qué objeciones tiene, para quién no es el producto y qué debe saber una IA para no optimizar en abstracto.
+
+Estado:
+
+activo.
+
+
+Documentos candidatos futuros:
+
+ninguno definido en este corte.
+
+Regla:
+
+la existencia de candidatos o faltantes no habilita creación automática de documentos nuevos.
+
+Todo documento nuevo debe cumplir el estándar documental.
+<<END SECTION>>
+
+<<SECTION: REGLA DE ACTUALIZACIÓN DEL ÍNDICE>>
+SECTION_VERSION: 00001
+
+REGLA DE ACTUALIZACIÓN DEL ÍNDICE
+
+Este índice debe actualizarse cuando:
+
+se crea un documento nuevo
+se elimina un documento activo
+un documento cambia de función
+un documento cambia de familia
+un documento cambia su pregunta principal
+se detecta una contradicción de precedencia
+se incorpora un frente especializado nuevo
+se modifica la regla de lectura por frente activo
+
+No debe actualizarse por:
+
+cambios menores de redacción
+ajustes internos que no alteren función documental
+nuevas secciones que no cambien pregunta principal
+auditorías sin impacto documental
+pendientes coyunturales
+
+Regla:
+
+el índice debe ser estable, breve y útil.
+
+No debe convertirse en historial de actualizaciones.
+<<END SECTION>>
+
+<<SECTION: REGLA FINAL>>
+SECTION_VERSION: 00001
+
+REGLA FINAL
+
+Este índice existe para que una persona o una IA pueda responder rápidamente:
+
+qué documento necesito
+para qué sirve
+qué pregunta responde
+qué no debo buscar ahí
+qué documento prevalece
+qué evidencia falta
+
+Si una intervención no sabe qué documento leer, debe comenzar por este índice.
+
+Si el índice no resuelve qué leer, debe revisarse el estándar documental o pedir precisión del frente activo.
+
+NO SE ASUME.
+
+NO SE SUPONE.
+<<END SECTION>>

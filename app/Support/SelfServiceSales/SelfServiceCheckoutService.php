@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V3
+// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V4
 
 namespace App\Support\SelfServiceSales;
 
@@ -138,6 +138,12 @@ class SelfServiceCheckoutService
 
             if ($commercialPolicy['checkout_enabled'] !== true) {
                 throw new HttpException(422, self::MESSAGE_CHECKOUT_DISABLED);
+            }
+
+            $maxQuantity = $commercialPolicy['max_quantity_per_checkout'] ?? null;
+
+            if ($maxQuantity !== null && (int) $cartItem->quantity > (int) $maxQuantity) {
+                throw new HttpException(422, SelfServiceCartService::MESSAGE_MAX_QUANTITY_EXCEEDED);
             }
         }
     }

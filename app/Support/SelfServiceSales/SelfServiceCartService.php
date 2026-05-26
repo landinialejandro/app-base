@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCartService.php | V2
+// FILE: app/Support/SelfServiceSales/SelfServiceCartService.php | V4
 
 namespace App\Support\SelfServiceSales;
 
@@ -11,6 +11,7 @@ use App\Models\SelfServiceStoreCustomer;
 use App\Models\Shop;
 use App\Models\ShopItem;
 use App\Models\Tenant;
+use App\Support\Shops\ShopItemCommercialPolicyResolver;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -19,6 +20,8 @@ class SelfServiceCartService
     public const MESSAGE_LOGIN_REQUIRED = 'Ingresá como cliente para operar el carrito.';
     public const MESSAGE_OPERATION_DISABLED = 'Tu cuenta externa está reconocida para esta tienda, pero la operación comercial todavía no está habilitada.';
     public const MESSAGE_NOT_AVAILABLE = 'El producto ya no está disponible en la tienda.';
+    public const MESSAGE_CART_NOT_ALLOWED = 'Este producto no está disponible para agregar al carrito.';
+    public const MESSAGE_MAX_QUANTITY_EXCEEDED = 'La cantidad solicitada supera el máximo permitido para este producto.';
     public const MESSAGE_CART_HAS_UNAVAILABLE_ITEMS = 'Hay productos que ya no están disponibles. Eliminá esos ítems del carrito para continuar.';
     public const MESSAGE_EMPTY_CART = 'El carrito está vacío.';
 
@@ -34,6 +37,12 @@ class SelfServiceCartService
         $context = $this->authorizedContext($request, $tenant);
         $cart = $this->activeCart($tenant, $context['account'], $context['store_customer']);
         $shopItem = $this->publicShopItem($tenant, $shopItemId);
+        $commercialPolicy = app(ShopItemCommercialPolicyResolver::class)->resolve($shopItem);
+
+        if ($commercialPolicy['allow_cart'] !== true) {
+            throw new HttpException(422, self::MESSAGE_CART_NOT_ALLOWED);
+        }
+
         $quantity = max(1, $quantity);
 
         $line = SelfServiceCartItem::withTrashed()
@@ -47,6 +56,8 @@ class SelfServiceCartService
         if ($line && ! $line->trashed()) {
             $lineQuantity = $line->quantity + $quantity;
         }
+
+        $this->ensureQuantityWithinCommercialLimit($commercialPolicy, $lineQuantity);
 
         $payload = [
             'tenant_id' => $tenant->id,
@@ -75,9 +86,14 @@ class SelfServiceCartService
     public function updateItem(Request $request, Tenant $tenant, SelfServiceCartItem $cartItem, int $quantity): SelfServiceCart
     {
         $cart = $this->cartForItemAction($request, $tenant, $cartItem);
+        $shopItem = $this->publicShopItem($tenant, (int) $cartItem->self_service_shop_item_id);
+        $commercialPolicy = app(ShopItemCommercialPolicyResolver::class)->resolve($shopItem);
+        $quantity = max(1, $quantity);
+
+        $this->ensureQuantityWithinCommercialLimit($commercialPolicy, $quantity);
 
         $cartItem->update([
-            'quantity' => max(1, $quantity),
+            'quantity' => $quantity,
         ]);
 
         return $this->freshCart($cart);
@@ -116,6 +132,15 @@ class SelfServiceCartService
         }
 
         return $cart;
+    }
+
+    private function ensureQuantityWithinCommercialLimit(array $commercialPolicy, int $quantity): void
+    {
+        $maxQuantity = $commercialPolicy['max_quantity_per_checkout'] ?? null;
+
+        if ($maxQuantity !== null && $quantity > (int) $maxQuantity) {
+            throw new HttpException(422, self::MESSAGE_MAX_QUANTITY_EXCEEDED);
+        }
     }
 
     private function authorizedContext(Request $request, Tenant $tenant): array

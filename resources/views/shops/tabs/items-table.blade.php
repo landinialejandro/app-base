@@ -1,11 +1,13 @@
-{{-- FILE: resources/views/shops/tabs/items-table.blade.php | V4 --}}
+{{-- FILE: resources/views/shops/tabs/items-table.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\ShopCatalog;
     use App\Support\Products\ProductLinked;
+    use App\Support\Shops\ShopItemCommercialPolicyResolver;
 
     $canUpdateShop = $canUpdateShop ?? false;
     $trailQuery = $trailQuery ?? [];
+    $commercialPolicyResolver = app(ShopItemCommercialPolicyResolver::class);
 @endphp
 
 @if ($items->count())
@@ -16,6 +18,7 @@
                     <th>Producto</th>
                     <th>Nombre visible</th>
                     <th>Precio visible</th>
+                    <th>Política comercial</th>
                     <th>Estado</th>
                     <th>Orden</th>
                     <th class="table-actions">Acciones</th>
@@ -49,6 +52,45 @@
                                 $ {{ number_format((float) $item->displayPrice(), 2, ',', '.') }}
                             @else
                                 —
+                            @endif
+                        </td>
+                        <td>
+                            @php
+                                $commercialPolicy = $commercialPolicyResolver->resolve($item);
+                            @endphp
+
+                            <div>
+                                Carrito: {{ $commercialPolicy['allow_cart'] ? 'Sí' : 'No' }}
+                            </div>
+                            <div class="table-cell-help">
+                                Compra directa: {{ $commercialPolicy['allow_direct_purchase'] ? 'Sí' : 'No' }}
+                            </div>
+                            <div class="table-cell-help">
+                                Stock: {{ $commercialPolicy['labels']['stock_policy_mode'] }}
+                            </div>
+                            <div class="table-cell-help">
+                                Cupo tienda: {{ $commercialPolicy['shop_stock_limit'] ?? '—' }}
+                            </div>
+                            <div class="table-cell-help">
+                                Máx. checkout: {{ $commercialPolicy['max_quantity_per_checkout'] ?? '—' }}
+                            </div>
+
+                            @if ($commercialPolicy['stock_target_quantity'] !== null)
+                                <div class="table-cell-help">
+                                    Objetivo: {{ $commercialPolicy['stock_target_quantity'] }}
+                                </div>
+                            @endif
+
+                            @if ($commercialPolicy['stock_protected_quantity'] !== null)
+                                <div class="table-cell-help">
+                                    Protegido: {{ $commercialPolicy['stock_protected_quantity'] }}
+                                </div>
+                            @endif
+
+                            @if ($commercialPolicy['allow_target_margin'])
+                                <div class="table-cell-help">
+                                    Margen: Sí
+                                </div>
                             @endif
                         </td>
                         <td>

@@ -1,18 +1,25 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V2
+// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V3
 
 namespace App\Support\SelfServiceSales;
 
 use App\Models\SelfServiceCart;
+use App\Models\SelfServiceCartItem;
+use App\Models\Shop;
+use App\Models\ShopItem;
 use App\Models\Tenant;
 use App\Support\SelfServiceSales\Payments\SelfServicePaymentGateway;
 use App\Support\SelfServiceSales\Payments\SelfServicePaymentRequestFactory;
+use App\Support\Shops\ShopItemCommercialPolicyResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class SelfServiceCheckoutService
 {
+    public const MESSAGE_CHECKOUT_DISABLED = 'El checkout de esta tienda no está disponible en este momento.';
+
     public function __construct(
         protected SelfServiceCartService $carts,
         protected SelfServicePaymentRequestFactory $paymentRequests,
@@ -24,6 +31,8 @@ class SelfServiceCheckoutService
     {
         return DB::transaction(function () use ($request, $tenant): array {
             $cart = $this->carts->checkoutableCart($request, $tenant);
+            $this->ensureCheckoutEnabled($cart, $tenant);
+
             $paymentRequest = $this->paymentRequests->make($tenant, $cart);
             $paymentResponse = $this->gateway->process($paymentRequest);
 
@@ -89,5 +98,47 @@ class SelfServiceCheckoutService
                 'message' => 'El pago no fue aprobado.',
             ];
         });
+    }
+
+    private function ensureCheckoutEnabled(SelfServiceCart $cart, Tenant $tenant): void
+    {
+        $shopItems = ShopItem::query()
+            ->with(['shop', 'product'])
+            ->where('tenant_id', $tenant->id)
+            ->whereIn('id', $cart->items->pluck('self_service_shop_item_id')->filter()->values())
+            ->where('status', ShopItem::STATUS_PUBLISHED)
+            ->where('is_visible', true)
+            ->whereHas('shop', function ($query) use ($tenant) {
+                $query
+                    ->where('tenant_id', $tenant->id)
+                    ->where('status', Shop::STATUS_ACTIVE);
+            })
+            ->whereHas('product', function ($query) use ($tenant) {
+                $query
+                    ->where('tenant_id', $tenant->id)
+                    ->where('is_active', true);
+            })
+            ->get()
+            ->keyBy('id');
+
+        $resolver = app(ShopItemCommercialPolicyResolver::class);
+
+        foreach ($cart->items as $cartItem) {
+            if (! $cartItem instanceof SelfServiceCartItem) {
+                continue;
+            }
+
+            $shopItem = $shopItems->get($cartItem->self_service_shop_item_id);
+
+            if (! $shopItem instanceof ShopItem) {
+                throw new HttpException(422, SelfServiceCartService::MESSAGE_CART_HAS_UNAVAILABLE_ITEMS);
+            }
+
+            $commercialPolicy = $resolver->resolve($shopItem);
+
+            if ($commercialPolicy['checkout_enabled'] !== true) {
+                throw new HttpException(422, self::MESSAGE_CHECKOUT_DISABLED);
+            }
+        }
     }
 }

@@ -1,9 +1,15 @@
-{{-- FILE: resources/views/shops/_form.blade.php | V1 --}}
+{{-- FILE: resources/views/shops/_form.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\ShopCatalog;
 
     $statusLabels = ShopCatalog::statusLabels();
+    $storedCommercial = data_get($shop ?? null, 'meta.commercial', []);
+    $oldCommercial = old('commercial');
+    $commercial = is_array($oldCommercial) ? $oldCommercial : $storedCommercial;
+
+    $commercialValue = fn (string $key, mixed $default = false) => data_get($commercial, $key, $default);
+    $providerTarget = $commercialValue('provider_target', 'simulated');
 @endphp
 
 <div class="form-group">
@@ -47,4 +53,91 @@
     @error('description')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
+</div>
+
+<div class="form-section">
+    <h2 class="section-title">Configuración comercial general</h2>
+
+    <p class="form-help">
+        Estos parámetros son preparatorios. No activan por sí solos Orders, Payments, Inventory, provider real ni compra
+        directa.
+    </p>
+
+    <div class="detail-grid">
+        <div class="form-group">
+            <label class="form-check">
+                <input
+                    class="form-checkbox"
+                    type="checkbox"
+                    name="commercial[checkout_enabled]"
+                    value="1"
+                    @checked((bool) $commercialValue('checkout_enabled'))
+                >
+                <span>Habilitar checkout de tienda</span>
+            </label>
+            @error('commercial.checkout_enabled')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-check">
+                <input
+                    class="form-checkbox"
+                    type="checkbox"
+                    name="commercial[direct_purchase_enabled]"
+                    value="1"
+                    @checked((bool) $commercialValue('direct_purchase_enabled'))
+                >
+                <span>Habilitar compra directa</span>
+            </label>
+            @error('commercial.direct_purchase_enabled')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-check">
+                <input
+                    class="form-checkbox"
+                    type="checkbox"
+                    name="commercial[stock_control_enabled]"
+                    value="1"
+                    @checked((bool) $commercialValue('stock_control_enabled'))
+                >
+                <span>Usar control de stock para tienda</span>
+            </label>
+            @error('commercial.stock_control_enabled')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-check">
+                <input
+                    class="form-checkbox"
+                    type="checkbox"
+                    name="commercial[allow_stock_margin]"
+                    value="1"
+                    @checked((bool) $commercialValue('allow_stock_margin'))
+                >
+                <span>Permitir margen entre stock objetivo y stock protegido</span>
+            </label>
+            @error('commercial.allow_stock_margin')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="commercial_provider_target">Provider objetivo</label>
+            <select id="commercial_provider_target" name="commercial[provider_target]" class="form-control">
+                <option value="simulated" @selected($providerTarget === 'simulated')>Entorno simulado</option>
+                <option value="mercado_pago" @selected($providerTarget === 'mercado_pago')>Mercado Pago</option>
+                <option value="modo" @selected($providerTarget === 'modo')>MODO</option>
+            </select>
+            @error('commercial.provider_target')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
 </div>

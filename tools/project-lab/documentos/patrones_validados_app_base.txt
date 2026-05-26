@@ -628,6 +628,40 @@ el bloqueo operativo del carrito vive en backend
 
 el frontend solo representa estado, mensaje o resultado autorizado
 
+POLÍTICA COMERCIAL EFECTIVA RESUELTA EN BACKEND
+
+Patrón validado:
+
+la operación comercial externa debe consumir una política efectiva preparada por backend.
+
+Secuencia:
+
+configuración general en Shop
+↓
+política específica en ShopItem
+↓
+resolver backend combina ambas
+↓
+carrito y checkout consumen política efectiva
+↓
+frontend y Blade representan, no deciden
+
+Caso vigente:
+
+Shopping Autoservicio.
+
+Reglas:
+
+la política comercial efectiva no reemplaza Inventory.
+
+la política comercial efectiva no reemplaza Products.
+
+la política comercial efectiva no reemplaza Orders.
+
+la política comercial efectiva no reemplaza Documents.
+
+la política comercial efectiva no reemplaza pagos.
+
 
 Regla adicional para bloqueo recuperable:
 

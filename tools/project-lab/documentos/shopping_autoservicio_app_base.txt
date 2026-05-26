@@ -52,6 +52,10 @@ definir consumo externo de Shop y ShopItem publicados
 definir publicación inicial de productos activos desde shops
 definir carrito persistente externo inicial
 definir checkout interno real con provider externo simulado
+definir política comercial efectiva de tienda y artículo publicado
+definir configuración comercial general de Shop
+definir política comercial específica de ShopItem
+definir resolver backend de política comercial efectiva
 definir bloqueo operativo del carrito por operation_enabled
 definir saldo real, fichas, fichas promocionales y consumo futuros
 establecer límites frente a Shops, Products, Inventory y Documents
@@ -76,6 +80,8 @@ evitar que agregar al carrito se confunda con disponibilidad futura garantizada
 evitar que el checkout se confunda con compromiso de stock si Inventory no interviene mediante frontera explícita
 evitar que SelfServiceCart checked_out se confunda con Order creada hasta que exista bridge operativo explícito
 evitar que una futura compra directa duplique el pipeline backend de checkout
+evitar que la política comercial efectiva se interprete desde frontend, Blade o consumers dispersos
+evitar que allow_cart, max_quantity_per_checkout o checkout_enabled se confundan con stock real, pago real u operación formal
 No define:
 
 implementación técnica completa
@@ -345,6 +351,27 @@ el backend recalcula total desde SelfServiceCartItem
 el backend genera idempotency_key
 
 el backend persiste request y response en SelfServiceCart.meta
+
+
+Regla adicional de política comercial efectiva:
+
+antes de iniciar provider, armar payment_request, guardar payment_response o marcar SelfServiceCart como checked_out, el checkout debe validar la política comercial efectiva vigente.
+
+Corte vigente validado:
+
+checkout_enabled = false bloquea checkout antes del provider.
+
+checkout_enabled = true permite continuar el checkout interno real con provider externo simulado si las demás validaciones corresponden.
+
+Reglas:
+
+checkout_enabled = false no guarda payment_request.
+
+checkout_enabled = false no llama gateway.
+
+checkout_enabled = false no guarda payment_response.
+
+checkout_enabled = false no cambia SelfServiceCart.status a checked_out.
 
 
 Regla adicional de stock:
@@ -621,6 +648,57 @@ Shop no reemplaza Tenant.
 
 La tienda pública muestra únicamente lo que el contrato público permita exponer.
 
+Corte operativo vigente de política comercial efectiva:
+
+self_service_sales ya incorpora una primera capa de política comercial efectiva para tienda y artículos publicados.
+
+Configuración general vigente:
+
+Shop.meta.commercial
+
+Campos vigentes:
+
+checkout_enabled
+direct_purchase_enabled
+stock_control_enabled
+allow_stock_margin
+provider_target
+
+Política específica vigente:
+
+ShopItem.meta.commercial
+
+Campos vigentes:
+
+allow_cart
+allow_direct_purchase
+stock_policy_mode
+shop_stock_limit
+stock_target_quantity
+stock_protected_quantity
+allow_target_margin
+max_quantity_per_checkout
+
+Frontera vigente:
+
+ShopItemCommercialPolicyResolver
+
+Lectura:
+
+ShopItemCommercialPolicyResolver combina la configuración comercial general de Shop y la política comercial específica de ShopItem para devolver una política efectiva estable.
+
+Reglas:
+
+Blade no interpreta meta.commercial.
+
+Frontend no interpreta política comercial.
+
+Controller no decide política comercial.
+
+El carrito externo consume política efectiva preparada por backend.
+
+El checkout externo consume política efectiva preparada por backend antes de avanzar al provider.
+
 Corte operativo vigente de carrito persistente:
 
 self_service_sales incorpora carrito persistente externo inicial.
@@ -770,7 +848,7 @@ Route names vigentes:
 shops.*
 
 
-Evolución interna decidida pendiente de implementación:
+Evolución interna vigente:
 
 /shops/{shop}
 
@@ -797,6 +875,21 @@ ventas u órdenes
 pagos
 stock comprometido o disponibilidad interna
 configuración comercial
+Primer corte interno implementado:
+
+/shops/{shop} funciona como perfil interno de gestión de tienda.
+
+/shops/{shop}/edit permite editar configuración general de tienda.
+
+/shops/{shop}/items/{item}/edit permite editar política específica del artículo publicado.
+
+Reglas:
+
+la gestión interna de política comercial pertenece al plano interno autorizado.
+
+la política comercial interna no debe exponerse como administración desde /shop/{tenant:slug}.
+
+la tienda pública solo puede consumir el resultado autorizado preparado por backend.
 Vista previa interna vigente:
 
 /shops/{shop}/preview
@@ -2043,6 +2136,52 @@ sort_order
 status
 meta
 
+Configuración comercial general vigente:
+
+Shop.meta.commercial
+
+Lectura:
+
+Shop.meta.commercial contiene reglas comerciales generales de la tienda.
+
+Política comercial específica vigente:
+
+ShopItem.meta.commercial
+
+Lectura:
+
+ShopItem.meta.commercial contiene reglas comerciales específicas del artículo publicado.
+
+Frontera vigente:
+
+ShopItemCommercialPolicyResolver
+
+Lectura:
+
+ShopItemCommercialPolicyResolver resuelve la política comercial efectiva combinando Shop.meta.commercial y ShopItem.meta.commercial.
+
+Usos vigentes:
+
+allow_cart puede bloquear agregado al carrito.
+
+max_quantity_per_checkout puede bloquear agregado o actualización de cantidad.
+
+checkout_enabled puede bloquear checkout antes del provider.
+
+Reglas:
+
+la política comercial efectiva no reemplaza Products.
+
+la política comercial efectiva no reemplaza Inventory.
+
+la política comercial efectiva no crea Order.
+
+la política comercial efectiva no crea Document.
+
+la política comercial efectiva no mueve stock.
+
+la política comercial efectiva no acredita pago real.
+
 Regla:
 
 ShopItem siempre pertenece a Shop.
@@ -2070,6 +2209,30 @@ item.is_visible = true
 shop.status = active
 product.is_active = true
 producto pertenece al mismo tenant
+
+Política comercial efectiva de artículo publicado:
+
+la visibilidad efectiva habilita exposición pública inicial.
+
+la política comercial efectiva define si la publicación puede operar comercialmente en carrito o checkout dentro del corte vigente.
+
+Lectura:
+
+visible no equivale a operable.
+
+publicado no equivale a comprable.
+
+allow_cart = false bloquea agregado al carrito.
+
+checkout_enabled = false bloquea checkout antes del provider.
+
+max_quantity_per_checkout limita cantidad por operación de carrito.
+
+Regla:
+
+la política comercial efectiva debe resolverse en backend.
+
+No debe resolverse desde frontend, Blade ni datos enviados por el customer.
 
 Reglas:
 

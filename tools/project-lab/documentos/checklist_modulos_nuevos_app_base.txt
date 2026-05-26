@@ -381,6 +381,14 @@ administración interna no debe autorizarse por SelfServiceExternalSession
 
 customer externo no debe operar rutas shops.*
 
+Regla adicional para política comercial efectiva:
+
+si una capa externa consume configuración interna para operar comercialmente, debe existir una frontera backend que resuelva política comercial efectiva.
+
+el frontend no decide si puede agregar al carrito, comprar, hacer checkout ni superar límites comerciales.
+
+la política comercial efectiva no reemplaza validaciones de Inventory, Orders, Documents ni pago real.
+
 
 Regla adicional para carrito persistente externo:
 

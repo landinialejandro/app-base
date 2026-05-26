@@ -294,7 +294,7 @@ la administración interna de shops no debe resolverse como pantalla pública ni
 
 Base esperada para Shop Profile interno:
 
-/shops/{shop} puede evolucionar como perfil interno de tienda cuando exista implementación real.
+/shops/{shop} es perfil interno vigente de tienda.
 
 Lectura visual:
 
@@ -331,6 +331,14 @@ ventas u órdenes
 pagos
 stock comprometido o disponibilidad interna
 configuración comercial
+
+La gestión interna de política comercial pertenece al plano interno autorizado.
+
+La política comercial puede mostrarse como lectura interna preparada por backend.
+
+La tienda pública no debe exponer configuración interna ni resolver política comercial desde Blade.
+
+La tienda pública solo representa el resultado preparado por backend.
 
 La lectura interna de stock en Shop Profile puede mostrar, cuando exista contrato backend validado:
 

@@ -425,6 +425,28 @@ Product conserva catálogo maestro.
 
 ShopItem conserva publicación comercial concreta.
 
+Política comercial efectiva vigente:
+
+Shop.meta.commercial define configuración comercial general de tienda.
+
+ShopItem.meta.commercial define política comercial específica del artículo publicado.
+
+ShopItemCommercialPolicyResolver combina ambas lecturas y devuelve política comercial efectiva preparada por backend.
+
+Reglas:
+
+allow_cart puede bloquear agregado al carrito.
+
+max_quantity_per_checkout limita cantidad por operación.
+
+checkout_enabled bloquea checkout antes del provider.
+
+La política comercial efectiva puede bloquear carrito o checkout.
+
+La política comercial efectiva no reemplaza Products, Inventory, Orders, Documents ni pagos.
+
+La política comercial efectiva no mueve stock, no crea Order, no crea Document y no acredita pago real.
+
 Reglas:
 
 SelfServiceCart no reemplaza Order.
@@ -707,6 +729,14 @@ item.status = published
 item.is_visible = true
 product.is_active = true
 producto pertenece al mismo tenant
+
+Política comercial efectiva de ShopItem:
+
+visible no equivale a operable.
+
+publicado no equivale a comprable.
+
+La operación comercial se resuelve mediante ShopItemCommercialPolicyResolver en backend.
 
 Reglas:
 

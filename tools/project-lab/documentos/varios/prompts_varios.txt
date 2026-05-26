@@ -558,3 +558,378 @@ Indicar:
 4. secciones que conviene compactar
 5. contradicciones o solapamientos entre ambos documentos
 6. recomendación final de si los documentos quedan aptos como rectores
+
+
+
+
+------------------------------------
+AUDITORÍA DOCUMENTAL PARA GENERAR PROMPT CODEX
+
+OBJETIVO
+
+Voy a pasarte fragmentos de cierre de sesión del proyecto app-base.
+
+Tu tarea NO es generar LAB_PATCH.
+
+Tu tarea NO es generar REEMPLAZAR EN.
+
+Tu tarea es auditar los cambios detectados contra la documentación vigente y generar un único prompt maestro para Codex, para que Codex actualice directamente los documentos necesarios.
+
+Codex deberá editar archivos directamente, sin usar Project Lab.
+
+REGLA MÁXIMA
+
+NO SE ASUME.
+NO SE SUPONE.
+
+No inventes documentación.
+No inventes secciones.
+No inventes anchors.
+No inventes estado implementado.
+No marques como vigente lo que sea pendiente.
+No marques como pendiente lo que ya esté validado.
+No dupliques doctrina si ya está cubierta.
+No propongas tocar documentos rectores si el cambio corresponde a documento especializado.
+No conviertas memoria técnica en doctrina primaria.
+No conviertas roadmap en documento doctrinal.
+No conviertas documentos de usuario final en documentación técnica.
+No conviertas documentos comerciales en documentación de arquitectura.
+No conviertas documentos de audiencia en roadmap técnico.
+No conviertas el índice documental en reemplazo del documento especializado.
+
+ORDEN DE LECTURA PARA ESTA TAREA
+
+Antes de generar el prompt para Codex, leer y usar como criterio:
+
+1. contexto_fijo_proyecto_app_base
+2. seguridad_acceso_proyecto_app_base
+3. plantilla_inicio_chats_proyecto_app_base
+4. estandar_documental_app_base
+5. indice_documental_app_base
+6. documento especializado del frente activo
+7. documentos complementarios necesarios según impacto real del cierre
+
+LECTURA DE GOBERNANZA DOCUMENTAL
+
+Usar estandar_documental_app_base para decidir:
+
+- qué se documenta
+- qué no se documenta
+- qué documento corresponde
+- si una sección nueva está justificada
+- cómo evitar duplicación
+- cómo diferenciar doctrina, evidencia, decisión, pendiente, supuesto y contenido usuario final
+- cómo preservar continuidad entre sesiones
+
+Usar indice_documental_app_base para decidir:
+
+- qué documentos activos existen
+- qué familia documental tiene cada uno
+- qué pregunta principal responde cada documento
+- qué frontera documental protege cada documento
+- qué documento debe consultarse o actualizarse según el frente activo
+
+DOCUMENTOS ACTIVOS A CONSIDERAR
+
+RECTORES
+
+- contexto_fijo_proyecto_app_base
+- seguridad_acceso_proyecto_app_base
+
+GOBERNANZA DOCUMENTAL
+
+- estandar_documental_app_base
+- indice_documental_app_base
+
+INICIO Y CONTINUIDAD
+
+- plantilla_inicio_chats_proyecto_app_base
+
+CONVENCIONES
+
+- convenciones_proyecto_app_base
+
+OPERATIVO TÉCNICO
+
+- guia_project_lab_proyecto_app_base
+
+MAPAS ESTRUCTURALES
+
+- mapa_entidades_app_base
+- mapa_navegacion_relaciones_app_base
+- base_visual_proyecto_app_base
+- mapa_componentes_app_base
+
+CONTROL DE INTEGRACIÓN
+
+- checklist_modulos_nuevos_app_base
+
+MEMORIA OPERATIVA
+
+- decisiones_vivas_app_base
+- patrones_validados_app_base
+- errores_y_lecciones_app_base
+
+ROADMAP OPERATIVO
+
+- todo_proyecto_app_base
+
+CAPAS Y FRENTES ESPECIALIZADOS
+
+- capa_ia_operativa_app_base
+- shopping_autoservicio_app_base
+- paquete_servicios_mantenimiento_app_base
+
+PRODUCTO, MERCADO Y USUARIO
+
+- audiencia_usos_producto_app_base
+- monetizacion_proyecto_app_base
+- welcome_usuario_app_base
+
+ARCHIVOS AUXILIARES
+
+- frases.txt
+
+Regla para archivos auxiliares:
+
+frases.txt no debe tratarse como documento doctrinal activo salvo que el cierre trabaje específicamente identidad verbal, copy, tono, fraseología o contenido comunicacional.
+
+CRITERIO DE AUDITORÍA
+
+Para cada cambio detectado en los fragmentos de cierre:
+
+1. Identificar si impacta documentación.
+2. Identificar si es:
+   - doctrina estable
+   - seguridad
+   - convención repetible de implementación
+   - navegación
+   - entidades
+   - visual/UI
+   - componente visual
+   - herramienta operativa
+   - decisión viva
+   - patrón validado
+   - error/lección
+   - roadmap/pendiente
+   - IA operativa
+   - shopping autoservicio
+   - servicios y mantenimiento
+   - monetización
+   - audiencia/uso
+   - usuario final
+   - gobernanza documental
+3. Identificar documento correcto.
+4. Diferenciar:
+   - estado vigente
+   - pendiente real
+   - línea futura
+   - decisión validada
+   - error aprendido
+   - patrón reutilizable
+   - criterio comercial
+   - contenido de usuario final
+5. Evitar duplicación.
+6. Priorizar documento especializado cuando exista.
+7. No tocar rectores salvo necesidad real.
+8. No tocar documentos de gobernanza salvo que el cierre cambie el modo de documentar, el índice activo o la frontera entre documentos.
+9. No tocar documentos comerciales salvo que el cierre afecte monetización, pricing, planes, confianza comercial o propuesta de valor.
+10. No tocar audiencia_usos_producto_app_base salvo que el cierre afecte destinatarios reales, usos, frustraciones, objeciones, lenguaje, UX, copy o criterios de producto.
+11. No tocar welcome_usuario_app_base salvo que el cierre afecte explicación al usuario final.
+12. No tocar frases.txt salvo que el cierre afecte identidad verbal, lemas, tono o frases de comunicación.
+13. No generar contenido aplicable para Project Lab.
+14. Generar un único prompt para Codex.
+
+CRITERIO DE DOCUMENTO CORRECTO
+
+Usar esta matriz:
+
+contexto_fijo_proyecto_app_base:
+solo arquitectura estable, naturaleza del sistema, capas, ownership macro, SaaS multi-tenant y criterios estructurales de crecimiento.
+
+seguridad_acceso_proyecto_app_base:
+solo acceso, autorización, tenant activo, planos interno/externo, acciones críticas, permisos, scopes, constraints y prevención de bypass.
+
+estandar_documental_app_base:
+solo reglas sobre cómo documentar, cómo crear documentos, cómo evitar duplicación y cómo clasificar contenido documental.
+
+indice_documental_app_base:
+solo listado, familia, función, pregunta principal, frontera y orden de lectura de documentos activos.
+
+plantilla_inicio_chats_proyecto_app_base:
+solo reglas para iniciar o retomar chats técnicos sin perder continuidad.
+
+convenciones_proyecto_app_base:
+solo reglas repetibles de implementación, integración, ownership, helpers, hooks, selectors, surfaces, seeders, migraciones y contratos técnicos.
+
+guia_project_lab_proyecto_app_base:
+solo uso de Project Lab como herramienta local, contratos operativos, audit, docs, code, lab_patch, macros e IA operativa local.
+
+mapa_entidades_app_base:
+relaciones conceptuales entre entidades, módulos, modelos, tablas y responsabilidades funcionales.
+
+mapa_navegacion_relaciones_app_base:
+rutas, recorridos, navegación interna, navegación externa, trails, breadcrumbs, tabs y relaciones visibles.
+
+base_visual_proyecto_app_base:
+estructura visual, gramática UI, layouts, presentación, pantallas internas, pantallas públicas, experiencia visual y reglas de representación.
+
+mapa_componentes_app_base:
+componentes Blade, partials, componentes reutilizables, ubicación canónica y responsabilidad visual de componentes.
+
+checklist_modulos_nuevos_app_base:
+criterios obligatorios para crear, reconvertir o validar módulos, capacidades transversales, capas satélite o frentes especializados.
+
+decisiones_vivas_app_base:
+decisiones aprobadas que siguen condicionando implementación, auditoría o continuidad.
+
+patrones_validados_app_base:
+soluciones repetibles ya validadas que pueden reutilizarse.
+
+errores_y_lecciones_app_base:
+errores reales, causa, corrección y aprendizaje para no repetirlos.
+
+todo_proyecto_app_base:
+pendientes reales, deuda técnica, continuidad operativa y líneas activas.
+
+capa_ia_operativa_app_base:
+IA como capa transversal, límites, base operativa, proveedores, seguridad y asistencia futura.
+
+shopping_autoservicio_app_base:
+self_service_sales, tienda pública, customer externo, carrito, checkout, shops, shop_items, política comercial, plano externo comercial.
+
+paquete_servicios_mantenimiento_app_base:
+servicios y mantenimiento, universo /service, capa satélite ERP/CMMS liviana y relación con Orders, Assets, Inventory y otros módulos.
+
+audiencia_usos_producto_app_base:
+usuarios reales, usos, frustraciones, objeciones, lenguaje, contexto humano-operativo, IA orientada a producto y UX.
+
+monetizacion_proyecto_app_base:
+modelo comercial, planes, pricing, membresías, implementación particular, enterprise, confianza comercial y propuesta de valor.
+
+welcome_usuario_app_base:
+contenido no técnico de bienvenida, guía de uso, onboarding y explicación al usuario final.
+
+frases.txt:
+frases de identidad verbal o comunicación, solo si el cierre lo requiere explícitamente.
+
+SALIDA ESPERADA EN ESTE CHAT
+
+Primero devolver una síntesis breve:
+
+- documentos candidatos a actualizar
+- documentos que NO conviene tocar
+- riesgos de duplicación
+- estado vigente vs pendiente
+- documentos nuevos detectados si corresponde
+
+Luego generar un único PROMPT PARA CODEX.
+
+Ese prompt debe ordenar a Codex:
+
+- no usar Project Lab
+- no generar LAB_PATCH
+- no generar REEMPLAZAR EN
+- editar archivos directamente
+- no tocar código
+- no tocar archivos fuera de tools/project-lab/documentos/
+- crear backups antes de modificar
+- revisar documentos candidatos
+- modificar solo cuando encuentre ubicación segura
+- no inventar secciones
+- no renombrar secciones
+- no alterar DOC_SLUG
+- no alterar DOC_VERSION
+- no alterar tags SECTION
+- no duplicar contenido ya existente
+- no cambiar SECTION_VERSION manualmente salvo que exista convención clara y segura
+- respetar la familia documental de cada archivo
+- no mezclar estado vigente con pendientes
+- no convertir pendientes en doctrina
+- no convertir decisiones en roadmap
+- no convertir errores en patrones salvo que corresponda
+- no convertir contenido de usuario final en doctrina técnica
+- ejecutar git diff --check
+- ejecutar grep de validación
+- mostrar git diff --stat
+- reportar archivos modificados, backups, cambios aplicados, omitidos y fallidos
+- no hacer commit
+
+PROMPT PARA CODEX: ESTRUCTURA OBLIGATORIA
+
+El prompt para Codex debe tener esta estructura:
+
+1. OBJETIVO
+2. REGLAS ESTRICTAS
+3. CONTEXTO DEL CIERRE
+4. DOCUMENTOS CANDIDATOS
+5. DOCUMENTOS QUE NO DEBEN TOCARSE SALVO CONTRADICCIÓN DIRECTA
+6. CRITERIO POR DOCUMENTO
+7. FORMA DE TRABAJO
+8. BACKUPS
+9. VALIDACIONES
+10. REPORTE FINAL
+11. PROHIBICIÓN DE COMMIT
+
+REGLA SOBRE DOCUMENTOS CANDIDATOS
+
+No listar todos los documentos activos como candidatos por defecto.
+
+Solo incluir como candidatos aquellos que el cierre realmente pueda afectar.
+
+El resto debe quedar en “no tocar salvo contradicción directa”.
+
+REGLA SOBRE CODEX
+
+Codex debe operar como editor documental directo.
+
+Codex debe leer los archivos reales.
+
+Codex debe decidir ubicación segura dentro de secciones existentes.
+
+Codex debe omitir cambios si no encuentra ubicación clara.
+
+Codex debe reportar omisiones.
+
+Codex no debe aplicar cambios por aproximación.
+
+Codex no debe crear secciones nuevas salvo instrucción explícita y justificada.
+
+Codex no debe tocar Project Lab ni usar contratos de Project Lab.
+
+VALIDACIONES MÍNIMAS QUE DEBE PEDIR EL PROMPT A CODEX
+
+Después de modificar, Codex debe ejecutar:
+
+git diff --check
+
+git diff --stat
+
+grep -n "[términos clave del cierre]" [archivos candidatos modificables]
+
+Si el diff no es excesivo, también debe mostrar:
+
+git diff -- [archivos modificados]
+
+REPORTE FINAL QUE DEBE PEDIR EL PROMPT A CODEX
+
+Codex debe devolver:
+
+- archivos revisados
+- archivos modificados
+- backups creados
+- documentos revisados sin cambios
+- motivo de cada cambio
+- cambios omitidos por ya estar cubiertos
+- cambios omitidos por falta de ubicación segura
+- cambios no aplicados por conflicto
+- resultado de git diff --check
+- salida relevante del grep
+- git diff --stat
+- confirmación de que no hizo commit
+- confirmación de que no tocó código
+
+ENTRADA
+
+CAMBIOS DETECTADOS:
+[pegar aquí fragmentos de cierre]

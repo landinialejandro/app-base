@@ -695,6 +695,13 @@ conservación del carrito ante bloqueo recuperable de disponibilidad
 corrección manual mediante eliminación del ítem no disponible
 UI pública externa de carrito con advertencia recuperable para ítems no disponibles
 botón de pago bloqueado mientras existan ítems no disponibles
+/shops/{shop} como perfil interno de gestión de tienda
+configuración general Shop.meta.commercial
+política específica ShopItem.meta.commercial
+ShopItemCommercialPolicyResolver
+allow_cart aplicado al carrito
+max_quantity_per_checkout aplicado al carrito
+checkout_enabled aplicado al checkout antes del provider
 El middleware externo pasivo:
 
 resuelve contexto customer externo cuando la sesión corresponde al tenant público de la ruta
@@ -856,6 +863,10 @@ margen de avance
 cupo de tienda
 
 límites por checkout
+
+revalidar max_quantity_per_checkout durante checkout
+
+implementar allow_direct_purchase funcional
 
 crear Payment como entidad propia cuando se implemente pago real
 

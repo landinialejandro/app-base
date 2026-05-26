@@ -238,6 +238,22 @@ Product conserva catálogo maestro.
 
 Orders, Documents e Inventory conservan ownership de operación formal, formalización documental y stock.
 
+Decisión viva adicional:
+
+la operación externa de carrito y checkout debe respetar política comercial efectiva resuelta en backend.
+
+Shop define configuración comercial general.
+
+ShopItem define política comercial específica.
+
+ShopItemCommercialPolicyResolver devuelve política comercial efectiva.
+
+Frontend y Blade no deciden operación comercial.
+
+Esta decisión no crea todavía Order, Document, InventoryMovement, Payment ni PaymentAttempt.
+
+El bridge SelfServiceCart checked_out → Order group = shop sigue pendiente hasta implementación explícita.
+
 
 Decisión vigente adicional:
 

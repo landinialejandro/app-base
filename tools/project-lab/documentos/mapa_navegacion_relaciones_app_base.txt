@@ -319,7 +319,7 @@ Lectura:
 /shops representa administración interna estándar de tiendas del tenant
 
 
-/shops/{shop} representa evolución interna prevista como Shop Profile / Gestión de tienda cuando exista implementación real
+/shops/{shop} representa perfil interno vigente de Shop Profile / Gestión de tienda
 
 /shops/{shop} pertenece al plano interno autorizado
 
@@ -329,7 +329,11 @@ Lectura:
 
 tenant/profile conserva gobierno general del tenant
 
-shops concentra gestión operativa interna de tienda cuando exista contrato implementado
+shops concentra gestión operativa interna de tienda.
+
+/shops/{shop}/edit permite editar configuración general de tienda.
+
+/shops/{shop}/items/{item}/edit permite editar política específica del artículo publicado.
 Recorrido externo vigente:
 
 /tienda
@@ -409,6 +413,13 @@ el carrito no administra Shop ni ShopItem.
 
 el carrito consume ShopItem publicado como unidad operativa.
 
+el recorrido público de carrito y checkout consume política comercial efectiva preparada por backend.
+
+carrito visible no equivale a operación garantizada.
+
+publicado o visible no equivale a comprable.
+
+el checkout debe validar checkout_enabled antes del provider.
 
 el carrito debe revalidar disponibilidad efectiva antes de checkout.
 
@@ -441,7 +452,7 @@ dashboard interno o sección interna autorizada
 → activación interna
 
 
-Recorrido interno previsto de Shop Profile cuando exista implementación real:
+Recorrido interno vigente de Shop Profile:
 
 dashboard interno o sección interna autorizada
 
@@ -464,6 +475,10 @@ dashboard interno o sección interna autorizada
 → stock comprometido o disponibilidad
 
 → configuración
+
+→ edición de configuración general en /shops/{shop}/edit
+
+→ edición de política específica de artículo en /shops/{shop}/items/{item}/edit
 
 Lectura:
 

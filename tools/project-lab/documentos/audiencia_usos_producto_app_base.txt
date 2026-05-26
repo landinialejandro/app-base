@@ -652,7 +652,7 @@ definir para quién no es el producto evita que la IA, el copy o el roadmap inte
 <<END SECTION>>
 
 <<SECTION: EVIDENCIA DISPONIBLE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 EVIDENCIA DISPONIBLE
 
@@ -669,11 +669,322 @@ Servicio y mantenimiento se define como capa satélite productiva y no como CRUD
 la IA se define como capa transversal asistiva y no como módulo aislado
 Project Lab existe como herramienta local técnica, no como función del producto final
 
+Evidencia inicial de audiencia real:
+
+[CASO REAL 1: TALLER DE MOTOS]
+
+Perfil:
+
+dueño de taller de motos, con operación pequeña y algún empleado eventual.
+
+Necesidad expresada:
+
+comenzar a vender repuestos y accesorios.
+
+Lectura de audiencia:
+
+owner operativo de negocio pequeño que combina actividad de servicio/taller con intención de venta simple de productos.
+
+Usos relevantes:
+
+organizar productos
+vender repuestos y accesorios
+mantener control básico de disponibilidad
+registrar clientes o contactos
+eventualmente vincular productos con órdenes de servicio
+eventualmente publicar productos para venta externa
+
+Implicancia:
+
+este caso valida la necesidad de comenzar simple, sin ERP pesado, habilitando crecimiento progresivo hacia catálogo, stock, ventas y servicio.
+
+
+[CASO REAL 2: LAVADERO DE AUTOS CON FICHAS]
+
+Perfil:
+
+dueño de lavadero de autos no automático/autoservicio, donde cada cliente lava su propio auto mediante fichas.
+
+Necesidad expresada:
+
+automatizar la venta e implementación de fichas.
+
+Lectura de audiencia:
+
+owner operativo de negocio de autoservicio que necesita controlar venta, habilitación y consumo de fichas sin convertir el sistema en un ERP complejo.
+
+Usos relevantes:
+
+vender fichas
+registrar saldo o cantidad disponible
+habilitar uso posterior
+controlar consumo
+preparar operación externa customer
+eventualmente usar QR o integración con controlador externo
+registrar movimientos comerciales asociados al consumo
+
+Implicancia:
+
+este caso valida la línea de Shopping Autoservicio orientada a saldo, fichas, consumo, QR futuro y operación externa controlada.
+
 Regla:
 
-la evidencia debe provenir de documentación activa, código real, runtime, auditorías o decisiones validadas.
+la evidencia debe provenir de documentación activa, código real, runtime, auditorías, decisiones validadas o usuarios reales identificados.
 
 No debe confundirse intuición comercial con evidencia.
+
+No debe confundirse usuario real identificado con roadmap técnico cerrado.
+<<END SECTION>>
+
+<<SECTION: PREGUNTAS DE PROPUESTA DE VALOR POR AUDIENCIA REAL>>
+SECTION_VERSION: 00001
+
+PREGUNTAS DE PROPUESTA DE VALOR POR AUDIENCIA REAL
+
+Esta sección formula preguntas de propuesta de valor a partir de usuarios reales identificados.
+
+Su función es transformar perfiles de audiencia en criterios concretos para producto, UX, copy, IA, priorización y documentación.
+
+No define:
+
+pricing
+planes comerciales
+implementación técnica
+roadmap cerrado
+promesa de venta final
+alcance contractual con cliente
+
+Regla:
+
+la propuesta de valor debe responder a problemas reales de usuarios reales.
+
+No debe redactarse desde capacidades técnicas abstractas.
+
+
+[PREGUNTAS BASE]
+
+Pregunta 1:
+¿Qué problema concreto quiere resolver esta audiencia?
+
+Pregunta 2:
+¿Qué resultado espera obtener?
+
+Pregunta 3:
+¿Qué hace hoy para resolverlo?
+
+Pregunta 4:
+¿Qué le frustra de su forma actual de trabajo?
+
+Pregunta 5:
+¿Qué valor percibe si app-base funciona bien para su caso?
+
+Pregunta 6:
+¿Qué debe ser simple desde el primer uso?
+
+Pregunta 7:
+¿Qué no debería tener que entender?
+
+Pregunta 8:
+¿Qué objeción puede tener antes de adoptar el sistema?
+
+Pregunta 9:
+¿Qué parte del producto puede demostrar valor rápido?
+
+Pregunta 10:
+¿Qué riesgo existe si se diseña esta solución en abstracto?
+
+Pregunta 11:
+¿Qué frase de valor podría explicarle el producto sin tecnicismos?
+
+Pregunta 12:
+¿Qué evidencia falta validar?
+
+
+[CASO REAL 1: TALLER DE MOTOS]
+
+Pregunta:
+¿Qué problema concreto quiere resolver esta audiencia?
+
+Respuesta:
+quiere comenzar a vender repuestos y accesorios sin montar un sistema complejo ni perder el orden de su operación de taller.
+
+Pregunta:
+¿Qué resultado espera obtener?
+
+Respuesta:
+tener sus productos organizados, poder venderlos, saber qué ofrece, registrar clientes o ventas y sostener una operación simple que pueda crecer.
+
+Pregunta:
+¿Qué hace hoy para resolverlo?
+
+Respuesta:
+no hay evidencia suficiente sobre su método actual. Puede trabajar con memoria, planillas, anotaciones, stock visual o registros dispersos, pero esto debe validarse antes de documentarlo como hecho.
+
+Pregunta:
+¿Qué le frustra de su forma actual de trabajo?
+
+Respuesta:
+con la evidencia actual solo puede afirmarse que necesita comenzar a vender repuestos y accesorios. Como hipótesis a validar, podrían existir frustraciones vinculadas al desorden de productos, falta de control de disponibilidad, dificultad para publicar lo que vende o dependencia de carga manual dispersa.
+
+Pregunta:
+¿Qué valor percibe si app-base funciona bien para su caso?
+
+Respuesta:
+ordenar su catálogo de repuestos y accesorios, empezar a vender de forma más profesional, conservar control sobre la operación y crecer sin pasar directamente a un ERP pesado.
+
+Pregunta:
+¿Qué debe ser simple desde el primer uso?
+
+Respuesta:
+cargar productos, ver qué está disponible, publicar o preparar productos para venta, registrar una operación básica y operar aunque solo exista el dueño o un empleado eventual.
+
+Pregunta:
+¿Qué no debería tener que entender?
+
+Respuesta:
+no debería tener que entender tenant, membership, ownership modular, ShopItem, constraints, scopes, controllers, surfaces, hooks ni arquitectura interna.
+
+Pregunta:
+¿Qué objeción puede tener antes de adoptar el sistema?
+
+Respuesta:
+puede sentir que el sistema es demasiado grande para un taller chico, que le llevará mucho tiempo configurarlo o que no necesita una herramienta profesional para comenzar a vender.
+
+Pregunta:
+¿Qué parte del producto puede demostrar valor rápido?
+
+Respuesta:
+productos organizados, disponibilidad básica, venta simple, publicación controlada de productos y posibilidad de vincular venta con actividad de taller cuando corresponda.
+
+Pregunta:
+¿Qué riesgo existe si se diseña esta solución en abstracto?
+
+Respuesta:
+convertir el caso en un e-commerce genérico o en un ERP de stock demasiado complejo, perdiendo la necesidad real de empezar simple desde un taller pequeño.
+
+Pregunta:
+¿Qué frase de valor podría explicarle el producto sin tecnicismos?
+
+Respuesta:
+Ordená tus repuestos y accesorios, empezá a vender con más claridad y mantené el control de tu taller sin complicarte con un sistema pesado.
+
+Pregunta:
+¿Qué evidencia falta validar?
+
+Respuesta:
+cómo registra hoy sus productos, si controla stock, si vende presencialmente o quiere venta online, si necesita comprobantes, si trabaja con órdenes de reparación, qué volumen de productos maneja y qué tarea haría un empleado eventual.
+
+
+[CASO REAL 2: LAVADERO DE AUTOS CON FICHAS]
+
+Pregunta:
+¿Qué problema concreto quiere resolver esta audiencia?
+
+Respuesta:
+quiere automatizar la venta y uso de fichas en un lavadero autoservicio donde cada cliente lava su propio auto.
+
+Pregunta:
+¿Qué resultado espera obtener?
+
+Respuesta:
+vender fichas, habilitar su uso, controlar consumo y reducir intervención manual del dueño en la operación diaria.
+
+Pregunta:
+¿Qué hace hoy para resolverlo?
+
+Respuesta:
+solo está documentado que el lavadero funciona con fichas. No hay evidencia suficiente sobre si las fichas son físicas, manuales, mecánicas, electrónicas o registradas de otro modo.
+
+Pregunta:
+¿Qué le frustra de su forma actual de trabajo?
+
+Respuesta:
+con la evidencia actual solo puede afirmarse que quiere automatizar venta e implementación de fichas. Como hipótesis a validar, podrían existir frustraciones vinculadas a presencia obligatoria, control manual de fichas, pérdidas, falta de registro de consumos o dificultad para vender fuera del lugar físico.
+
+Pregunta:
+¿Qué valor percibe si app-base funciona bien para su caso?
+
+Respuesta:
+poder vender fichas de forma más ordenada, controlar saldos o cantidades disponibles, registrar consumos y preparar una operación más autónoma para clientes externos.
+
+Pregunta:
+¿Qué debe ser simple desde el primer uso?
+
+Respuesta:
+crear o administrar fichas, venderlas, ver saldo o cantidad disponible, validar uso y registrar consumo sin obligar al dueño a operar como técnico del sistema.
+
+Pregunta:
+¿Qué no debería tener que entender?
+
+Respuesta:
+no debería tener que entender customer externo, membership, tenant, provider, ledger, backend, gateway, controller, InventoryMaterialFlow, scopes ni contratos internos.
+
+Pregunta:
+¿Qué objeción puede tener antes de adoptar el sistema?
+
+Respuesta:
+puede pensar que automatizar fichas es demasiado complejo, que requiere hardware costoso, que el sistema no se adaptará a su lavadero o que la venta digital será difícil para sus clientes.
+
+Pregunta:
+¿Qué parte del producto puede demostrar valor rápido?
+
+Respuesta:
+venta simple de fichas, registro de saldo o cantidad disponible, lectura clara de consumos y separación entre cliente externo y administración interna.
+
+Pregunta:
+¿Qué riesgo existe si se diseña esta solución en abstracto?
+
+Respuesta:
+tratar las fichas como productos físicos comunes o como stock tradicional, cuando en realidad funcionan como derecho de uso, saldo, consumo o habilitación operativa.
+
+Pregunta:
+¿Qué frase de valor podría explicarle el producto sin tecnicismos?
+
+Respuesta:
+Vendé fichas, controlá su uso y automatizá tu lavadero sin perder el control de cada consumo.
+
+Pregunta:
+¿Qué evidencia falta validar?
+
+Respuesta:
+cómo son las fichas actuales, cómo se activan las máquinas, si existe hardware, si se necesita QR, si el cliente compra antes o en el lugar, si habrá saldo prepago, si las fichas vencen, si hay promociones, si se requiere integración con controlador externo y qué nivel de automatización real espera el dueño.
+
+
+[SÍNTESIS COMPARATIVA]
+
+Taller de motos:
+
+valor central:
+pasar de taller pequeño a operación con venta organizada de repuestos y accesorios.
+
+promesa inicial:
+ordenar productos y vender simple sin ERP pesado.
+
+riesgo de diseño:
+hacer un e-commerce genérico o un sistema de stock sobredimensionado.
+
+
+Lavadero con fichas:
+
+valor central:
+automatizar venta, habilitación y consumo de fichas.
+
+promesa inicial:
+vender y controlar fichas sin intervención manual permanente.
+
+riesgo de diseño:
+tratar fichas como producto físico común y no como derecho de uso o consumo controlado.
+
+
+[REGLA FINAL]
+
+Cada caso real debe derivar en preguntas y respuestas de propuesta de valor antes de convertirse en feature, roadmap, landing, onboarding o implementación.
+
+Si no se puede responder qué valor concreto recibe esa audiencia, no debe completarse por intuición.
+
+NO SE ASUME.
+
+NO SE SUPONE.
 <<END SECTION>>
 
 <<SECTION: SUPUESTOS PENDIENTES DE VALIDACIÓN>>

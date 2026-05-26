@@ -263,6 +263,12 @@ No debe confiar en datos económicos, estado visual, redirect, pantalla de éxit
 
 Debe operar mediante frontera explícita reemplazable cuando dependa de provider externo.
 
+Toda política comercial crítica del checkout externo debe revalidarse en backend inmediatamente antes de iniciar provider o producir efectos internos.
+
+max_quantity_per_checkout vigente no puede depender de la validación previa del carrito.
+
+Cantidad visible o agregada previamente no autoriza checkout.
+
 El detalle de clases, servicios, bindings, payloads y persistencia pertenece a documentos especializados.
 
 Regla vigente adicional para checkout externo:

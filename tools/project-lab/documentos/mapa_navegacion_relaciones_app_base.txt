@@ -421,6 +421,12 @@ publicado o visible no equivale a comprable.
 
 el checkout debe validar checkout_enabled antes del provider.
 
+el recorrido de checkout revalida max_quantity_per_checkout vigente antes de avanzar al provider.
+
+línea agregada previamente no garantiza checkout si la política comercial efectiva cambió.
+
+si la cantidad supera el máximo vigente, el recorrido se bloquea y el carrito permanece corregible.
+
 el carrito debe revalidar disponibilidad efectiva antes de checkout.
 
 si una línea deja de estar disponible, el checkout no avanza.

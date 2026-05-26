@@ -341,6 +341,26 @@ validar estado de Shop, ShopItem, Product, tenant y operation_enabled
 mantener carrito activo si el bloqueo es recuperable
 
 no crear payment_response cuando el checkout fue bloqueado por disponibilidad
+
+NO TRATAR MAX_QUANTITY_PER_CHECKOUT COMO VALIDACIÓN SOLO DEL CARRITO
+
+Una línea agregada previamente no prueba vigencia actual de la política comercial.
+
+Caso detectado:
+
+un carrito podía conservar una cantidad agregada bajo una política anterior, mientras max_quantity_per_checkout vigente se redujo antes del checkout.
+
+Lección:
+
+las políticas comerciales mutables deben revalidarse en checkout antes del provider.
+
+Reglas:
+
+max_quantity_per_checkout no es solo validación de carrito
+
+el checkout debe volver a resolver política comercial efectiva vigente
+
+si la cantidad supera el máximo vigente, el checkout debe bloquear sin payment_response y conservar SelfServiceCart active
 Un provider externo simulado no implica que todo el checkout sea simulado.
 
 Caso detectado:

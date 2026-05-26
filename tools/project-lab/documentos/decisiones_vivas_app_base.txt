@@ -250,6 +250,14 @@ ShopItemCommercialPolicyResolver devuelve política comercial efectiva.
 
 Frontend y Blade no deciden operación comercial.
 
+max_quantity_per_checkout es validación crítica de checkout además de validación de carrito.
+
+El checkout no confía en la política existente al momento de agregar la línea.
+
+El checkout vuelve a resolver política comercial efectiva vigente antes del provider.
+
+Si una línea supera el máximo vigente, el checkout bloquea y conserva SelfServiceCart active.
+
 Esta decisión no crea todavía Order, Document, InventoryMovement, Payment ni PaymentAttempt.
 
 El bridge SelfServiceCart checked_out → Order group = shop sigue pendiente hasta implementación explícita.

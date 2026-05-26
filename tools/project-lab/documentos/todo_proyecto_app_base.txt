@@ -817,6 +817,12 @@ aprobación de checkout con carrito disponible
 
 resolución del gateway por interface
 
+revalidación de max_quantity_per_checkout vigente durante checkout antes del provider
+
+quantity = 12 con máximo vigente reducido a 5 bloquea checkout y conserva carrito active sin payment_response
+
+quantity = 5 con máximo vigente 5 permite checkout interno real con provider externo simulado aprobado
+
 Pendientes posteriores:
 
 integración real con Mercado Pago
@@ -863,8 +869,6 @@ margen de avance
 cupo de tienda
 
 límites por checkout
-
-revalidar max_quantity_per_checkout durante checkout
 
 implementar allow_direct_purchase funcional
 

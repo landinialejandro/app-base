@@ -373,6 +373,48 @@ checkout_enabled = false no guarda payment_response.
 
 checkout_enabled = false no cambia SelfServiceCart.status a checked_out.
 
+Corte operativo validado adicional:
+
+el checkout revalida max_quantity_per_checkout vigente antes de iniciar provider.
+
+Lectura:
+
+una línea del carrito pudo haber sido agregada válidamente bajo una política comercial anterior.
+
+Antes de armar payment_request, llamar gateway, guardar payment_response o marcar SelfServiceCart como checked_out, el checkout vuelve a resolver la política comercial efectiva vigente de cada ShopItem.
+
+Regla:
+
+si cartItem.quantity supera max_quantity_per_checkout vigente, el checkout bloquea con HTTP 422.
+
+Mensaje vigente:
+
+La cantidad solicitada supera el máximo permitido para este producto.
+
+Efectos del bloqueo:
+
+no se arma payment_request.
+
+no se llama gateway.
+
+no se guarda payment_response.
+
+no se marca el carrito como checked_out.
+
+SelfServiceCart permanece active.
+
+Validación runtime consolidada:
+
+quantity = 12 con máximo vigente reducido a 5 bloquea checkout y conserva carrito active sin payment_response.
+
+quantity = 5 con máximo vigente 5 permite checkout interno real con provider externo simulado aprobado.
+
+Regla:
+
+max_quantity_per_checkout no es solo validación de carrito.
+
+También es validación crítica de checkout.
+
 
 Regla adicional de stock:
 
@@ -2165,6 +2207,8 @@ Usos vigentes:
 allow_cart puede bloquear agregado al carrito.
 
 max_quantity_per_checkout puede bloquear agregado o actualización de cantidad.
+
+max_quantity_per_checkout debe revalidarse durante checkout antes del provider.
 
 checkout_enabled puede bloquear checkout antes del provider.
 

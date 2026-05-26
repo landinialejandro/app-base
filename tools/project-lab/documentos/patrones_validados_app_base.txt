@@ -646,6 +646,14 @@ carrito y checkout consumen política efectiva
 ↓
 frontend y Blade representan, no deciden
 
+Regla adicional de checkout:
+
+el checkout vuelve a resolver política comercial efectiva vigente antes del provider.
+
+Esta revalidación evita que líneas válidas bajo una política anterior avancen con reglas obsoletas.
+
+Si la política vigente bloquea la operación, el backend debe cortar antes de efectos persistentes o gateway.
+
 Caso vigente:
 
 Shopping Autoservicio.

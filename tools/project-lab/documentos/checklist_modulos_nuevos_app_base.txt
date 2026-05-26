@@ -389,6 +389,12 @@ el frontend no decide si puede agregar al carrito, comprar, hacer checkout ni su
 
 la política comercial efectiva no reemplaza validaciones de Inventory, Orders, Documents ni pago real.
 
+si una regla comercial puede cambiar entre agregado al carrito y checkout, el checkout debe revalidarla en backend antes del provider.
+
+una validación previa de carrito no alcanza para autorizar checkout.
+
+max_quantity_per_checkout u otros límites comerciales vigentes deben bloquear checkout si se incumplen.
+
 
 Regla adicional para carrito persistente externo:
 

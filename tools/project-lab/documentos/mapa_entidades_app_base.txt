@@ -439,6 +439,8 @@ allow_cart puede bloquear agregado al carrito.
 
 max_quantity_per_checkout limita cantidad por operación.
 
+SelfServiceCartItem.quantity debe revalidarse contra max_quantity_per_checkout vigente durante checkout.
+
 checkout_enabled bloquea checkout antes del provider.
 
 La política comercial efectiva puede bloquear carrito o checkout.
@@ -446,6 +448,8 @@ La política comercial efectiva puede bloquear carrito o checkout.
 La política comercial efectiva no reemplaza Products, Inventory, Orders, Documents ni pagos.
 
 La política comercial efectiva no mueve stock, no crea Order, no crea Document y no acredita pago real.
+
+max_quantity_per_checkout pertenece a la política comercial efectiva de ShopItem/Shop y puede bloquear checkout sin crear Order, Document, InventoryMovement ni Payment.
 
 Reglas:
 

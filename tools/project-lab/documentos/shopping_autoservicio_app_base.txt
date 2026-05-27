@@ -78,7 +78,7 @@ evitar que la tienda pública se confunda con autoridad de precio, stock, dispon
 evitar que el carrito se confunda con reserva de stock
 evitar que agregar al carrito se confunda con disponibilidad futura garantizada
 evitar que el checkout se confunda con compromiso de stock si Inventory no interviene mediante frontera explícita
-evitar que SelfServiceCart checked_out se confunda con Order creada hasta que exista bridge operativo explícito
+evitar que SelfServiceCart checked_out con Order lógica interna se confunda con Document, pago formal, stock movido u operación comercial completa
 evitar que una futura compra directa duplique el pipeline backend de checkout
 evitar que la política comercial efectiva se interprete desde frontend, Blade o consumers dispersos
 evitar que allow_cart, max_quantity_per_checkout o checkout_enabled se confundan con stock real, pago real u operación formal
@@ -432,18 +432,38 @@ Comprometer stock no equivale a mover stock físico.
 
 El movimiento físico debe ocurrir luego, según entrega, retiro, consumo, despacho o cumplimiento real.
 
-Regla adicional de formalización futura:
+Regla adicional de formalización vigente:
 
-SelfServiceCart checked_out no equivale a Order creada mientras no exista bridge operativo implementado.
+SelfServiceCart checked_out con provider approved formaliza lógicamente una Order interna de venta.
 
-Bridge objetivo decidido pendiente de implementación:
+Bridge vigente:
 
 SelfServiceCart checked_out
-→ Order group = shop
+→ Order group = sale
+→ record_metadata.origin = self_service_sales
 
 Lectura:
 
-la Order group = shop será el registro interno de seguimiento de la venta cuando el bridge exista.
+la Order group = sale representa la venta interna originada en Shopping Autoservicio.
+
+record_metadata.origin = self_service_sales conserva el origen externo del checkout.
+
+La tienda autoservicio no define un nuevo grupo de Orders.
+
+No existe Order group = shop en el corte vigente.
+
+La Order creada queda con:
+
+group = sale
+kind = standard
+status = pending_approval
+party_id = SelfServiceStoreCustomer.party_id
+created_by = null
+record_metadata.origin = self_service_sales
+
+Las líneas del carrito se copian como OrderItems.
+
+La idempotencia del bridge se conserva en SelfServiceCart.meta.formalization.order_id.
 
 Document posterior e InventoryMovement posterior deben quedar bajo política explícita y contrato validado.
 Estado de cierre vigente:
@@ -476,10 +496,8 @@ Pago real con Mercado Pago
 Pago real con MODO
 Payment como entidad propia
 PaymentAttempt como entidad propia
-Order posterior al pago
 Document posterior al pago
 InventoryMovement posterior al pago
-bridge operativo de formalización comercial
 
 Regla:
 
@@ -487,11 +505,19 @@ checkout interno real con provider externo simulado no equivale a pago real exte
 
 provider externo simulado no equivale a checkout completamente simulado.
 
-SelfServiceCart checked_out no equivale a Order creada.
+Order lógica interna creada desde SelfServiceCart checked_out no equivale a Document creado.
 
-SelfServiceCart checked_out no equivale a Document creado.
+Order lógica interna creada desde SelfServiceCart checked_out no equivale a Payment formal.
 
-SelfServiceCart checked_out no equivale a stock movido.
+Order lógica interna creada desde SelfServiceCart checked_out no equivale a PaymentAttempt formal.
+
+Order lógica interna creada desde SelfServiceCart checked_out no equivale a InventoryMovement.
+
+Order lógica interna creada desde SelfServiceCart checked_out no equivale a stock comprometido.
+
+Order lógica interna creada desde SelfServiceCart checked_out no equivale a stock movido.
+
+Order lógica interna creada desde SelfServiceCart checked_out no equivale a operación comercial completa.
 Corte operativo pendiente de imágenes públicas de productos:
 
 la tienda pública no debe reutilizar attachments.preview para exponer imágenes.
@@ -3908,11 +3934,11 @@ checkout simulado no equivale a pago real.
 
 checkout simulado no equivale a operación comercial formal.
 
-checkout simulado no crea Order.
+checkout con provider simulado puede formalizar Order lógica interna mediante bridge validado.
 
-checkout simulado no crea Document.
+checkout con provider simulado no crea Document.
 
-checkout simulado no crea InventoryMovement.
+checkout con provider simulado no crea InventoryMovement.
 
 El próximo checkout backend real con provider simulado deberá recalcular datos críticos desde backend.
 

@@ -823,6 +823,12 @@ quantity = 12 con máximo vigente reducido a 5 bloquea checkout y conserva carri
 
 quantity = 5 con máximo vigente 5 permite checkout interno real con provider externo simulado aprobado
 
+bridge lógico checkout aprobado → Order group = sale con origin = self_service_sales
+
+formalización lógica interna posterior a provider approved
+
+idempotencia por SelfServiceCart.meta.formalization.order_id
+
 Pendientes posteriores:
 
 integración real con Mercado Pago
@@ -834,8 +840,6 @@ Payment como entidad propia cuando se implemente pago real
 PaymentAttempt como entidad propia cuando se implemente provider real
 
 tabla de pagos si se decide
-
-creación de Order group = shop posterior al checkout aprobado mediante bridge operativo explícito
 
 creación de Document posterior al pago
 
@@ -876,8 +880,6 @@ crear Payment como entidad propia cuando se implemente pago real
 
 crear PaymentAttempt como entidad propia cuando se implemente provider real
 
-integrar checkout aprobado con creación de Order group = shop
-
 diseñar compra directa reutilizando el pipeline backend de checkout
 
 integrar Mercado Pago, MODO u otro provider real después de cerrar stock, bridge a Order y back office interno de tienda
@@ -887,7 +889,7 @@ checkout interno real con provider externo simulado no equivale a pago real exte
 
 provider externo simulado no equivale a checkout completamente simulado
 
-SelfServiceCart checked_out no equivale a Order creada
+SelfServiceCart checked_out con provider approved formaliza Order lógica interna de venta
 
 SelfServiceCart checked_out no equivale a Document creado
 

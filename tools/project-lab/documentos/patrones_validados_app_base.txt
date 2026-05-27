@@ -622,11 +622,25 @@ la publicación no crea Orders, Documents ni InventoryMovements
 
 el carrito persistente externo no crea Orders, Documents ni InventoryMovements
 
-el checkout simulado no crea Orders, Documents ni InventoryMovements
+el checkout aprobado con provider simulado puede formalizar Order lógica interna mediante bridge validado
+
+el checkout aprobado con provider simulado no crea Documents, Payments formales, PaymentAttempts formales ni InventoryMovements por sí mismo
 
 el bloqueo operativo del carrito vive en backend
 
 el frontend solo representa estado, mensaje o resultado autorizado
+
+Patrón validado para formalización lógica posterior a checkout:
+
+checkout externo aprobado
+↓
+service/bridge de formalización
+↓
+Order group = sale
+↓
+record_metadata.origin = self_service_sales
+↓
+SelfServiceCart.meta.formalization.order_id
 
 POLÍTICA COMERCIAL EFECTIVA RESUELTA EN BACKEND
 

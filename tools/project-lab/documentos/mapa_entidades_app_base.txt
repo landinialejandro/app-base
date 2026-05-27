@@ -71,7 +71,7 @@ SelfServiceCart → SelfServiceCartItem
 SelfServiceCartItem → ShopItem
 ShopItem → Product
 
-SelfServiceCart checked_out → Order group = shop cuando exista bridge operativo explícito
+SelfServiceCart checked_out → Order group = sale → record_metadata.origin = self_service_sales
 Payment → registro formal de pago futuro cuando se implemente
 PaymentAttempt → intento concreto contra provider futuro cuando se implemente
 Relaciones transversales relevantes:
@@ -518,9 +518,9 @@ Inventory
 ↓
 stock físico, stock comprometible y compromiso/reserva cuando exista contrato implementado
 
-Order group = shop
+Order group = sale
 ↓
-venta interna vinculada al compromiso cuando exista bridge operativo explícito
+venta interna originada en self_service_sales mediante bridge vigente
 
 Si un ShopItem deja de cumplir la publicación efectiva después de haber sido agregado, la línea del carrito puede conservarse como no disponible.
 
@@ -595,23 +595,27 @@ No se creó entidad PaymentAttempt.
 
 No se creó tabla de pagos.
 
-No se creó relación formal con Order.
+Se creó formalización lógica hacia Order.
 
 No se creó relación formal con Document.
 
 No se creó relación formal con InventoryMovement.
 
-Bridge objetivo decidido pendiente de implementación:
+Bridge vigente:
 
 SelfServiceCart checked_out
 ↓
-Order group = shop
+Order group = sale
+↓
+record_metadata.origin = self_service_sales
 
 Lectura:
 
 SelfServiceCart conserva origen externo, líneas externas, customer externo, relación customer-tienda y trazabilidad del checkout.
 
-Order group = shop formaliza internamente el seguimiento operativo de la venta cuando exista bridge explícito.
+Order group = sale formaliza lógicamente la venta interna originada en self_service_sales.
+
+record_metadata.origin = self_service_sales identifica el canal.
 
 Reglas:
 
@@ -623,9 +627,11 @@ SelfServiceCart checked_out no equivale a stock movido.
 
 SelfServiceCart checked_out no equivale a stock comprometido si Inventory no confirmó compromiso backend.
 
-Order group = shop no reemplaza SelfServiceCart.
+Order group = sale no reemplaza SelfServiceCart.
 
 SelfServiceCart no reemplaza Order.
+
+Order no reemplaza SelfServiceCart.
 
 Payment futuro no reemplaza SelfServiceCart.
 

@@ -362,7 +362,9 @@ Provider externo simulado ≠ checkout completamente simulado.
 
 SelfServiceCart checked_out ≠ formalización documental/fiscal completa.
 
-SelfServiceCart checked_out ≠ Order, Document ni InventoryMovement.
+SelfServiceCart checked_out con bridge validado puede formalizar una Order lógica interna de venta.
+
+Esa Order lógica interna ≠ Document, Payment formal, PaymentAttempt formal ni InventoryMovement.
 
 
 SelfServiceCart checked_out ≠ stock comprometido si Inventory no confirmó compromiso backend.
@@ -738,7 +740,11 @@ Provider externo simulado no equivale a checkout completamente simulado.
 
 SelfServiceCart checked_out no equivale a formalización documental/fiscal completa.
 
-El primer cierre de checkout real interno no debe crear Orders, Documents ni InventoryMovements sin bridge operativo definido.
+El primer cierre de checkout real interno puede formalizar Order lógica interna mediante bridge backend validado.
+
+No debe crear Documents ni InventoryMovements sin contrato explícito.
+
+La tienda pública, el frontend, el provider visual o el redirect no autorizan por sí mismos la operación.
 
 
 El checkout externo con stock debe validar backend:

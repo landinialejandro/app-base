@@ -824,7 +824,9 @@ Checkout interno real con provider externo simulado no equivale a pago real exte
 
 Provider externo simulado no equivale a checkout completamente simulado.
 
-SelfServiceCart checked_out no crea Orders, Documents ni InventoryMovements.
+SelfServiceCart checked_out con bridge validado puede crear Order lógica interna de venta.
+
+La Order lógica interna creada desde checkout externo no crea Documents ni InventoryMovements.
 
 
 SelfServiceCart checked_out no equivale a stock comprometido si Inventory no confirmó compromiso backend.
@@ -854,19 +856,37 @@ el provider simulado representa solo la respuesta externa esperada
 no crear Orders, Documents ni InventoryMovements sin bridge operativo explícito y validado
 
 
-Bridge objetivo pendiente de implementación:
+Bridge vigente de formalización lógica:
 
 SelfServiceCart checked_out
 ↓
-Order group = shop
+Order group = sale
+↓
+record_metadata.origin = self_service_sales
 
 Lectura:
 
-Orders formaliza la venta interna cuando exista bridge operativo explícito.
+Orders formaliza lógicamente la venta interna mediante bridge/service, no directamente desde controller.
+
+self_service_sales no introduce group = shop.
+
+La formalización interna de venta externa debe usar group = sale y origin = self_service_sales.
+
+record_metadata.origin identifica origen/canal; no reemplaza ownership ni dato operativo principal.
+
+created_by = null en este corte no implica User Sistema ni Party Sistema.
+
+No crear Party Sistema en este corte.
 
 Documents emite comprobante cuando corresponda por política documental o fiscal posterior.
 
 Inventory compromete stock y mueve stock físico solo mediante sus contratos propios.
+
+No crear Document desde checkout externo sin política documental explícita.
+
+No crear InventoryMovement sin contrato Inventory explícito.
+
+No crear Payment ni PaymentAttempt si no están implementados como entidades.
 
 Comprometer stock no equivale a mover stock físico.
 Patrón vigente para provider externo reemplazable:

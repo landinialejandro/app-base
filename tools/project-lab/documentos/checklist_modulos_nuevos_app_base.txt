@@ -537,7 +537,7 @@ Payment no implementado como entidad propia
 
 PaymentAttempt no implementado como entidad propia
 
-Order posterior al pago no implementada
+Order lógica interna posterior a provider approved implementada mediante bridge cuando corresponda
 
 Document posterior al pago no implementado
 
@@ -546,6 +546,10 @@ movimiento de stock posterior al pago no implementado
 Reglas de validación obligatoria para checkout externo:
 
 validar frontera explícita de provider
+
+validar que la Order creada por bridge use group = sale y origin = self_service_sales cuando el bridge exista
+
+no listar Order posterior como no implementada si el bridge ya está implementado
 
 validar que el controller no conozca provider concreto
 

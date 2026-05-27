@@ -136,7 +136,9 @@ agregar al carrito no crea InventoryMovement
 
 checkout simulado no equivale a operación comercial real
 
-checkout simulado no crea Orders, Documents ni InventoryMovements
+checkout con provider simulado puede formalizar Order lógica interna mediante bridge validado
+
+checkout con provider simulado no crea Documents ni InventoryMovements
 
 
 Decisión vigente implementada y validada:
@@ -175,7 +177,6 @@ generar idempotency_key desde backend cuando corresponda
 resolver provider mediante SelfServicePaymentGateway
 No debe crear todavía:
 
-Order
 Document
 InventoryMovement
 
@@ -185,25 +186,33 @@ Tampoco se creó todavía:
 Payment
 PaymentAttempt
 tabla de pagos
-relación formal con Order
 relación formal con Document
 relación formal con InventoryMovement
 Regla:
 
-no debe existir bridge operativo hacia Orders, Documents o Inventory hasta decisión explícita, contrato implementado y validación real.
+no debe existir bridge operativo hacia Documents o Inventory hasta decisión explícita, contrato implementado y validación real.
 
-Decisión explícita vigente pendiente de implementación:
+Decisión explícita vigente implementada y validada:
 
 SelfServiceCart checked_out
-→ Order group = shop
+→ Order group = sale
+→ record_metadata.origin = self_service_sales
 
 Lectura:
 
-Order group = shop será el registro interno de seguimiento de la venta cuando exista bridge operativo implementado.
+SelfServiceCart checked_out con provider approved formaliza lógicamente una Order de venta.
+
+Order group = sale es el registro interno de venta originada en self_service_sales.
+
+record_metadata.origin = self_service_sales conserva el canal externo.
+
+La idempotencia del bridge queda en SelfServiceCart.meta.formalization.order_id.
 
 Reglas:
 
-SelfServiceCart checked_out no equivale todavía a Order creada.
+No existe Order group = shop en el corte vigente.
+
+self_service_sales no crea un grupo nuevo de Orders.
 
 SelfServiceCart checked_out no equivale a Document emitido.
 
@@ -258,9 +267,9 @@ El checkout vuelve a resolver política comercial efectiva vigente antes del pro
 
 Si una línea supera el máximo vigente, el checkout bloquea y conserva SelfServiceCart active.
 
-Esta decisión no crea todavía Order, Document, InventoryMovement, Payment ni PaymentAttempt.
+Esta decisión no crea todavía Document, InventoryMovement, Payment ni PaymentAttempt.
 
-El bridge SelfServiceCart checked_out → Order group = shop sigue pendiente hasta implementación explícita.
+La Order lógica interna no equivale a operación comercial completa.
 
 
 Decisión vigente adicional:

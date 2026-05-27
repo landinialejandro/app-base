@@ -94,7 +94,8 @@ checkout interno real con provider externo simulado no equivale a pago real exte
 
 
 provider externo simulado no equivale a checkout completamente simulado
-SelfServiceCart checked_out no equivale a creación de Order, Document ni InventoryMovement
+SelfServiceCart checked_out con bridge vigente puede formalizar Order lógica interna de venta
+SelfServiceCart checked_out no equivale a creación de Document, Payment formal, InventoryMovement ni stock movido
 
 
 la simulación vigente queda limitada a la comunicación externa con el provider
@@ -438,13 +439,15 @@ el carrito no debe vaciarse automáticamente por un bloqueo recuperable de dispo
 el frontend representa el estado preparado por backend.
 el carrito persiste líneas externas cuando existe customer habilitado.
 
-el checkout vigente es simulado.
+el checkout vigente usa provider externo simulado.
 
-el checkout simulado no crea Order.
+el checkout aprobado con provider simulado puede cerrar carrito y, mediante bridge vigente, formalizar Order lógica interna de venta.
 
-el checkout simulado no crea Document.
+el recorrido externo no abre panel interno.
 
-el checkout simulado no crea InventoryMovement.
+el recorrido externo no crea Document, Payment formal, InventoryMovement ni stock movido.
+
+la navegación no es autoridad de operación.
 Recorrido interno vigente de administración de Shops:
 
 dashboard interno o sección interna autorizada

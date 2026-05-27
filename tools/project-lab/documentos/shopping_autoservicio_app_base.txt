@@ -938,11 +938,8 @@ Puede organizar, según contrato futuro validado:
 
 artículos publicados
 clientes tienda
-carritos
-Ventas / Órdenes
 pagos
 stock comprometido o disponibilidad interna
-configuración comercial
 Primer corte interno implementado:
 
 /shops/{shop} funciona como perfil interno de gestión de tienda.
@@ -950,6 +947,14 @@ Primer corte interno implementado:
 /shops/{shop}/edit permite editar configuración general de tienda.
 
 /shops/{shop}/items/{item}/edit permite editar política específica del artículo publicado.
+
+Lecturas internas activas vigentes:
+
+Artículos
+Carritos externos
+Ventas / Órdenes
+Configuración comercial
+Estado de apertura
 
 /shops/{shop} incorpora lectura interna de Carritos externos.
 
@@ -1022,6 +1027,78 @@ la pestaña Ventas / Órdenes no registra Payments.
 la pestaña Ventas / Órdenes no crea InventoryMovement.
 
 la pestaña Ventas / Órdenes no compromete stock.
+
+/shops/{shop} incorpora lectura interna de Configuración comercial.
+
+Configuración comercial muestra la configuración general vigente de:
+
+Shop.meta.commercial.checkout_enabled
+Shop.meta.commercial.direct_purchase_enabled
+Shop.meta.commercial.stock_control_enabled
+Shop.meta.commercial.allow_stock_margin
+Shop.meta.commercial.provider_target
+
+Reglas:
+
+Configuración comercial no decide operación por sí misma.
+
+Configuración comercial no crea Orders.
+
+Configuración comercial no crea Payments.
+
+Configuración comercial no crea Documents.
+
+Configuración comercial no crea InventoryMovement.
+
+Configuración comercial no compromete stock.
+
+provider_target no equivale a integración real de pago.
+
+/shops/{shop} incorpora lectura interna de Estado de apertura.
+
+Estado de apertura muestra diagnóstico interno mínimo de preparación para apertura simulada/controlada.
+
+Datos diagnósticos vigentes:
+
+tienda activa
+artículos configurados
+artículos visibles públicamente
+artículos habilitados para carrito
+checkout habilitado
+provider objetivo
+customers externos operativos del tenant
+
+Reglas:
+
+Estado de apertura no habilita operación.
+
+Estado de apertura no reemplaza backend.
+
+Estado de apertura no reemplaza checkout.
+
+Estado de apertura no reemplaza autorización.
+
+Estado de apertura no reemplaza validación de política comercial efectiva.
+
+Estado de apertura no reemplaza validación de stock comprometible cuando corresponda.
+
+Estado de apertura no crea Payment.
+
+Estado de apertura no crea PaymentAttempt.
+
+Estado de apertura no crea Document.
+
+Estado de apertura no crea InventoryMovement.
+
+Estado de apertura no compromete stock.
+
+Estado de apertura no mueve stock.
+
+Estado de apertura no activa customers.
+
+Estado de apertura no activa tienda.
+
+Customers externos operativos se cuentan tenant-scoped, no por Shop, porque SelfServiceStoreCustomer no tiene shop_id ni self_service_shop_id en el corte vigente.
 
 Reglas:
 

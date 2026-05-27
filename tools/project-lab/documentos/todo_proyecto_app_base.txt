@@ -833,15 +833,19 @@ idempotencia por SelfServiceCart.meta.formalization.order_id
 
 /shops/{shop} muestra tab Carritos externos con SelfServiceCart vinculados a la tienda por la cadena Shop → ShopItem → SelfServiceCartItem → SelfServiceCart
 
+/shops/{shop} muestra tab Configuración comercial con lectura de Shop.meta.commercial
+
+/shops/{shop} muestra tab Estado de apertura con diagnóstico interno de tienda activa, artículos configurados, artículos visibles, artículos con carrito habilitado, checkout habilitado, provider objetivo y customers externos operativos del tenant
+
 Pendientes posteriores:
 
 integración real con Mercado Pago
 
 integración real con MODO
 
-Payment como entidad propia cuando se implemente pago real
+Payment formal como entidad propia cuando se implemente pago real
 
-PaymentAttempt como entidad propia cuando se implemente provider real
+PaymentAttempt formal como entidad propia cuando se implemente provider real
 
 tabla de pagos si se decide
 

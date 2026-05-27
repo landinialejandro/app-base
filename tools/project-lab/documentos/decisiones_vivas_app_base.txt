@@ -138,6 +138,44 @@ No se crean acciones de carrito.
 
 No se crea Order, Document, Payment, PaymentAttempt ni InventoryMovement.
 
+Decisión vigente implementada:
+
+/shops/{shop} incorpora Configuración comercial y Estado de apertura como tabs internas de solo lectura.
+
+Motivo:
+
+permitir revisión operativa de preparación de tienda antes de avanzar a pagos reales, documentos o compromiso atómico de stock.
+
+Reglas:
+
+Configuración comercial muestra datos ya persistidos en Shop.meta.commercial.
+
+Estado de apertura es diagnóstico interno.
+
+No reemplaza autorización backend.
+
+No reemplaza validaciones críticas de checkout.
+
+No habilita operación por sí mismo.
+
+No crea acciones.
+
+No crea columna.
+
+No crea Payment.
+
+No crea PaymentAttempt.
+
+No crea Document.
+
+No crea InventoryMovement.
+
+No compromete stock.
+
+No mueve stock.
+
+Customers externos operativos se leen por tenant, no por Shop, porque SelfServiceStoreCustomer no tiene shop_id propio.
+
 Reglas:
 
 el carrito persistente solo opera para SelfServiceStoreCustomer con operation_enabled = true

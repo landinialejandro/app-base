@@ -477,13 +477,15 @@ dashboard interno o sección interna autorizada
 
 → Ventas / Órdenes
 
+→ Configuración comercial
+
+→ Estado de apertura
+
 → clientes
 
 → pagos
 
 → stock comprometido o disponibilidad
-
-→ configuración
 
 → edición de configuración general en /shops/{shop}/edit
 
@@ -530,6 +532,28 @@ No crea navegación pública externa.
 No expone datos del plano externo customer más allá de la Order interna formalizada.
 
 No debe habilitar customer externo ni sesión self_service_sales.*.
+Lectura vigente de Configuración comercial:
+
+Configuración comercial muestra valores generales de operación comercial configurados en Shop.meta.commercial.
+
+Lectura vigente de Estado de apertura:
+
+Estado de apertura muestra diagnóstico interno de preparación operativa de la tienda.
+
+Reglas:
+
+esta navegación es interna y contextual.
+
+No crea navegación pública.
+
+No habilita operación externa por sí misma.
+
+No reemplaza tienda pública customer.
+
+No crea ownership de shops sobre Payments, Inventory, Documents ni Orders.
+
+No expone acciones nuevas.
+
 Lectura del recorrido interno:
 
 la administración interna de shops requiere User autenticado, Membership vigente, tenant activo y autorización backend efectiva.

@@ -1274,6 +1274,52 @@ self_service_sales conserva ownership del carrito externo.
 
 Shop Profile solo muestra lectura contextual.
 
+Relación conceptual de configuración comercial de tienda:
+
+Shop
+↓
+meta.commercial
+↓
+Configuración comercial de tienda
+
+Lectura:
+
+Shop.meta.commercial conserva configuración general de tienda.
+
+Campos vigentes:
+
+checkout_enabled
+direct_purchase_enabled
+stock_control_enabled
+allow_stock_margin
+provider_target
+
+Estado de apertura:
+
+Estado de apertura no es entidad.
+
+Estado de apertura no es tabla.
+
+Estado de apertura no es lifecycle.
+
+Estado de apertura es lectura diagnóstica derivada de datos existentes.
+
+Datos usados conceptualmente:
+
+Shop.status
+ShopItem publicados/visibles
+ShopItemCommercialPolicyResolver
+SelfServiceStoreCustomer tenant-scoped operativo
+Shop.meta.commercial
+
+Reglas:
+
+SelfServiceStoreCustomer no pertenece estructuralmente a Shop.
+
+SelfServiceStoreCustomer pertenece al tenant.
+
+No existe vínculo Shop-Customer en el corte vigente.
+
 Ruta pública tenant-scoped vigente:
 
 /shop/{tenant:slug}

@@ -1224,6 +1224,28 @@ self_service_sales consume publicación vigente
 ↓
 /shop/{tenant:slug}
 
+Relación conceptual de lectura interna de ventas de tienda:
+
+Shop
+↓
+Order group = sale + origin = self_service_sales + record_metadata.self_service_sales.shop_id
+
+Lectura:
+
+la relación no es foreign key física.
+
+Es vínculo lógico de origen conservado en metadata.
+
+Sirve para lectura contextual interna de ventas originadas desde la tienda.
+
+Reglas:
+
+Order no pertenece estructuralmente a Shop.
+
+Shop no reemplaza Orders.
+
+Orders conserva lifecycle, ítems, estado, numeración y autorización.
+
 Ruta pública tenant-scoped vigente:
 
 /shop/{tenant:slug}

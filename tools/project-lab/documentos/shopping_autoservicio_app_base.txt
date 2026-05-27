@@ -939,7 +939,7 @@ Puede organizar, según contrato futuro validado:
 artículos publicados
 clientes tienda
 carritos
-ventas u órdenes
+Ventas / Órdenes
 pagos
 stock comprometido o disponibilidad interna
 configuración comercial
@@ -950,6 +950,39 @@ Primer corte interno implementado:
 /shops/{shop}/edit permite editar configuración general de tienda.
 
 /shops/{shop}/items/{item}/edit permite editar política específica del artículo publicado.
+
+/shops/{shop} incorpora lectura interna de Ventas / Órdenes originadas desde Shopping Autoservicio.
+
+La lectura de Ventas / Órdenes se basa en:
+
+Order.record_metadata.self_service_sales.shop_id
+
+y filtra Orders con:
+
+group = sale
+origin = self_service_sales
+
+Reglas:
+
+la tienda interna muestra estas órdenes como contexto operativo.
+
+Orders conserva ownership.
+
+la pestaña Ventas / Órdenes no administra Orders.
+
+la pestaña Ventas / Órdenes no aprueba Orders.
+
+la pestaña Ventas / Órdenes no cambia estados.
+
+la pestaña Ventas / Órdenes no mueve stock.
+
+la pestaña Ventas / Órdenes no crea Documents.
+
+la pestaña Ventas / Órdenes no registra Payments.
+
+la pestaña Ventas / Órdenes no crea InventoryMovement.
+
+la pestaña Ventas / Órdenes no compromete stock.
 
 Reglas:
 

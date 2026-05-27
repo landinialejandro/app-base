@@ -473,11 +473,11 @@ dashboard interno o sección interna autorizada
 
 → artículos
 
+→ Ventas / Órdenes
+
 → clientes
 
 → carritos
-
-→ ventas u órdenes
 
 → pagos
 
@@ -496,6 +496,22 @@ este recorrido pertenece al plano interno autorizado.
 No pertenece al plano externo customer.
 
 No debe usar la gramática pública mobile commerce.
+
+Lectura vigente de Ventas / Órdenes:
+
+Ventas / Órdenes muestra Orders formalizadas desde checkout externo para esa Shop.
+
+Reglas:
+
+esta navegación es contextual.
+
+No crea ownership de shops sobre Orders.
+
+No crea administración paralela de Orders.
+
+No crea navegación pública externa.
+
+No expone datos del plano externo customer más allá de la Order interna formalizada.
 
 No debe habilitar customer externo ni sesión self_service_sales.*.
 Lectura del recorrido interno:

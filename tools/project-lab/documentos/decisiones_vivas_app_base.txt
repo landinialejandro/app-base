@@ -226,6 +226,26 @@ Document posterior queda bajo política documental, fiscal o comercial explícit
 
 InventoryMovement posterior queda bajo contrato propio de Inventory.
 
+Decisión vigente implementada:
+
+/shops/{shop} puede mostrar ventas originadas desde Shopping Autoservicio mediante lectura contextual basada en Order.record_metadata.self_service_sales.shop_id.
+
+Motivo:
+
+permitir gestión interna de tienda sin crear group = shop ni relación física Order-Shop.
+
+Reglas:
+
+shops muestra.
+
+Orders conserva ownership.
+
+No se crea columna.
+
+No se crea relación física.
+
+No se crea InventoryMovement, Document, Payment ni PaymentAttempt.
+
 Motivo:
 
 separar checkout interno real de pago externo real permite validar el contrato transaccional de app-base sin acoplarse tempranamente a un provider.

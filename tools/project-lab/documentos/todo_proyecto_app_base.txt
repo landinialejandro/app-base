@@ -829,6 +829,8 @@ formalización lógica interna posterior a provider approved
 
 idempotencia por SelfServiceCart.meta.formalization.order_id
 
+/shops/{shop} muestra tab Ventas / Órdenes con Orders group = sale originadas en self_service_sales y filtradas por record_metadata.self_service_sales.shop_id
+
 Pendientes posteriores:
 
 integración real con Mercado Pago
@@ -847,16 +849,10 @@ reserva o movimiento de stock
 
 renombre de route name self_service_sales.checkout.simulate a self_service_sales.checkout.process aplicado y validado
 
-definir formalización interna posterior al pago aprobado
-
 
 Prioridad posterior decidida antes de provider real:
 
-definir Shop Profile interno en /shops/{shop}
-
 auditar Shop, ShopItem, policies, rutas y vistas actuales
-
-auditar Orders para agregar group = shop
 
 auditar Inventory para definir si existe o no capacidad vigente de reserva, compromiso o stock comprometible
 

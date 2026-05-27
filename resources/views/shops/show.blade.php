@@ -11,6 +11,7 @@
         use App\Support\Navigation\NavigationTrail;
 
         $items = $shop->items ?? collect();
+        $selfServiceCarts = $selfServiceCarts ?? collect();
         $selfServiceOrders = $selfServiceOrders ?? collect();
 
         $navigationTrail = $navigationTrail ?? [];
@@ -21,14 +22,6 @@
             [
                 'title' => 'Clientes tienda',
                 'text' => 'Contrato interno pendiente para vincular clientes externos con gestión autorizada de tienda.',
-            ],
-            [
-                'title' => 'Carritos externos',
-                'text' => 'Contrato interno pendiente para leer intención externa sin convertirla en operación real desde la tienda pública.',
-            ],
-            [
-                'title' => 'Ventas / Órdenes',
-                'text' => 'Contrato interno pendiente para que Orders tome ownership de la orden cuando exista integración habilitada.',
             ],
             [
                 'title' => 'Pagos',
@@ -56,6 +49,20 @@
                 'data' => [
                     'shop' => $shop,
                     'items' => $items,
+                    'trailQuery' => $trailQuery,
+                ],
+            ],
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'carts',
+                'label' => 'Carritos externos',
+                'priority' => 15,
+                'count' => $selfServiceCarts->count(),
+                'view' => 'shops.tabs.carts',
+                'data' => [
+                    'shop' => $shop,
+                    'selfServiceCarts' => $selfServiceCarts,
                     'trailQuery' => $trailQuery,
                 ],
             ],

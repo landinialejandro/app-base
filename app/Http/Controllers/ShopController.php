@@ -9,6 +9,7 @@ use App\Events\OperationalRecordUpdated;
 use App\Http\Requests\StoreShopRequest;
 use App\Http\Requests\UpdateShopRequest;
 use App\Models\Order;
+use App\Models\SelfServiceCart;
 use App\Models\Shop;
 use App\Support\Auth\Security;
 use App\Support\Attachments\AttachmentSurfaceService;
@@ -120,6 +121,20 @@ class ShopController extends Controller
             ->limit(20)
             ->get();
 
+        $selfServiceCarts = SelfServiceCart::query()
+            ->with(['items.shopItem', 'storeCustomer.party', 'account'])
+            ->withCount('items')
+            ->where('tenant_id', $shop->tenant_id)
+            ->whereHas('items.shopItem', function ($query) use ($shop) {
+                $query
+                    ->where('tenant_id', $shop->tenant_id)
+                    ->where('self_service_shop_id', $shop->id);
+            })
+            ->latest('updated_at')
+            ->latest('id')
+            ->limit(20)
+            ->get();
+
         $navigationTrail = ShopNavigationTrail::show(
             $request,
             $shop,
@@ -132,6 +147,7 @@ class ShopController extends Controller
             'shop' => $shop,
             'canUpdateShop' => $request->user()?->can('update', $shop) === true,
             'canDeleteShop' => $request->user()?->can('delete', $shop) === true,
+            'selfServiceCarts' => $selfServiceCarts,
             'selfServiceOrders' => $selfServiceOrders,
             'navigationTrail' => $navigationTrail,
             'trailQuery' => $trailQuery,

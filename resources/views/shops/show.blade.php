@@ -159,8 +159,9 @@
             <div class="dashboard-section-header">
                 <h2 class="dashboard-section-title">Perfil operativo de tienda</h2>
                 <p class="dashboard-section-text">
-                    Este espacio concentra la gestión interna de la tienda. Por ahora mantiene la administración del
-                    catálogo publicado y deja visibles los próximos contratos internos sin simular funcionalidad activa.
+                    Este espacio concentra la gestión interna de la tienda. Mantiene la administración del catálogo
+                    publicado e incorpora lecturas contextuales de carritos externos y ventas formalizadas, sin absorber
+                    el ownership de self_service_sales, Orders, Payments, Inventory ni Documents.
                 </p>
             </div>
 

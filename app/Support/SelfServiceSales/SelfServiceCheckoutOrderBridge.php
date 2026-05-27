@@ -36,11 +36,12 @@ class SelfServiceCheckoutOrderBridge
                     ->firstOrFail();
             }
 
-            $cart->loadMissing(['items.product', 'storeCustomer.party', 'account']);
+            $cart->loadMissing(['items.product', 'items.shopItem', 'storeCustomer.party', 'account']);
 
             $this->assertFormalizable($cart);
 
             $party = $cart->storeCustomer->party;
+            $shopId = $this->resolveShopId($cart);
             $sequenceDefinition = OrderCatalog::sequenceDefinitionForGroup(OrderCatalog::GROUP_SALE);
             $sequence = RecordNumberGenerator::generate(
                 tenantId: (string) $cart->tenant_id,
@@ -61,7 +62,7 @@ class SelfServiceCheckoutOrderBridge
                 'sequence_number' => $sequence['sequence_number'],
                 'status' => OrderCatalog::STATUS_PENDING_APPROVAL,
                 'ordered_at' => Carbon::now()->toDateString(),
-                'record_metadata' => $this->orderMetadata($cart),
+                'record_metadata' => $this->orderMetadata($cart, $shopId),
                 'created_by' => null,
                 'updated_by' => null,
             ]);
@@ -79,6 +80,7 @@ class SelfServiceCheckoutOrderBridge
                 'status' => 'order_created',
                 'order_id' => $order->id,
                 'order_number' => $order->number,
+                'shop_id' => $shopId,
                 'created_at' => Carbon::now()->toIso8601String(),
             ];
 
@@ -125,10 +127,37 @@ class SelfServiceCheckoutOrderBridge
                 throw new InvalidArgumentException('Cada ítem del carrito debe pertenecer al mismo tenant.');
             }
 
+            if (! $item->shopItem) {
+                throw new InvalidArgumentException('Cada ítem del carrito debe tener artículo de tienda asociado.');
+            }
+
+            if ((string) $item->shopItem->tenant_id !== (string) $cart->tenant_id) {
+                throw new InvalidArgumentException('Cada artículo de tienda debe pertenecer al mismo tenant.');
+            }
+
+            if (! $item->shopItem->self_service_shop_id) {
+                throw new InvalidArgumentException('Cada artículo de tienda debe pertenecer a una tienda.');
+            }
+
             if (trim((string) $item->display_name_snapshot) === '') {
                 throw new InvalidArgumentException('Cada ítem del carrito debe tener descripción para formalizar la orden.');
             }
         }
+    }
+
+    private function resolveShopId(SelfServiceCart $cart): int
+    {
+        $shopIds = $cart->items
+            ->map(fn (SelfServiceCartItem $item) => $item->shopItem?->self_service_shop_id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($shopIds->count() !== 1) {
+            throw new InvalidArgumentException('El carrito debe pertenecer a una única tienda para formalizar la orden.');
+        }
+
+        return (int) $shopIds->first();
     }
 
     private function createOrderItem(Order $order, SelfServiceCartItem $cartItem, int $position): OrderItem
@@ -146,7 +175,7 @@ class SelfServiceCheckoutOrderBridge
         ]);
     }
 
-    private function orderMetadata(SelfServiceCart $cart): array
+    private function orderMetadata(SelfServiceCart $cart, int $shopId): array
     {
         return [
             'origin' => 'self_service_sales',
@@ -159,6 +188,7 @@ class SelfServiceCheckoutOrderBridge
                 'cart_id' => $cart->id,
                 'customer_account_id' => $cart->self_service_customer_account_id,
                 'store_customer_id' => $cart->self_service_store_customer_id,
+                'shop_id' => $shopId,
             ],
             'formalization' => [
                 'status' => 'order_created',

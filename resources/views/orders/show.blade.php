@@ -17,6 +17,7 @@
         $supportsProductsModule = $supportsProductsModule ?? true;
 
         $isServiceOrder = $order->group === OrderCatalog::GROUP_SERVICE;
+        $isSelfServiceSalesOrder = data_get($order->record_metadata, 'origin') === 'self_service_sales';
 
         $pageTitle = $isServiceOrder ? 'Detalle de la orden de servicio' : 'Detalle de la orden';
         $detailsId = 'order-more-detail';
@@ -114,6 +115,16 @@
                         @include($detailItem['view'], $detailItem['data'] ?? [])
                     </x-show-summary-item-detail-block>
                 @endforeach
+
+                @if ($isSelfServiceSalesOrder)
+                    <x-show-summary-item-detail-block label="Origen">
+                        Shopping Autoservicio
+                    </x-show-summary-item-detail-block>
+
+                    <x-show-summary-item-detail-block label="Formalización">
+                        Orden creada desde checkout externo
+                    </x-show-summary-item-detail-block>
+                @endif
 
                 @if ($isServiceOrder)
                     <x-show-summary-item-detail-block label="Contexto de servicio" full>

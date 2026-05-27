@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V5
+// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V6
 
 namespace App\Support\SelfServiceSales;
 
@@ -10,6 +10,7 @@ use App\Models\Shop;
 use App\Models\ShopItem;
 use App\Models\Tenant;
 use App\Support\Inventory\InventoryShopStockAvailabilityService;
+use App\Support\SelfServiceSales\SelfServiceCheckoutOrderBridge;
 use App\Support\SelfServiceSales\Payments\SelfServicePaymentGateway;
 use App\Support\SelfServiceSales\Payments\SelfServicePaymentRequestFactory;
 use App\Support\Shops\ShopItemCommercialPolicyResolver;
@@ -26,7 +27,8 @@ class SelfServiceCheckoutService
         protected SelfServiceCartService $carts,
         protected SelfServicePaymentRequestFactory $paymentRequests,
         protected SelfServicePaymentGateway $gateway,
-        protected InventoryShopStockAvailabilityService $stockAvailability
+        protected InventoryShopStockAvailabilityService $stockAvailability,
+        protected SelfServiceCheckoutOrderBridge $orderBridge
     ) {
     }
 
@@ -81,6 +83,8 @@ class SelfServiceCheckoutService
                     'status' => SelfServiceCart::STATUS_CHECKED_OUT,
                     'meta' => $meta,
                 ]);
+
+                $this->orderBridge->formalize($cart->fresh(['items']));
 
                 return [
                     'ok' => true,

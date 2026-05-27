@@ -473,11 +473,11 @@ dashboard interno o sección interna autorizada
 
 → artículos
 
+→ Carritos externos
+
 → Ventas / Órdenes
 
 → clientes
-
-→ carritos
 
 → pagos
 
@@ -496,6 +496,22 @@ este recorrido pertenece al plano interno autorizado.
 No pertenece al plano externo customer.
 
 No debe usar la gramática pública mobile commerce.
+
+Lectura vigente de Carritos externos:
+
+Carritos externos muestra SelfServiceCart vinculados a la Shop mediante líneas SelfServiceCartItem asociadas a ShopItem de esa tienda.
+
+Reglas:
+
+esta navegación es contextual.
+
+No crea ownership de shops sobre SelfServiceCart.
+
+No crea administración paralela del carrito externo.
+
+No crea acceso público customer.
+
+No permite operar el carrito desde el plano interno.
 
 Lectura vigente de Ventas / Órdenes:
 

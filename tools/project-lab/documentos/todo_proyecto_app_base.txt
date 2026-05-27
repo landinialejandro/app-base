@@ -831,6 +831,8 @@ idempotencia por SelfServiceCart.meta.formalization.order_id
 
 /shops/{shop} muestra tab Ventas / Órdenes con Orders group = sale originadas en self_service_sales y filtradas por record_metadata.self_service_sales.shop_id
 
+/shops/{shop} muestra tab Carritos externos con SelfServiceCart vinculados a la tienda por la cadena Shop → ShopItem → SelfServiceCartItem → SelfServiceCart
+
 Pendientes posteriores:
 
 integración real con Mercado Pago

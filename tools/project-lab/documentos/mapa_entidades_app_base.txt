@@ -1246,6 +1246,34 @@ Shop no reemplaza Orders.
 
 Orders conserva lifecycle, ítems, estado, numeración y autorización.
 
+Relación conceptual de lectura interna de carritos externos de tienda:
+
+Shop
+↓
+ShopItem
+↓
+SelfServiceCartItem
+↓
+SelfServiceCart
+
+Lectura:
+
+la relación permite lectura contextual interna de carritos externos asociados a una tienda.
+
+SelfServiceCartItem se vincula a ShopItem mediante la línea externa persistente.
+
+Reglas:
+
+SelfServiceCart no pertenece estructuralmente a Shop.
+
+SelfServiceCart no tiene shop_id propio en el corte vigente.
+
+Shop no reemplaza self_service_sales.
+
+self_service_sales conserva ownership del carrito externo.
+
+Shop Profile solo muestra lectura contextual.
+
 Ruta pública tenant-scoped vigente:
 
 /shop/{tenant:slug}

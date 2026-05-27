@@ -951,6 +951,45 @@ Primer corte interno implementado:
 
 /shops/{shop}/items/{item}/edit permite editar política específica del artículo publicado.
 
+/shops/{shop} incorpora lectura interna de Carritos externos.
+
+La lectura de Carritos externos se basa en:
+
+Shop
+→ ShopItem
+→ SelfServiceCartItem
+→ SelfServiceCart
+
+Reglas:
+
+la tienda interna muestra estos carritos como contexto operativo.
+
+self_service_sales conserva ownership del carrito externo.
+
+la pestaña Carritos externos no administra carritos.
+
+la pestaña Carritos externos no edita carritos.
+
+la pestaña Carritos externos no elimina carritos.
+
+la pestaña Carritos externos no fuerza checkout.
+
+la pestaña Carritos externos no crea Order.
+
+la pestaña Carritos externos no crea Document.
+
+la pestaña Carritos externos no registra Payment.
+
+la pestaña Carritos externos no crea PaymentAttempt.
+
+la pestaña Carritos externos no crea InventoryMovement.
+
+la pestaña Carritos externos no compromete stock.
+
+la pestaña Carritos externos no mueve stock.
+
+la pestaña Carritos externos no opera como customer externo.
+
 /shops/{shop} incorpora lectura interna de Ventas / Órdenes originadas desde Shopping Autoservicio.
 
 La lectura de Ventas / Órdenes se basa en:

@@ -116,6 +116,28 @@ No administra Inventory.
 
 No administra Documents.
 
+Decisión vigente implementada:
+
+/shops/{shop} puede mostrar carritos externos vinculados a Shopping Autoservicio mediante una lectura contextual basada en ShopItem y SelfServiceCartItem.
+
+Motivo:
+
+permitir gestión interna de tienda sin crear acciones internas sobre el carrito externo ni agregar shop_id al carrito.
+
+Reglas:
+
+shops muestra.
+
+self_service_sales conserva ownership.
+
+No se crea columna.
+
+No se crea relación física Shop-Cart.
+
+No se crean acciones de carrito.
+
+No se crea Order, Document, Payment, PaymentAttempt ni InventoryMovement.
+
 Reglas:
 
 el carrito persistente solo opera para SelfServiceStoreCustomer con operation_enabled = true

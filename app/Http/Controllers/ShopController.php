@@ -10,10 +10,13 @@ use App\Http\Requests\StoreShopRequest;
 use App\Http\Requests\UpdateShopRequest;
 use App\Models\Order;
 use App\Models\SelfServiceCart;
+use App\Models\SelfServiceStoreCustomer;
 use App\Models\Shop;
+use App\Models\ShopItem;
 use App\Support\Auth\Security;
 use App\Support\Attachments\AttachmentSurfaceService;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Shops\ShopItemCommercialPolicyResolver;
 use App\Support\Shops\ShopPublishedCatalogReader;
 use App\Support\Shops\ShopPublisher;
 use App\Support\Navigation\NavigationTrail;
@@ -110,6 +113,43 @@ class ShopController extends Controller
 
         $shop->loadCount('items');
 
+        $items = $shop->items;
+        $commercialConfig = $this->commercialConfigForShop($shop);
+        $publicVisibleItems = $items
+            ->filter(function ($item) use ($shop): bool {
+                $product = $item->product;
+
+                return $shop->isActive()
+                    && $item->status === ShopItem::STATUS_PUBLISHED
+                    && $item->is_visible === true
+                    && $product !== null
+                    && (string) $product->tenant_id === (string) $shop->tenant_id
+                    && $product->is_active === true;
+            })
+            ->values();
+
+        $commercialPolicyResolver = app(ShopItemCommercialPolicyResolver::class);
+        $cartEnabledItemsCount = $publicVisibleItems
+            ->filter(fn ($item): bool => $commercialPolicyResolver->resolve($item)['allow_cart'] === true)
+            ->count();
+
+        $operationalCustomersCount = SelfServiceStoreCustomer::query()
+            ->where('tenant_id', $shop->tenant_id)
+            ->where('status', SelfServiceStoreCustomer::STATUS_ACTIVE)
+            ->where('operation_enabled', true)
+            ->count();
+
+        $openingStatus = [
+            'shop_active' => $shop->isActive(),
+            'configured_items_count' => $items->count(),
+            'public_visible_items_count' => $publicVisibleItems->count(),
+            'cart_enabled_items_count' => $cartEnabledItemsCount,
+            'checkout_enabled' => $commercialConfig['checkout_enabled'],
+            'provider_target' => $commercialConfig['provider_target'],
+            'provider_target_label' => $commercialConfig['provider_target_label'],
+            'operational_customers_count' => $operationalCustomersCount,
+        ];
+
         $selfServiceOrders = Order::query()
             ->with(['items', 'party'])
             ->where('tenant_id', $shop->tenant_id)
@@ -149,6 +189,8 @@ class ShopController extends Controller
             'canDeleteShop' => $request->user()?->can('delete', $shop) === true,
             'selfServiceCarts' => $selfServiceCarts,
             'selfServiceOrders' => $selfServiceOrders,
+            'commercialConfig' => $commercialConfig,
+            'openingStatus' => $openingStatus,
             'navigationTrail' => $navigationTrail,
             'trailQuery' => $trailQuery,
         ]);
@@ -267,5 +309,35 @@ class ShopController extends Controller
         return redirect()
             ->route('shops.index')
             ->with('success', 'Tienda eliminada correctamente.');
+    }
+
+    private function commercialConfigForShop(Shop $shop): array
+    {
+        $commercial = data_get($shop->meta, 'commercial', []);
+        $commercial = is_array($commercial) ? $commercial : [];
+        $providerLabels = [
+            'simulated' => 'Entorno simulado',
+            'mercado_pago' => 'Mercado Pago',
+            'modo' => 'MODO',
+        ];
+
+        $providerTarget = $commercial['provider_target'] ?? 'simulated';
+        $providerTarget = array_key_exists($providerTarget, $providerLabels)
+            ? $providerTarget
+            : 'simulated';
+
+        return [
+            'checkout_enabled' => $this->boolValue($commercial['checkout_enabled'] ?? false),
+            'direct_purchase_enabled' => $this->boolValue($commercial['direct_purchase_enabled'] ?? false),
+            'stock_control_enabled' => $this->boolValue($commercial['stock_control_enabled'] ?? false),
+            'allow_stock_margin' => $this->boolValue($commercial['allow_stock_margin'] ?? false),
+            'provider_target' => $providerTarget,
+            'provider_target_label' => $providerLabels[$providerTarget],
+        ];
+    }
+
+    private function boolValue(mixed $value): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 }

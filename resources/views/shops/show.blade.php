@@ -13,6 +13,8 @@
         $items = $shop->items ?? collect();
         $selfServiceCarts = $selfServiceCarts ?? collect();
         $selfServiceOrders = $selfServiceOrders ?? collect();
+        $commercialConfig = $commercialConfig ?? [];
+        $openingStatus = $openingStatus ?? [];
 
         $navigationTrail = $navigationTrail ?? [];
         $trailQuery = $trailQuery ?? NavigationTrail::toQuery($navigationTrail);
@@ -30,10 +32,6 @@
             [
                 'title' => 'Stock comprometible',
                 'text' => 'Contrato interno pendiente para que Inventory defina disponibilidad real y compromiso de stock.',
-            ],
-            [
-                'title' => 'Configuración comercial',
-                'text' => 'Contrato interno pendiente para reglas operativas de tienda sin decidir precio, stock ni autorización pública.',
             ],
         ];
 
@@ -78,6 +76,28 @@
                     'shop' => $shop,
                     'selfServiceOrders' => $selfServiceOrders,
                     'trailQuery' => $trailQuery,
+                ],
+            ],
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'commercial',
+                'label' => 'Configuración comercial',
+                'priority' => 25,
+                'view' => 'shops.tabs.commercial',
+                'data' => [
+                    'commercialConfig' => $commercialConfig,
+                ],
+            ],
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'opening-status',
+                'label' => 'Estado de apertura',
+                'priority' => 30,
+                'view' => 'shops.tabs.opening-status',
+                'data' => [
+                    'openingStatus' => $openingStatus,
                 ],
             ],
         ])->values();

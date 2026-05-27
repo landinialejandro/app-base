@@ -11,6 +11,7 @@
         use App\Support\Navigation\NavigationTrail;
 
         $items = $shop->items ?? collect();
+        $selfServiceOrders = $selfServiceOrders ?? collect();
 
         $navigationTrail = $navigationTrail ?? [];
         $trailQuery = $trailQuery ?? NavigationTrail::toQuery($navigationTrail);
@@ -55,6 +56,20 @@
                 'data' => [
                     'shop' => $shop,
                     'items' => $items,
+                    'trailQuery' => $trailQuery,
+                ],
+            ],
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'orders',
+                'label' => 'Ventas / Órdenes',
+                'priority' => 20,
+                'count' => $selfServiceOrders->count(),
+                'view' => 'shops.tabs.orders',
+                'data' => [
+                    'shop' => $shop,
+                    'selfServiceOrders' => $selfServiceOrders,
                     'trailQuery' => $trailQuery,
                 ],
             ],

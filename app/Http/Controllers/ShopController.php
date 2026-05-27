@@ -8,9 +8,11 @@ use App\Events\OperationalRecordCreated;
 use App\Events\OperationalRecordUpdated;
 use App\Http\Requests\StoreShopRequest;
 use App\Http\Requests\UpdateShopRequest;
+use App\Models\Order;
 use App\Models\Shop;
 use App\Support\Auth\Security;
 use App\Support\Attachments\AttachmentSurfaceService;
+use App\Support\Catalogs\OrderCatalog;
 use App\Support\Shops\ShopPublishedCatalogReader;
 use App\Support\Shops\ShopPublisher;
 use App\Support\Navigation\NavigationTrail;
@@ -107,6 +109,17 @@ class ShopController extends Controller
 
         $shop->loadCount('items');
 
+        $selfServiceOrders = Order::query()
+            ->with(['items', 'party'])
+            ->where('tenant_id', $shop->tenant_id)
+            ->where('group', OrderCatalog::GROUP_SALE)
+            ->where('record_metadata->origin', 'self_service_sales')
+            ->where('record_metadata->self_service_sales->shop_id', $shop->id)
+            ->latest('ordered_at')
+            ->latest('id')
+            ->limit(20)
+            ->get();
+
         $navigationTrail = ShopNavigationTrail::show(
             $request,
             $shop,
@@ -119,6 +132,7 @@ class ShopController extends Controller
             'shop' => $shop,
             'canUpdateShop' => $request->user()?->can('update', $shop) === true,
             'canDeleteShop' => $request->user()?->can('delete', $shop) === true,
+            'selfServiceOrders' => $selfServiceOrders,
             'navigationTrail' => $navigationTrail,
             'trailQuery' => $trailQuery,
         ]);

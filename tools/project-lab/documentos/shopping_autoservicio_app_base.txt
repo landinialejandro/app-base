@@ -1117,6 +1117,101 @@ No cierra consumo de fichas.
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — SALDO VISIBLE DE POCKET>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — SALDO VISIBLE DE POCKET
+
+self_service_sales incorpora lectura visual read-only del saldo de pocket en la tienda pública.
+
+Recorrido vigente validado:
+
+/shop/{tenant:slug}
+↓
+customer externo activo
+↓
+SelfServiceTokenPocketService::summaryForExternalCustomer()
+↓
+customer-status
+↓
+saldo visible del pocket
+
+Ruta vigente:
+
+self_service_sales.shop
+
+Controller vigente:
+
+SelfServiceSalesCustomerRegistrationController@shop
+
+Middleware vigente:
+
+web
+self_service_external_customer
+
+Lectura:
+
+el customer externo activo puede ver en la tienda pública las fichas disponibles en su pocket.
+
+Texto validado:
+
+Ficha lavado 5 minutos: 3 fichas disponibles · 15 min
+
+Payload read-only validado:
+
+quantity_available = 3
+unit_label = ficha
+unit_seconds = 300
+total_seconds = 900
+total_minutes = 15
+summary_label = 3 fichas disponibles · 15 min
+
+Reglas:
+
+la lectura de saldo no crea pocket.
+
+la lectura de saldo no modifica pocket.
+
+la lectura de saldo no crea movimientos.
+
+la lectura de saldo no consume fichas.
+
+la lectura de saldo no descuenta fichas.
+
+la lectura de saldo no implementa QR.
+
+la lectura de saldo no implementa gateway/controlador externo.
+
+la lectura de saldo no crea rutas nuevas.
+
+la lectura de saldo no crea CRUD.
+
+la lectura de saldo no expone ids internos.
+
+la lectura de saldo no muestra saldo a visitantes.
+
+la lectura de saldo no muestra saldo de otros customers.
+
+la lectura de saldo no muestra stock físico.
+
+la lectura de saldo no muestra stock producido global.
+
+la lectura de saldo no equivale a autorización de consumo.
+
+la lectura de saldo no equivale a operación comercial completa.
+
+Frontera vigente:
+
+saldo visible = información read-only del pocket.
+
+consumo de ficha = corte futuro separado.
+
+Regla:
+
+el saldo visible en Blade no autoriza por sí mismo consumo ni operación crítica.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

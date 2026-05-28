@@ -615,6 +615,121 @@ consumo sin confirmación externa.
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — SALDO VISIBLE DE POCKET>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — SALDO VISIBLE DE POCKET
+
+Estado vigente:
+
+segundo corte mínimo implementado y validado.
+
+Cierre parcial consolidado:
+
+el customer externo activo puede ver en /shop/{tenant:slug} el saldo disponible de fichas acreditadas en su pocket.
+
+Archivos modificados:
+
+app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php
+
+app/Support/SelfServiceSales/SelfServiceTokenPocketService.php
+
+resources/views/self-service-sales/shop.blade.php
+
+resources/views/self-service-sales/partials/customer-status.blade.php
+
+Validaciones realizadas:
+
+php -l sobre SelfServiceTokenPocketService.
+
+php -l sobre SelfServiceSalesCustomerRegistrationController.
+
+php -l sobre shop.blade.php.
+
+php -l sobre customer-status.blade.php.
+
+php artisan optimize:clear.
+
+php artisan route:list --name=self_service_sales.shop -v.
+
+Tinker sobre SelfServiceTokenPocketService::summaryForExternalCustomer().
+
+Validación visual browser realizada por usuario.
+
+Resultado validado:
+
+Ficha lavado 5 minutos: 3 fichas disponibles · 15 min
+
+Payload validado:
+
+quantity_available = 3.
+
+unit_seconds = 300.
+
+total_seconds = 900.
+
+total_minutes = 15.
+
+summary_label = 3 fichas disponibles · 15 min.
+
+Criterios vigentes:
+
+la lectura del saldo es read-only.
+
+la lectura se filtra por tenant, cuenta externa y relación customer-tienda.
+
+la lectura no crea pocket vacío.
+
+la lectura no modifica saldo.
+
+la lectura no crea movimientos.
+
+la lectura no consume fichas.
+
+la lectura no descuenta fichas.
+
+la lectura no expone ids internos.
+
+Pendientes directos:
+
+definir recorrido QR.
+
+definir intento de consumo.
+
+definir gateway/controlador externo simulado.
+
+descontar pocket solo contra consumo confirmado.
+
+definir reversa o ajuste administrativo.
+
+evaluar lectura interna de pockets/movimientos desde Shop Profile.
+
+evaluar trazabilidad operativa si corresponde.
+
+No implementar todavía:
+
+QR funcional completo.
+
+hardware real.
+
+provider real de pago.
+
+Payment formal.
+
+PaymentAttempt formal.
+
+Document posterior.
+
+InventoryMovement posterior.
+
+descuento de stock global por venta.
+
+reversa automática.
+
+consumo sin confirmación externa.
+
+<<END SECTION>>
+
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
 SECTION_VERSION: 00020
 

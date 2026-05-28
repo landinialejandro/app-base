@@ -795,6 +795,95 @@ el recorrido futuro de consumo no queda implementado por la existencia del pocke
 
 <<END SECTION>>
 
+<<SECTION: RECORRIDO FUNCIONAL — SALDO VISIBLE DE POCKET>>
+SECTION_VERSION: 00001
+
+RECORRIDO FUNCIONAL — SALDO VISIBLE DE POCKET
+
+Recorrido funcional vigente:
+
+/shop/{tenant:slug}
+↓
+customer externo activo
+↓
+lectura read-only de pocket
+↓
+customer-status
+↓
+saldo visible de fichas
+
+Ruta vigente:
+
+self_service_sales.shop
+
+Controller vigente:
+
+SelfServiceSalesCustomerRegistrationController@shop
+
+Lectura:
+
+el saldo visible pertenece al plano externo customer de self_service_sales.
+
+No abre navegación interna tenant.
+
+No crea navegación propia de Pocket.
+
+No crea módulo CRUD ordinario.
+
+No crea pantalla interna de administración de pockets.
+
+No crea recorrido QR.
+
+No crea consumo.
+
+No crea gateway de controlador externo.
+
+Reglas:
+
+visitante no ve saldo.
+
+customer externo activo puede ver saldo de su propio pocket.
+
+customer externo no ve saldo de otros customers.
+
+saldo visible no equivale a ficha consumida.
+
+saldo visible no autoriza consumo.
+
+saldo visible no reemplaza validación backend futura.
+
+saldo visible no expone ids internos.
+
+saldo visible no expone stock físico ni stock producido global.
+
+saldo visible no compromete stock.
+
+saldo visible no mueve stock.
+
+Recorrido futuro pendiente:
+
+/shop/{tenant:slug}
+↓
+customer externo habilitado
+↓
+saldo visible del pocket
+↓
+QR de box o punto de consumo
+↓
+intento de consumo
+↓
+gateway/controlador externo
+↓
+confirmación
+↓
+descuento de pocket
+
+Regla:
+
+el recorrido futuro de consumo no queda implementado por la existencia del saldo visible.
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE LECTURA>>
 SECTION_VERSION: 00002
 

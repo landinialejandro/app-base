@@ -1226,6 +1226,81 @@ definir si el movimiento lógico de pocket tendrá lectura interna en shops o cu
 
 <<END SECTION>>
 
+<<SECTION: DECISIÓN VIGENTE — SALDO VISIBLE DE POCKET>>
+SECTION_VERSION: 00001
+
+DECISIÓN VIGENTE — SALDO VISIBLE DE POCKET
+
+Decisión vigente implementada y validada:
+
+el customer externo activo puede ver en /shop/{tenant:slug} el saldo disponible de fichas acreditadas en su pocket.
+
+Motivo:
+
+cerrar el circuito mínimo posterior a la acreditación del pocket, permitiendo que el customer conozca cuántas fichas tiene disponibles antes de implementar QR o consumo.
+
+Lectura vigente:
+
+checkout aprobado acredita fichas al pocket.
+
+saldo visible muestra fichas disponibles del pocket.
+
+consumo futuro descontará fichas del pocket bajo contrato explícito y validación backend.
+
+Reglas:
+
+mostrar saldo no equivale a consumir ficha.
+
+mostrar saldo no autoriza consumo.
+
+mostrar saldo no crea movimiento.
+
+mostrar saldo no modifica saldo.
+
+mostrar saldo no implementa QR.
+
+mostrar saldo no implementa gateway/controlador externo.
+
+mostrar saldo no crea ruta nueva.
+
+mostrar saldo no crea CRUD.
+
+mostrar saldo no expone ids internos.
+
+mostrar saldo no muestra stock físico.
+
+mostrar saldo no muestra stock producido global.
+
+Caso validado:
+
+LAV-FICHA.
+
+3 fichas disponibles.
+
+unit_seconds = 300.
+
+total_minutes = 15.
+
+Texto visible:
+
+Ficha lavado 5 minutos: 3 fichas disponibles · 15 min
+
+Queda pendiente:
+
+QR.
+
+intento de consumo.
+
+confirmación con gateway/controlador externo.
+
+descuento de pocket por consumo confirmado.
+
+reversa o ajuste administrativo.
+
+lectura interna futura de pockets/movimientos si se decide.
+
+<<END SECTION>>
+
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
 SECTION_VERSION: 00003
 

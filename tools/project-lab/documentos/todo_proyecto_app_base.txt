@@ -730,6 +730,145 @@ consumo sin confirmación externa.
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — INTENTO DE CONSUMO DE FICHAS>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — INTENTO DE CONSUMO DE FICHAS
+
+Estado vigente:
+
+tercer corte mínimo implementado y validado.
+
+Cierre parcial consolidado:
+
+el customer externo activo puede registrar desde /shop/{tenant:slug} un intento persistente de consumo de fichas.
+
+Archivos creados:
+
+app/Http/Controllers/SelfServiceTokenConsumptionAttemptController.php
+
+app/Models/SelfServiceTokenConsumptionAttempt.php
+
+app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php
+
+database/migrations/2026_05_28_130000_create_self_service_token_consumption_attempts_table.php
+
+resources/views/self-service-sales/partials/token-consumption-panel.blade.php
+
+Archivos modificados:
+
+app/Support/SelfServiceSales/SelfServiceTokenPocketService.php
+
+public/js/self-service-sales-shop.js
+
+resources/views/self-service-sales/partials/bottom-nav.blade.php
+
+resources/views/self-service-sales/shop.blade.php
+
+routes/web.php
+
+Ruta creada:
+
+self_service_sales.token_consumption_attempts.store
+
+Endpoint:
+
+POST /shop/{tenant:slug}/token-consumption-attempts
+
+Validaciones realizadas:
+
+git status inicial limpio.
+
+php -l sobre modelo, service, controller y Blades modificados.
+
+node --check sobre self-service-sales-shop.js.
+
+php artisan optimize:clear.
+
+php artisan migrate.
+
+route-list por nombre de ruta.
+
+Tinker sobre creación de attempt.
+
+Auditoría de movements.
+
+Validación visual browser realizada por usuario.
+
+Resultado validado:
+
+attempt status = pending.
+
+quantity = 1.
+
+unit_seconds_snapshot = 300.
+
+total_seconds = 300.
+
+pocket quantity_available sigue en 3.
+
+no se creó movement consumption.
+
+movements conservan purchase_credit.
+
+Criterios vigentes:
+
+el attempt registra intención.
+
+el attempt no consume.
+
+el attempt no descuenta.
+
+el attempt no confirma.
+
+el attempt no habilita hardware.
+
+el attempt no llama gateway/controlador externo.
+
+el attempt no crea movement consumption.
+
+Pendientes directos:
+
+definir QR real de box o punto de consumo.
+
+definir contrato de box o referencia operativa equivalente.
+
+definir gateway/controlador externo simulado.
+
+confirmar attempt contra gateway/controlador.
+
+descontar pocket solo contra consumo confirmado.
+
+crear movement consumption solo contra consumo confirmado.
+
+definir reversa o ajuste administrativo.
+
+evaluar lectura interna de attempts, pockets y movements desde Shop Profile si corresponde.
+
+No implementar todavía:
+
+hardware real.
+
+provider real de pago.
+
+Payment formal.
+
+PaymentAttempt formal.
+
+Document posterior.
+
+InventoryMovement posterior.
+
+descuento de stock global por venta.
+
+consumo sin confirmación externa.
+
+descuento de pocket desde attempt pending.
+
+movement consumption sin confirmación.
+
+<<END SECTION>>
+
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
 SECTION_VERSION: 00020
 

@@ -1212,6 +1212,130 @@ el saldo visible en Blade no autoriza por sí mismo consumo ni operación críti
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — INTENTO DE CONSUMO DE FICHAS>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — INTENTO DE CONSUMO DE FICHAS
+
+self_service_sales incorpora el primer corte mínimo de intento persistente de consumo de fichas.
+
+Recorrido vigente validado:
+
+/shop/{tenant:slug}
+↓
+customer externo activo
+↓
+Escanear QR
+↓
+panel Usar fichas
+↓
+selección de pocket y cantidad
+↓
+SelfServiceTokenConsumptionAttempt status = pending
+
+Ruta vigente:
+
+self_service_sales.token_consumption_attempts.store
+
+Endpoint vigente:
+
+POST /shop/{tenant:slug}/token-consumption-attempts
+
+Controller vigente:
+
+SelfServiceTokenConsumptionAttemptController@store
+
+Middleware vigente:
+
+web
+
+self_service_external_customer
+
+Entidad vigente del corte:
+
+SelfServiceTokenConsumptionAttempt
+
+Responsabilidad:
+
+registrar una intención de uso de fichas iniciada por customer externo desde la tienda pública.
+
+El attempt conserva snapshot de:
+
+cantidad
+unidad
+segundos por ficha
+segundos totales
+
+Caso validado:
+
+attempt status = pending
+
+quantity = 1
+
+unit_seconds_snapshot = 300
+
+total_seconds = 300
+
+pocket quantity_available permanece en 3
+
+movement_type vigente permanece purchase_credit
+
+no existe movement_type = consumption
+
+Reglas:
+
+el attempt no consume fichas.
+
+el attempt no descuenta pocket.
+
+el attempt no confirma uso.
+
+el attempt no habilita máquina.
+
+el attempt no llama gateway/controlador externo.
+
+el attempt no crea movement consumption.
+
+el attempt no crea Document.
+
+el attempt no crea Payment.
+
+el attempt no crea PaymentAttempt.
+
+el attempt no crea InventoryMovement.
+
+el attempt no modifica Orders.
+
+el attempt no modifica Products.
+
+el attempt no modifica Inventory.
+
+el attempt no modifica checkout.
+
+el attempt no implementa hardware.
+
+Lectura doctrinal:
+
+saldo visible informa disponibilidad.
+
+attempt registra intención de uso.
+
+consumo confirmado será un corte posterior.
+
+descuento de pocket será un corte posterior.
+
+gateway/controlador externo será un corte posterior.
+
+Regla:
+
+SelfServiceTokenConsumptionAttempt no equivale a consumo real.
+
+SelfServiceTokenConsumptionAttempt no equivale a ficha consumida.
+
+SelfServiceTokenConsumptionAttempt no equivale a habilitación de box.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

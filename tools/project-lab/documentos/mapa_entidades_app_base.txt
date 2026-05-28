@@ -1546,6 +1546,90 @@ No deben comprimirse en una única entidad ni en un único movimiento.
 
 <<END SECTION>>
 
+<<SECTION: RELACIÓN CONCEPTUAL — INTENTO DE CONSUMO DE FICHAS>>
+SECTION_VERSION: 00001
+
+RELACIÓN CONCEPTUAL — INTENTO DE CONSUMO DE FICHAS
+
+Relación conceptual vigente para intento de consumo de fichas:
+
+Tenant
+↓
+SelfServiceCustomerAccount
+↓
+SelfServiceStoreCustomer
+↓
+SelfServiceTokenPocket
+↓
+SelfServiceTokenConsumptionAttempt
+↓
+Product
+
+Lectura:
+
+SelfServiceTokenConsumptionAttempt representa una intención persistente de uso de fichas.
+
+Pertenece al plano externo customer de self_service_sales.
+
+Se vincula con el pocket desde el cual se intenta usar fichas.
+
+Se vincula con el producto ficha correspondiente.
+
+Conserva snapshots operativos del intento.
+
+Snapshots vigentes:
+
+quantity
+unit_label_snapshot
+unit_seconds_snapshot
+total_seconds
+
+Reglas:
+
+SelfServiceTokenConsumptionAttempt no reemplaza SelfServiceTokenPocket.
+
+SelfServiceTokenConsumptionAttempt no reemplaza SelfServiceTokenPocketMovement.
+
+SelfServiceTokenConsumptionAttempt no reemplaza Product.
+
+SelfServiceTokenConsumptionAttempt no reemplaza Order.
+
+SelfServiceTokenConsumptionAttempt no reemplaza Document.
+
+SelfServiceTokenConsumptionAttempt no reemplaza Payment.
+
+SelfServiceTokenConsumptionAttempt no reemplaza PaymentAttempt.
+
+SelfServiceTokenConsumptionAttempt no reemplaza InventoryMovement.
+
+SelfServiceTokenConsumptionAttempt no es movimiento de consumo.
+
+SelfServiceTokenConsumptionAttempt no descuenta saldo.
+
+SelfServiceTokenConsumptionAttempt no mueve stock físico.
+
+SelfServiceTokenConsumptionAttempt no habilita hardware.
+
+Momentos conceptuales separados:
+
+producción genera disponibilidad de fichas.
+
+venta acredita fichas al pocket.
+
+saldo visible informa disponibilidad.
+
+attempt registra intención de uso.
+
+consumo confirmado futuro descontará pocket si corresponde.
+
+gateway/controlador externo futuro habilitará operación física si corresponde.
+
+Regla:
+
+intención de consumo, consumo confirmado y habilitación física no deben comprimirse en una única entidad.
+
+<<END SECTION>>
+
 <<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
 SECTION_VERSION: 00003
 

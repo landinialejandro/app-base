@@ -1301,6 +1301,95 @@ lectura interna futura de pockets/movimientos si se decide.
 
 <<END SECTION>>
 
+<<SECTION: DECISIÓN VIGENTE — INTENTO DE CONSUMO DE FICHAS>>
+SECTION_VERSION: 00001
+
+DECISIÓN VIGENTE — INTENTO DE CONSUMO DE FICHAS
+
+Decisión vigente implementada y validada:
+
+el customer externo activo puede iniciar desde /shop/{tenant:slug} un intento persistente de consumo de fichas.
+
+Motivo:
+
+abrir la frontera del consumo sin adelantar descuento de pocket ni integración con controlador externo.
+
+Lectura vigente:
+
+checkout aprobado acredita fichas al pocket.
+
+saldo visible muestra fichas disponibles.
+
+Escanear QR abre panel de uso de fichas.
+
+registrar intento crea SelfServiceTokenConsumptionAttempt pending.
+
+consumo confirmado futuro descontará fichas del pocket bajo contrato explícito y validación backend.
+
+Reglas:
+
+crear attempt no equivale a consumir ficha.
+
+crear attempt no descuenta pocket.
+
+crear attempt no crea movement consumption.
+
+crear attempt no habilita máquina.
+
+crear attempt no llama gateway/controlador externo.
+
+crear attempt no crea Payment.
+
+crear attempt no crea PaymentAttempt.
+
+crear attempt no crea Document.
+
+crear attempt no crea InventoryMovement.
+
+crear attempt no modifica Orders.
+
+crear attempt no modifica Products.
+
+crear attempt no modifica Inventory.
+
+Caso validado:
+
+SelfServiceTokenConsumptionAttempt status = pending.
+
+quantity = 1.
+
+unit_seconds_snapshot = 300.
+
+total_seconds = 300.
+
+pocket quantity_available permanece en 3.
+
+movements conservan solo purchase_credit.
+
+Validación visual browser:
+
+el usuario abrió /shop/{tenant:slug}, presionó Escanear QR, usó el panel Usar fichas, registró intento y el saldo visible permaneció sin descuento.
+
+Queda pendiente:
+
+QR real de box o punto de consumo.
+
+contrato de box o referencia operativa equivalente.
+
+gateway/controlador externo.
+
+confirmación confiable del controlador.
+
+movement consumption.
+
+descuento de pocket.
+
+reversa o ajuste administrativo.
+
+lectura interna futura de attempts si se decide.
+
+<<END SECTION>>
+
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
 SECTION_VERSION: 00003
 

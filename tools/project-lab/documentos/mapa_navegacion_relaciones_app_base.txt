@@ -884,6 +884,97 @@ el recorrido futuro de consumo no queda implementado por la existencia del saldo
 
 <<END SECTION>>
 
+<<SECTION: RECORRIDO FUNCIONAL — INTENTO DE CONSUMO DE FICHAS>>
+SECTION_VERSION: 00001
+
+RECORRIDO FUNCIONAL — INTENTO DE CONSUMO DE FICHAS
+
+Recorrido funcional vigente:
+
+/shop/{tenant:slug}
+↓
+customer externo activo
+↓
+saldo visible del pocket
+↓
+Escanear QR
+↓
+panel Usar fichas
+↓
+selección de cantidad
+↓
+POST /shop/{tenant:slug}/token-consumption-attempts
+↓
+SelfServiceTokenConsumptionAttempt pending
+↓
+mensaje visual de intento registrado
+
+Ruta vigente:
+
+self_service_sales.token_consumption_attempts.store
+
+Lectura:
+
+este recorrido pertenece al plano externo customer de self_service_sales.
+
+No abre navegación interna tenant.
+
+No crea navegación propia de attempts.
+
+No crea módulo CRUD ordinario.
+
+No crea pantalla interna de administración de attempts.
+
+No crea consumo definitivo.
+
+No crea gateway de controlador externo.
+
+No crea hardware.
+
+Reglas:
+
+botón Escanear QR no equivale a consumo.
+
+panel Usar fichas no equivale a consumo.
+
+seleccionar cantidad no equivale a consumo.
+
+attempt pending no equivale a ficha consumida.
+
+attempt pending no descuenta pocket.
+
+attempt pending no habilita box.
+
+attempt pending no autoriza operación física.
+
+attempt pending no reemplaza validación backend futura de consumo confirmado.
+
+Recorrido futuro pendiente:
+
+/shop/{tenant:slug}
+↓
+customer externo habilitado
+↓
+saldo visible del pocket
+↓
+QR de box o punto de consumo
+↓
+SelfServiceTokenConsumptionAttempt pending
+↓
+gateway/controlador externo
+↓
+confirmación confiable
+↓
+SelfServiceTokenPocketMovement consumption
+↓
+descuento de pocket
+
+Regla:
+
+el recorrido futuro de consumo confirmado no queda implementado por la existencia del attempt pending.
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE LECTURA>>
 SECTION_VERSION: 00002
 

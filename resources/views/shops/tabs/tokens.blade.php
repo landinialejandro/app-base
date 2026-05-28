@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/shops/tabs/tokens.blade.php | V1 --}}
+{{-- FILE: resources/views/shops/tabs/tokens.blade.php | V2 --}}
 
 @php
     $tokenConsumptionSummary = $tokenConsumptionSummary ?? [];
     $pockets = collect($tokenConsumptionSummary['pockets'] ?? []);
     $attempts = collect($tokenConsumptionSummary['attempts'] ?? []);
     $movements = collect($tokenConsumptionSummary['movements'] ?? []);
+    $consumptionPoints = collect($tokenConsumptionSummary['consumption_points'] ?? []);
     $metrics = $tokenConsumptionSummary['metrics'] ?? [];
 
     $formatNumber = function ($value): string {
@@ -59,6 +60,21 @@
             <strong>{{ $formatNumber($metrics['consumption_quantity'] ?? 0) }}</strong>
             <span>Movimientos consumption vinculables.</span>
         </div>
+        <div class="summary-inline-card">
+            <span class="summary-inline-label">Puntos de consumo</span>
+            <strong>{{ $metrics['consumption_points_count'] ?? 0 }}</strong>
+            <span>Puntos configurados para esta tienda.</span>
+        </div>
+        <div class="summary-inline-card">
+            <span class="summary-inline-label">Puntos con pendientes</span>
+            <strong>{{ $metrics['points_with_pending_attempts_count'] ?? 0 }}</strong>
+            <span>Puntos con intenciones de uso sin confirmar.</span>
+        </div>
+        <div class="summary-inline-card">
+            <span class="summary-inline-label">Puntos con confirmados</span>
+            <strong>{{ $metrics['points_with_confirmed_attempts_count'] ?? 0 }}</strong>
+            <span>Puntos con consumos simulados confirmados.</span>
+        </div>
     </div>
 
     @if ($pockets->isEmpty() && $attempts->isEmpty() && $movements->isEmpty())
@@ -94,6 +110,50 @@
                                 <td>{{ $pocket['unit_seconds_snapshot'] ?? '—' }}</td>
                                 <td>{{ $pocket['total_minutes'] !== null ? $formatNumber($pocket['total_minutes']) : '—' }}</td>
                                 <td>{{ $pocket['status'] ?: '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
+        <div class="dashboard-section-header">
+            <h3 class="dashboard-section-title">Consumos por punto</h3>
+            <p class="dashboard-section-text">
+                Lectura interna read-only de attempts y consumos asociados a puntos de consumo de esta tienda.
+            </p>
+        </div>
+
+        @if ($consumptionPoints->isEmpty())
+            <p class="empty-state">Todavía no hay puntos de consumo vinculados a esta tienda.</p>
+        @else
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Punto</th>
+                            <th>Código</th>
+                            <th>Estado</th>
+                            <th>Attempts pendientes</th>
+                            <th>Attempts confirmados</th>
+                            <th>Fichas consumidas</th>
+                            <th>Segundos consumidos</th>
+                            <th>Minutos consumidos</th>
+                            <th>Último consumo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($consumptionPoints as $point)
+                            <tr>
+                                <td>{{ $point['name'] }}</td>
+                                <td>{{ $point['code'] ?: '—' }}</td>
+                                <td>{{ $point['status'] ?: '—' }}</td>
+                                <td>{{ $point['pending_attempts_count'] }}</td>
+                                <td>{{ $point['confirmed_attempts_count'] }}</td>
+                                <td>{{ $formatNumber($point['consumed_quantity']) }}</td>
+                                <td>{{ $formatNumber($point['consumed_seconds']) }}</td>
+                                <td>{{ $formatNumber($point['consumed_minutes']) }}</td>
+                                <td>{{ $point['last_movement_at']?->format('d/m/Y H:i') ?: '—' }}</td>
                             </tr>
                         @endforeach
                     </tbody>

@@ -40,6 +40,7 @@ class SelfServiceTokenPocketService
                     : null;
 
                 return [
+                    'pocket_id' => $pocket->id,
                     'product_id' => $pocket->product_id,
                     'sku' => $pocket->product?->sku,
                     'name' => $pocket->product?->name ?: 'Ficha',

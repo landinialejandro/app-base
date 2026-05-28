@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/partials/bottom-nav.blade.php | V3 --}}
+{{-- FILE: resources/views/self-service-sales/partials/bottom-nav.blade.php | V4 --}}
 
 <nav class="shop-bottom-nav" aria-label="Acciones de tienda">
     <button type="button" data-checkout-open>
@@ -6,7 +6,7 @@
         Pagar
     </button>
 
-    <button type="button" class="shop-bottom-nav__primary" data-not-implemented="escaneo QR">
+    <button type="button" class="shop-bottom-nav__primary" data-token-consumption-open>
         <span><x-icons.qr /></span>
         Escanear QR
     </button>

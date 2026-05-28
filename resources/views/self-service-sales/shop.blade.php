@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/shop.blade.php | V15 --}}
+{{-- FILE: resources/views/self-service-sales/shop.blade.php | V16 --}}
 
 @php
     $publicPage = true;
@@ -36,6 +36,7 @@
             data-cart-add-url="{{ route('self_service_sales.cart.items.store', ['tenant' => $tenant]) }}"
             data-cart-clear-url="{{ route('self_service_sales.cart.clear', ['tenant' => $tenant]) }}"
             data-checkout-url="{{ route('self_service_sales.checkout.process', ['tenant' => $tenant]) }}"
+            data-token-consumption-attempt-url="{{ route('self_service_sales.token_consumption_attempts.store', ['tenant' => $tenant]) }}"
         >
             @include('self-service-sales.partials.shop-header', [
                 'tenant' => $tenant,
@@ -61,6 +62,10 @@
             @include('self-service-sales.partials.product-detail-modal')
             @include('self-service-sales.partials.cart-drawer')
             @include('self-service-sales.partials.checkout-panel')
+            @include('self-service-sales.partials.token-consumption-panel', [
+                'externalCustomer' => $externalCustomer,
+                'tokenPockets' => $tokenPockets,
+            ])
             @include('self-service-sales.partials.not-implemented-modal')
             @include('self-service-sales.partials.bottom-nav', [
                 'externalCustomer' => $externalCustomer,

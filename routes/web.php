@@ -32,6 +32,7 @@ use App\Http\Controllers\SelfServiceSalesProductImageController;
 use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
 use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
 use App\Http\Controllers\SelfServiceStoreCustomerOperationController;
+use App\Http\Controllers\SelfServiceTokenConsumptionAttemptController;
 use App\Http\Controllers\ServiceDashboardController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopItemController;
@@ -203,6 +204,8 @@ Route::prefix('shop/{tenant:slug}')
             ->name('cart.clear');
         Route::post('/checkout', [SelfServiceSalesCartController::class, 'checkout'])
             ->name('checkout.process');
+        Route::post('/token-consumption-attempts', [SelfServiceTokenConsumptionAttemptController::class, 'store'])
+            ->name('token_consumption_attempts.store');
     });
 
 // APP-BASE

@@ -1,4 +1,4 @@
-// FILE: public/js/self-service-sales-shop.js | V4
+// FILE: public/js/self-service-sales-shop.js | V5
 
 (function () {
     const root = document.querySelector('[data-shop-app]');
@@ -23,6 +23,7 @@
     const cartAddUrl = root.dataset.cartAddUrl;
     const cartClearUrl = root.dataset.cartClearUrl;
     const checkoutUrl = root.dataset.checkoutUrl;
+    const tokenConsumptionAttemptUrl = root.dataset.tokenConsumptionAttemptUrl;
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
     const productModal = document.querySelector('[data-product-modal]');
@@ -30,6 +31,7 @@
     const profileModal = document.querySelector('[data-profile-modal]');
     const cartDrawer = document.querySelector('[data-cart-drawer]');
     const checkoutPanel = document.querySelector('[data-checkout-panel]');
+    const tokenConsumptionPanel = document.querySelector('[data-token-consumption-panel]');
 
     const cartItems = document.querySelector('[data-cart-items]');
     const cartTotal = document.querySelector('[data-cart-total]');
@@ -41,6 +43,12 @@
     const checkoutPaymentReference = document.querySelector('[data-checkout-payment-reference]');
     const checkoutPaymentAmount = document.querySelector('[data-checkout-payment-amount]');
     const checkoutButtons = Array.from(document.querySelectorAll('[data-checkout-open]'));
+    const tokenConsumptionPocket = document.querySelector('[data-token-consumption-pocket]');
+    const tokenConsumptionQuantity = document.querySelector('[data-token-consumption-quantity]');
+    const tokenConsumptionBalance = document.querySelector('[data-token-consumption-balance]');
+    const tokenConsumptionTotal = document.querySelector('[data-token-consumption-total]');
+    const tokenConsumptionMessage = document.querySelector('[data-token-consumption-message]');
+    const tokenConsumptionSubmit = document.querySelector('[data-token-consumption-submit]');
     const filterEmpty = document.querySelector('[data-filter-empty]');
 
     const parseProduct = (card) => {
@@ -387,6 +395,99 @@
         }
     };
 
+    const formatNumber = (value) => {
+        const number = Number(value || 0);
+
+        if (Number.isInteger(number)) {
+            return `${number}`;
+        }
+
+        return number.toLocaleString('es-AR', {
+            maximumFractionDigits: 2,
+            minimumFractionDigits: 0,
+        });
+    };
+
+    const selectedTokenPocket = () => {
+        return tokenConsumptionPocket?.selectedOptions?.[0] || null;
+    };
+
+    const renderTokenConsumption = () => {
+        const option = selectedTokenPocket();
+
+        if (!option) {
+            return;
+        }
+
+        const quantity = Math.max(1, Number(tokenConsumptionQuantity?.value || 1));
+        const available = Number(option.dataset.quantityAvailable || 0);
+        const unitSeconds = Number(option.dataset.unitSeconds || 0);
+        const totalMinutes = unitSeconds > 0 ? (quantity * unitSeconds) / 60 : null;
+
+        if (tokenConsumptionBalance) {
+            tokenConsumptionBalance.textContent = option.dataset.summaryLabel || `${formatNumber(available)} fichas disponibles`;
+        }
+
+        if (tokenConsumptionTotal) {
+            tokenConsumptionTotal.textContent = totalMinutes !== null ? `${formatNumber(totalMinutes)} min` : '—';
+        }
+    };
+
+    const openTokenConsumption = () => {
+        if (!tokenConsumptionPanel) {
+            showNotImplemented('Función no implementada todavía: escaneo QR.');
+            return;
+        }
+
+        renderTokenConsumption();
+        show(tokenConsumptionPanel);
+    };
+
+    const submitTokenConsumption = async () => {
+        const option = selectedTokenPocket();
+
+        if (!option || !tokenConsumptionAttemptUrl) {
+            showNotImplemented('No tenés fichas disponibles para usar en este momento.');
+            return;
+        }
+
+        const quantity = Math.max(1, Number(tokenConsumptionQuantity?.value || 1));
+
+        if (tokenConsumptionSubmit) {
+            tokenConsumptionSubmit.disabled = true;
+        }
+
+        if (tokenConsumptionMessage) {
+            tokenConsumptionMessage.textContent = 'Registrando intento de consumo…';
+        }
+
+        try {
+            const payload = await requestJson(tokenConsumptionAttemptUrl, {
+                method: 'POST',
+                body: JSON.stringify({
+                    pocket_id: Number(option.value),
+                    quantity,
+                }),
+            });
+
+            if (tokenConsumptionMessage) {
+                tokenConsumptionMessage.textContent = payload.message || 'Intento de consumo registrado.';
+            }
+
+            if (payload?.pocket?.summary_label && tokenConsumptionBalance) {
+                tokenConsumptionBalance.textContent = payload.pocket.summary_label;
+            }
+        } catch (error) {
+            if (tokenConsumptionMessage) {
+                tokenConsumptionMessage.textContent = error?.message || 'No pudimos registrar el intento de consumo.';
+            }
+        } finally {
+            if (tokenConsumptionSubmit) {
+                tokenConsumptionSubmit.disabled = false;
+            }
+        }
+    };
+
     const openCheckout = async () => {
         if (!requireCartExperience()) {
             return;
@@ -498,11 +599,16 @@
     document.querySelectorAll('[data-cart-open]').forEach((button) => button.addEventListener('click', () => show(cartDrawer)));
     document.querySelectorAll('[data-cart-close]').forEach((button) => button.addEventListener('click', () => hide(cartDrawer)));
     document.querySelectorAll('[data-checkout-close]').forEach((button) => button.addEventListener('click', () => hide(checkoutPanel)));
+    document.querySelectorAll('[data-token-consumption-close]').forEach((button) => button.addEventListener('click', () => hide(tokenConsumptionPanel)));
     document.querySelectorAll('[data-not-implemented-close]').forEach((button) => button.addEventListener('click', () => hide(notImplementedModal)));
     document.querySelectorAll('[data-profile-close]').forEach((button) => button.addEventListener('click', () => hide(profileModal)));
 
     document.querySelector('[data-cart-clear]')?.addEventListener('click', clearCart);
     document.querySelectorAll('[data-checkout-open]').forEach((button) => button.addEventListener('click', openCheckout));
+    document.querySelector('[data-token-consumption-open]')?.addEventListener('click', openTokenConsumption);
+    tokenConsumptionPocket?.addEventListener('change', renderTokenConsumption);
+    tokenConsumptionQuantity?.addEventListener('input', renderTokenConsumption);
+    tokenConsumptionSubmit?.addEventListener('click', submitTokenConsumption);
 
     document.querySelectorAll('[data-not-implemented]').forEach((button) => {
         button.addEventListener('click', () => showNotImplemented(`Función no implementada todavía: ${button.dataset.notImplemented}.`));

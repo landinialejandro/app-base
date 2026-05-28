@@ -1,0 +1,210 @@
+<?php
+
+// FILE: app/Support/SelfServiceSales/SelfServiceTokenPocketService.php | V1
+
+namespace App\Support\SelfServiceSales;
+
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\ProductComponent;
+use App\Models\SelfServiceCart;
+use App\Models\SelfServiceCartItem;
+use App\Models\SelfServiceTokenPocket;
+use App\Models\SelfServiceTokenPocketMovement;
+use App\Support\Catalogs\ProductCatalog;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+
+class SelfServiceTokenPocketService
+{
+    public function creditFromCheckout(SelfServiceCart $cart, Order $order): array
+    {
+        return DB::transaction(function () use ($cart, $order): array {
+            $cart = SelfServiceCart::query()
+                ->whereKey($cart->id)
+                ->with([
+                    'items.product.components.componentProduct',
+                    'storeCustomer',
+                    'account',
+                ])
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $order->loadMissing('items');
+
+            $this->assertCreditable($cart, $order);
+
+            $movements = [];
+            $skipped = [];
+
+            foreach ($cart->items as $cartItem) {
+                if (! $cartItem instanceof SelfServiceCartItem || ! $cartItem->product instanceof Product) {
+                    continue;
+                }
+
+                $tokenDefinition = $this->tokenDefinitionForProduct($cartItem->product);
+
+                if ($tokenDefinition === null) {
+                    $skipped[] = [
+                        'cart_item_id' => $cartItem->id,
+                        'product_id' => $cartItem->product_id,
+                    ];
+
+                    continue;
+                }
+
+                $movements[] = $this->creditCartItem(
+                    cart: $cart,
+                    order: $order,
+                    cartItem: $cartItem,
+                    tokenDefinition: $tokenDefinition,
+                );
+            }
+
+            return [
+                'credited_count' => count($movements),
+                'skipped_count' => count($skipped),
+                'movement_ids' => collect($movements)->pluck('id')->values()->all(),
+                'skipped' => $skipped,
+            ];
+        });
+    }
+
+    private function assertCreditable(SelfServiceCart $cart, Order $order): void
+    {
+        if ($cart->status !== SelfServiceCart::STATUS_CHECKED_OUT) {
+            throw new InvalidArgumentException('El carrito debe estar checked_out para acreditar fichas.');
+        }
+
+        if ((string) $cart->tenant_id !== (string) $order->tenant_id) {
+            throw new InvalidArgumentException('La orden debe pertenecer al mismo tenant del carrito.');
+        }
+
+        if (! $cart->self_service_customer_account_id || ! $cart->self_service_store_customer_id) {
+            throw new InvalidArgumentException('El carrito debe tener customer externo para acreditar fichas.');
+        }
+    }
+
+    private function creditCartItem(
+        SelfServiceCart $cart,
+        Order $order,
+        SelfServiceCartItem $cartItem,
+        array $tokenDefinition,
+    ): SelfServiceTokenPocketMovement {
+        $idempotencyKey = $this->idempotencyKey($cartItem);
+        $existingMovement = SelfServiceTokenPocketMovement::query()
+            ->where('idempotency_key', $idempotencyKey)
+            ->first();
+
+        if ($existingMovement) {
+            return $existingMovement;
+        }
+
+        $pocket = SelfServiceTokenPocket::query()->firstOrCreate(
+            [
+                'tenant_id' => $cart->tenant_id,
+                'self_service_customer_account_id' => $cart->self_service_customer_account_id,
+                'self_service_store_customer_id' => $cart->self_service_store_customer_id,
+                'product_id' => $cartItem->product_id,
+            ],
+            [
+                'quantity_available' => 0,
+                'unit_label_snapshot' => $tokenDefinition['unit_label_snapshot'],
+                'unit_seconds_snapshot' => $tokenDefinition['unit_seconds_snapshot'],
+                'status' => SelfServiceTokenPocket::STATUS_ACTIVE,
+            ],
+        );
+
+        $pocket = SelfServiceTokenPocket::query()
+            ->whereKey($pocket->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $existingMovement = SelfServiceTokenPocketMovement::query()
+            ->where('idempotency_key', $idempotencyKey)
+            ->first();
+
+        if ($existingMovement) {
+            return $existingMovement;
+        }
+
+        $quantity = (float) $cartItem->quantity;
+        $balanceAfter = (float) $pocket->quantity_available + $quantity;
+        $orderItem = $this->matchingOrderItem($order->items, $cartItem);
+
+        $pocket->update([
+            'quantity_available' => $balanceAfter,
+            'unit_label_snapshot' => $tokenDefinition['unit_label_snapshot'],
+            'unit_seconds_snapshot' => $tokenDefinition['unit_seconds_snapshot'],
+            'status' => SelfServiceTokenPocket::STATUS_ACTIVE,
+        ]);
+
+        return SelfServiceTokenPocketMovement::query()->create([
+            'tenant_id' => $cart->tenant_id,
+            'self_service_token_pocket_id' => $pocket->id,
+            'self_service_cart_id' => $cart->id,
+            'self_service_cart_item_id' => $cartItem->id,
+            'order_id' => $order->id,
+            'order_item_id' => $orderItem?->id,
+            'product_id' => $cartItem->product_id,
+            'movement_type' => SelfServiceTokenPocketMovement::TYPE_PURCHASE_CREDIT,
+            'quantity' => $quantity,
+            'balance_after' => $balanceAfter,
+            'unit_label_snapshot' => $tokenDefinition['unit_label_snapshot'],
+            'unit_seconds_snapshot' => $tokenDefinition['unit_seconds_snapshot'],
+            'source_type' => 'self_service_sales.checkout',
+            'source_id' => $cart->id,
+            'idempotency_key' => $idempotencyKey,
+            'notes' => 'Acreditación por checkout aprobado de Shopping Autoservicio.',
+            'meta' => [
+                'order_number' => $order->number,
+            ],
+        ]);
+    }
+
+    private function tokenDefinitionForProduct(Product $product): ?array
+    {
+        if ((string) $product->unit_label !== 'ficha') {
+            return null;
+        }
+
+        $unitSeconds = $product->components
+            ->filter(function (ProductComponent $component): bool {
+                $componentProduct = $component->componentProduct;
+
+                return $componentProduct instanceof Product
+                    && $componentProduct->kind === ProductCatalog::KIND_SERVICE
+                    && $componentProduct->unit_label === 'segundo';
+            })
+            ->sum(fn (ProductComponent $component): float => (float) $component->quantity);
+
+        if ($unitSeconds <= 0) {
+            return null;
+        }
+
+        return [
+            'unit_label_snapshot' => 'ficha',
+            'unit_seconds_snapshot' => (int) round($unitSeconds),
+        ];
+    }
+
+    private function matchingOrderItem(Collection $orderItems, SelfServiceCartItem $cartItem): ?OrderItem
+    {
+        return $orderItems->first(function (OrderItem $item) use ($cartItem): bool {
+            return (int) $item->product_id === (int) $cartItem->product_id
+                && trim((string) $item->description) === trim((string) $cartItem->display_name_snapshot);
+        });
+    }
+
+    private function idempotencyKey(SelfServiceCartItem $cartItem): string
+    {
+        return sprintf(
+            'self_service_token_pocket:purchase_credit:cart:%s:item:%s:product:%s',
+            $cartItem->self_service_cart_id,
+            $cartItem->id,
+            $cartItem->product_id,
+        );
+    }
+}

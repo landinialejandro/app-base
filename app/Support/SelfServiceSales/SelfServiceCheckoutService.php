@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V6
+// FILE: app/Support/SelfServiceSales/SelfServiceCheckoutService.php | V7
 
 namespace App\Support\SelfServiceSales;
 
@@ -28,7 +28,8 @@ class SelfServiceCheckoutService
         protected SelfServicePaymentRequestFactory $paymentRequests,
         protected SelfServicePaymentGateway $gateway,
         protected InventoryShopStockAvailabilityService $stockAvailability,
-        protected SelfServiceCheckoutOrderBridge $orderBridge
+        protected SelfServiceCheckoutOrderBridge $orderBridge,
+        protected SelfServiceTokenPocketService $tokenPockets
     ) {
     }
 
@@ -84,7 +85,15 @@ class SelfServiceCheckoutService
                     'meta' => $meta,
                 ]);
 
-                $this->orderBridge->formalize($cart->fresh(['items']));
+                $order = $this->orderBridge->formalize($cart->fresh(['items']));
+                $this->tokenPockets->creditFromCheckout(
+                    $cart->fresh([
+                        'items.product.components.componentProduct',
+                        'storeCustomer',
+                        'account',
+                    ]),
+                    $order,
+                );
 
                 return [
                     'ok' => true,

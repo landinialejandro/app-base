@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php | V3
+// FILE: app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php | V4
 
 namespace App\Support\SelfServiceSales;
 
@@ -124,6 +124,8 @@ class SelfServiceTokenConsumptionAttemptService
             }
 
             if ($attempt->status === SelfServiceTokenConsumptionAttempt::STATUS_CONFIRMED) {
+                $this->markAttemptConfirmed($attempt);
+
                 return $attempt->fresh();
             }
 
@@ -185,9 +187,9 @@ class SelfServiceTokenConsumptionAttemptService
                     'simulated' => true,
                     'attempt_id' => $attempt->id,
                     'total_seconds' => $attempt->total_seconds,
-                    'consumption_point_id' => $attempt->source_type === ShopConsumptionPoint::class
-                        ? $attempt->source_id
-                        : null,
+                    'consumes_balance' => true,
+                    'calls_external_controller' => false,
+                    ...$this->consumptionPointPayloadForAttempt($attempt),
                 ],
             ]);
 
@@ -205,6 +207,9 @@ class SelfServiceTokenConsumptionAttemptService
     {
         $meta = is_array($attempt->meta) ? $attempt->meta : [];
         $meta['stage'] = 'simulated_confirmed';
+        $meta['consumes_balance'] = true;
+        $meta['calls_external_controller'] = false;
+        $meta = array_merge($meta, $this->consumptionPointPayloadForAttempt($attempt));
 
         $attempt->update([
             'status' => SelfServiceTokenConsumptionAttempt::STATUS_CONFIRMED,
@@ -227,6 +232,35 @@ class SelfServiceTokenConsumptionAttemptService
             $attempt->self_service_token_pocket_id,
             $attempt->product_id,
         );
+    }
+
+    private function consumptionPointPayloadForAttempt(SelfServiceTokenConsumptionAttempt $attempt): array
+    {
+        if ($attempt->source_type !== ShopConsumptionPoint::class || ! $attempt->source_id) {
+            return [];
+        }
+
+        $payload = [
+            'consumption_point_id' => (int) $attempt->source_id,
+        ];
+
+        $requestPayload = is_array($attempt->request_payload) ? $attempt->request_payload : [];
+        $label = $requestPayload['consumption_point_label'] ?? null;
+
+        if (! filled($label)) {
+            $point = ShopConsumptionPoint::query()
+                ->whereKey($attempt->source_id)
+                ->where('tenant_id', $attempt->tenant_id)
+                ->first();
+
+            $label = $point?->displayName();
+        }
+
+        if (filled($label)) {
+            $payload['consumption_point_label'] = (string) $label;
+        }
+
+        return $payload;
     }
 
     private function availableConsumptionPointForPocket(

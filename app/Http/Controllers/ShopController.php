@@ -110,6 +110,7 @@ class ShopController extends Controller
 
         $shop->load([
             'items.product',
+            'consumptionPoints',
         ]);
 
         $shop->loadCount('items');

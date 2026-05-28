@@ -11,6 +11,7 @@
         use App\Support\Navigation\NavigationTrail;
 
         $items = $shop->items ?? collect();
+        $consumptionPoints = $shop->consumptionPoints ?? collect();
         $selfServiceCarts = $selfServiceCarts ?? collect();
         $selfServiceOrders = $selfServiceOrders ?? collect();
         $tokenConsumptionSummary = $tokenConsumptionSummary ?? [];
@@ -77,6 +78,19 @@
                 'data' => [
                     'shop' => $shop,
                     'tokenConsumptionSummary' => $tokenConsumptionSummary,
+                ],
+            ],
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'consumption-points',
+                'label' => 'Puntos de consumo',
+                'priority' => 19,
+                'count' => $consumptionPoints->count(),
+                'view' => 'shops.tabs.consumption-points',
+                'data' => [
+                    'shop' => $shop,
+                    'consumptionPoints' => $consumptionPoints,
                 ],
             ],
             [

@@ -34,6 +34,7 @@ use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
 use App\Http\Controllers\SelfServiceStoreCustomerOperationController;
 use App\Http\Controllers\SelfServiceTokenConsumptionAttemptController;
 use App\Http\Controllers\ServiceDashboardController;
+use App\Http\Controllers\ShopConsumptionPointController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopItemController;
 use App\Http\Controllers\SuperadminDashboardController;
@@ -313,6 +314,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('shops/{shop}/items/{item}/edit', [ShopItemController::class, 'edit'])->name('shops.items.edit');
     Route::put('shops/{shop}/items/{item}', [ShopItemController::class, 'update'])->name('shops.items.update');
     Route::delete('shops/{shop}/items/{item}', [ShopItemController::class, 'destroy'])->name('shops.items.destroy');
+
+    Route::post('shops/{shop}/consumption-points', [ShopConsumptionPointController::class, 'store'])->name('shops.consumption_points.store');
+    Route::put('shops/{shop}/consumption-points/{point}', [ShopConsumptionPointController::class, 'update'])->name('shops.consumption_points.update');
 
     // Assets
     Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');

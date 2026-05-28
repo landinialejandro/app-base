@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Shop.php | V1
+// FILE: app/Models/Shop.php | V2
 
 namespace App\Models;
 
@@ -44,6 +44,13 @@ class Shop extends Model
     public function items(): HasMany
     {
         return $this->hasMany(ShopItem::class, 'self_service_shop_id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
+    public function consumptionPoints(): HasMany
+    {
+        return $this->hasMany(ShopConsumptionPoint::class, 'self_service_shop_id')
             ->orderBy('sort_order')
             ->orderBy('id');
     }

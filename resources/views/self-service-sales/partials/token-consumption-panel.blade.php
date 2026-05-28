@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/partials/token-consumption-panel.blade.php | V1 --}}
+{{-- FILE: resources/views/self-service-sales/partials/token-consumption-panel.blade.php | V2 --}}
 
 @php
     $tokenPockets = $tokenPockets ?? [];
@@ -62,6 +62,10 @@
 
                 <button type="button" class="btn btn-primary" data-token-consumption-submit>
                     Registrar intento
+                </button>
+
+                <button type="button" class="btn btn-secondary" data-token-consumption-confirm hidden disabled>
+                    Confirmar consumo simulado
                 </button>
             @elseif($externalCustomer)
                 <p>No tenés fichas disponibles para usar en este momento.</p>

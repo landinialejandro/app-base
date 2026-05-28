@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceTokenConsumptionAttemptController.php | V1
+// FILE: app/Http/Controllers/SelfServiceTokenConsumptionAttemptController.php | V2
 
 namespace App\Http\Controllers;
 
 use App\Models\SelfServiceStoreCustomer;
+use App\Models\SelfServiceTokenConsumptionAttempt;
 use App\Models\Tenant;
 use App\Support\SelfServiceSales\SelfServiceTokenConsumptionAttemptService;
 use App\Support\SelfServiceSales\SelfServiceTokenPocketService;
@@ -88,6 +89,71 @@ class SelfServiceTokenConsumptionAttemptController extends Controller
                 'total_seconds' => $attempt->total_seconds,
                 'total_minutes' => $attempt->total_seconds !== null
                     ? $this->normalizeNumber((float) $attempt->total_seconds / 60)
+                    : null,
+                'confirm_url' => route('self_service_sales.token_consumption_attempts.confirm_simulated', [
+                    'tenant' => $tenant,
+                    'attempt' => $attempt,
+                ]),
+            ],
+            'pocket' => $pocket ? [
+                'quantity_available' => $pocket['quantity_available'],
+                'summary_label' => $pocket['summary_label'],
+            ] : null,
+        ]);
+    }
+
+    public function confirm(Request $request, Tenant $tenant, SelfServiceTokenConsumptionAttempt $attempt): JsonResponse
+    {
+        $payload = $request->attributes->get('self_service_external_customer');
+
+        if (! $payload) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Ingresá como customer externo para usar fichas.',
+            ], 403);
+        }
+
+        $storeCustomer = $payload['store_customer'] ?? null;
+        $account = $payload['account'] ?? null;
+
+        if (! $storeCustomer instanceof SelfServiceStoreCustomer || ! $account || $payload['can_operate'] !== true) {
+            return response()->json([
+                'ok' => false,
+                'message' => 'Tu customer externo no está habilitado para operar.',
+            ], 403);
+        }
+
+        try {
+            $confirmedAttempt = $this->attempts->confirmSimulated(
+                tenantId: (string) $tenant->id,
+                accountId: (int) $account->id,
+                storeCustomerId: (int) $storeCustomer->id,
+                attemptId: (int) $attempt->id,
+            );
+        } catch (HttpExceptionInterface $exception) {
+            return response()->json([
+                'ok' => false,
+                'message' => $exception->getMessage(),
+            ], $exception->getStatusCode());
+        }
+
+        $pocket = collect($this->tokenPockets->summaryForExternalCustomer(
+            tenantId: (string) $tenant->id,
+            accountId: (int) $account->id,
+            storeCustomerId: (int) $storeCustomer->id,
+        ))->firstWhere('product_id', $confirmedAttempt->product_id);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Consumo simulado confirmado.',
+            'attempt' => [
+                'id' => $confirmedAttempt->id,
+                'status' => $confirmedAttempt->status,
+                'quantity' => $this->normalizeNumber((float) $confirmedAttempt->quantity),
+                'unit_seconds' => $confirmedAttempt->unit_seconds_snapshot,
+                'total_seconds' => $confirmedAttempt->total_seconds,
+                'total_minutes' => $confirmedAttempt->total_seconds !== null
+                    ? $this->normalizeNumber((float) $confirmedAttempt->total_seconds / 60)
                     : null,
             ],
             'pocket' => $pocket ? [

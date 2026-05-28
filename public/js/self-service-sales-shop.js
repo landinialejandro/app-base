@@ -1,4 +1,4 @@
-// FILE: public/js/self-service-sales-shop.js | V5
+// FILE: public/js/self-service-sales-shop.js | V6
 
 (function () {
     const root = document.querySelector('[data-shop-app]');
@@ -14,6 +14,7 @@
             total_label: '$ 0,00',
         },
         currentProduct: null,
+        tokenConsumptionConfirmUrl: null,
         galleryIndex: 0,
     };
 
@@ -49,6 +50,7 @@
     const tokenConsumptionTotal = document.querySelector('[data-token-consumption-total]');
     const tokenConsumptionMessage = document.querySelector('[data-token-consumption-message]');
     const tokenConsumptionSubmit = document.querySelector('[data-token-consumption-submit]');
+    const tokenConsumptionConfirm = document.querySelector('[data-token-consumption-confirm]');
     const filterEmpty = document.querySelector('[data-filter-empty]');
 
     const parseProduct = (card) => {
@@ -431,6 +433,13 @@
         if (tokenConsumptionTotal) {
             tokenConsumptionTotal.textContent = totalMinutes !== null ? `${formatNumber(totalMinutes)} min` : '—';
         }
+
+        state.tokenConsumptionConfirmUrl = null;
+
+        if (tokenConsumptionConfirm) {
+            tokenConsumptionConfirm.hidden = true;
+            tokenConsumptionConfirm.disabled = true;
+        }
     };
 
     const openTokenConsumption = () => {
@@ -471,11 +480,18 @@
             });
 
             if (tokenConsumptionMessage) {
-                tokenConsumptionMessage.textContent = payload.message || 'Intento de consumo registrado.';
+                tokenConsumptionMessage.textContent = 'Intento registrado. Podés confirmar consumo simulado.';
             }
 
             if (payload?.pocket?.summary_label && tokenConsumptionBalance) {
                 tokenConsumptionBalance.textContent = payload.pocket.summary_label;
+            }
+
+            state.tokenConsumptionConfirmUrl = payload?.attempt?.confirm_url || null;
+
+            if (tokenConsumptionConfirm && state.tokenConsumptionConfirmUrl) {
+                tokenConsumptionConfirm.hidden = false;
+                tokenConsumptionConfirm.disabled = false;
             }
         } catch (error) {
             if (tokenConsumptionMessage) {
@@ -484,6 +500,55 @@
         } finally {
             if (tokenConsumptionSubmit) {
                 tokenConsumptionSubmit.disabled = false;
+            }
+        }
+    };
+
+    const confirmTokenConsumption = async () => {
+        if (!state.tokenConsumptionConfirmUrl) {
+            return;
+        }
+
+        if (tokenConsumptionConfirm) {
+            tokenConsumptionConfirm.disabled = true;
+        }
+
+        if (tokenConsumptionMessage) {
+            tokenConsumptionMessage.textContent = 'Confirmando consumo simulado…';
+        }
+
+        try {
+            const payload = await requestJson(state.tokenConsumptionConfirmUrl, {
+                method: 'POST',
+                body: JSON.stringify({}),
+            });
+
+            if (tokenConsumptionMessage) {
+                tokenConsumptionMessage.textContent = payload.message || 'Consumo simulado confirmado.';
+            }
+
+            if (payload?.pocket?.summary_label && tokenConsumptionBalance) {
+                tokenConsumptionBalance.textContent = payload.pocket.summary_label;
+            }
+
+            const option = selectedTokenPocket();
+
+            if (option && payload?.pocket?.summary_label) {
+                option.dataset.summaryLabel = payload.pocket.summary_label;
+            }
+
+            if (option && payload?.pocket?.quantity_available !== undefined) {
+                option.dataset.quantityAvailable = `${payload.pocket.quantity_available}`;
+            }
+
+            state.tokenConsumptionConfirmUrl = null;
+        } catch (error) {
+            if (tokenConsumptionMessage) {
+                tokenConsumptionMessage.textContent = error?.message || 'No pudimos confirmar el consumo simulado.';
+            }
+
+            if (tokenConsumptionConfirm) {
+                tokenConsumptionConfirm.disabled = false;
             }
         }
     };
@@ -609,6 +674,7 @@
     tokenConsumptionPocket?.addEventListener('change', renderTokenConsumption);
     tokenConsumptionQuantity?.addEventListener('input', renderTokenConsumption);
     tokenConsumptionSubmit?.addEventListener('click', submitTokenConsumption);
+    tokenConsumptionConfirm?.addEventListener('click', confirmTokenConsumption);
 
     document.querySelectorAll('[data-not-implemented]').forEach((button) => {
         button.addEventListener('click', () => showNotImplemented(`Función no implementada todavía: ${button.dataset.notImplemented}.`));

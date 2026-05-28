@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/SelfServiceTokenPocketMovement.php | V1
+// FILE: app/Models/SelfServiceTokenPocketMovement.php | V2
 
 namespace App\Models;
 
@@ -13,6 +13,7 @@ class SelfServiceTokenPocketMovement extends Model
     use TenantScoped;
 
     public const TYPE_PURCHASE_CREDIT = 'purchase_credit';
+    public const TYPE_CONSUMPTION = 'consumption';
 
     protected $fillable = [
         'tenant_id',

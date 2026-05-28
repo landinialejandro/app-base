@@ -206,6 +206,8 @@ Route::prefix('shop/{tenant:slug}')
             ->name('checkout.process');
         Route::post('/token-consumption-attempts', [SelfServiceTokenConsumptionAttemptController::class, 'store'])
             ->name('token_consumption_attempts.store');
+        Route::post('/token-consumption-attempts/{attempt}/confirm-simulated', [SelfServiceTokenConsumptionAttemptController::class, 'confirm'])
+            ->name('token_consumption_attempts.confirm_simulated');
     });
 
 // APP-BASE

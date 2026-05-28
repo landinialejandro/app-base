@@ -1909,6 +1909,156 @@ No se descontó pocket adicionalmente.
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS
+
+self_service_sales incorpora una aduana reemplazable para consumo de fichas.
+
+Piezas vigentes:
+
+SelfServiceTokenConsumptionRequestFactory
+
+SelfServiceTokenConsumptionGateway
+
+SimulatedTokenConsumptionGateway
+
+Binding vigente:
+
+SelfServiceTokenConsumptionGateway
+→ SimulatedTokenConsumptionGateway
+
+Lectura vigente:
+
+attempt pending asociado a ShopConsumptionPoint
+↓
+validación interna app-base
+↓
+request seguro backend
+↓
+gateway simulado de consumo
+↓
+response approved normalizada
+↓
+confirmación interna app-base
+↓
+SelfServiceTokenPocketMovement movement_type = consumption
+↓
+descuento del pocket
+↓
+attempt confirmed
+
+Reglas:
+
+gateway simulado no decide negocio.
+
+gateway simulado no autoriza consumo por sí mismo.
+
+gateway simulado no descuenta pocket.
+
+gateway simulado no crea movement.
+
+gateway simulado no marca attempt confirmed.
+
+app-base valida tenant, customer externo, store customer, pocket, saldo, attempt, punto, producto, segundos e idempotencia.
+
+app-base arma el request seguro.
+
+app-base no envía public_token al gateway.
+
+app-base conserva autoridad sobre efectos internos.
+
+response approved habilita confirmación interna.
+
+response approved no reemplaza validación backend.
+
+calls_external_controller = true significa llamada a gateway/controlador simulado.
+
+calls_external_controller = true no significa hardware real.
+
+calls_external_controller = true no significa controlador externo físico.
+
+Validación approved con saldo real:
+
+checkout de ficha por tienda
+↓
+provider de pago simulado approved
+↓
+Order formalizada
+↓
+purchase_credit al pocket
+↓
+attempt por Box 1
+↓
+gateway simulado de consumo approved
+↓
+movement consumption
+↓
+pocket descontado
+↓
+idempotencia confirmada
+
+Caso validado:
+
+cart id = 22
+
+order_id = 53
+
+purchase_credit movement = 5
+
+pocket quantity_available post-checkout = 1.00
+
+attempt id = 7
+
+response_payload.provider = simulated
+
+response_payload.provider_target = token_controller
+
+response_payload.status = approved
+
+external_consumption_id = SIM-TOKEN-KDWAXE0UKF
+
+movement id = 6
+
+movement_type = consumption
+
+balance_after = 0.00
+
+Idempotencia:
+
+reconfirmar attempt 7 no duplicó movement.
+
+reconfirmar attempt 7 no descontó saldo nuevamente.
+
+No efectos:
+
+no se creó Document.
+
+no se creó InventoryMovement.
+
+no existe Payment model.
+
+no existe PaymentAttempt model.
+
+No implementa todavía:
+
+hardware real.
+
+gateway real.
+
+controlador externo real.
+
+activación física de box.
+
+webhook de controlador.
+
+reversa de controlador.
+
+lectura de estado físico de máquina.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

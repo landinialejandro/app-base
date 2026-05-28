@@ -1496,6 +1496,100 @@ no se implementó hardware real.
 
 no se implementó gateway real.
 
+Cierre consolidado:
+
+gateway simulado reemplazable de consumo de fichas implementado y validado con camino approved.
+
+Archivos creados:
+
+app/Support/SelfServiceSales/TokenConsumption/SelfServiceTokenConsumptionGateway.php
+
+app/Support/SelfServiceSales/TokenConsumption/SelfServiceTokenConsumptionRequestFactory.php
+
+app/Support/SelfServiceSales/TokenConsumption/SimulatedTokenConsumptionGateway.php
+
+Archivos modificados:
+
+app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php
+
+app/Providers/AppServiceProvider.php
+
+Validaciones:
+
+php -l.
+
+php artisan optimize:clear.
+
+Tinker container.
+
+Tinker factory sin public_token.
+
+Tinker saldo insuficiente.
+
+Validación approved con saldo real:
+
+SelfServiceCartService::addItem()
+↓
+SelfServiceCheckoutService::checkout()
+↓
+payment provider simulado approved
+↓
+Order formalizada
+↓
+purchase_credit al pocket
+↓
+attempt por Box 1
+↓
+gateway simulado approved
+↓
+movement consumption
+↓
+pocket descontado
+
+Resultado:
+
+cart id = 22
+
+order_id = 53
+
+purchase_credit movement = 5
+
+attempt id = 7
+
+movement consumption id = 6
+
+external_consumption_id = SIM-TOKEN-KDWAXE0UKF
+
+Idempotencia validada:
+
+reconfirmar attempt 7 no duplicó movement ni descontó saldo nuevamente.
+
+No efectos:
+
+Document count permanece en 5.
+
+InventoryMovement count permanece en 24.
+
+Payment model no existe.
+
+PaymentAttempt model no existe.
+
+Pendientes:
+
+hardware real.
+
+gateway real.
+
+contrato físico definitivo.
+
+timeout/retry.
+
+rechazos reales.
+
+compensación/reversa.
+
+lectura de fallos por punto.
+
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>

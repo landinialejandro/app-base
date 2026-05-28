@@ -1381,6 +1381,58 @@ Regla:
 
 el recorrido futuro de integración física no queda implementado por la ruta pública de punto.
 
+RECORRIDO FUNCIONAL — CONSUMO CONFIRMADO POR GATEWAY SIMULADO
+
+Recorrido funcional vigente:
+
+/shop/{tenant:slug}/consume/{publicToken}
+↓
+punto de consumo validado
+↓
+customer externo operativo
+↓
+attempt pending asociado a ShopConsumptionPoint
+↓
+confirmación desde panel público
+↓
+validación app-base
+↓
+gateway simulado de consumo
+↓
+response approved
+↓
+movement consumption
+↓
+descuento de pocket
+↓
+attempt confirmed
+
+Lectura:
+
+este recorrido pertenece al plano externo customer, pero los efectos internos quedan bajo autoridad backend app-base.
+
+La ruta pública y el QR no confirman consumo por sí mismos.
+
+El gateway simulado no habilita hardware real.
+
+El gateway simulado no reemplaza validaciones.
+
+La respuesta approved habilita a app-base a confirmar internamente.
+
+No se crea Document.
+
+No se crea InventoryMovement.
+
+No se crea Payment.
+
+No se crea PaymentAttempt.
+
+Regla:
+
+la navegación pública representa intención y contexto.
+
+La confirmación efectiva sigue siendo backend.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS DE LECTURA>>

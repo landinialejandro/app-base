@@ -1820,6 +1820,82 @@ Caso validado:
 
 attempt #6 asociado a Box 1 normalizó meta sin crear movement adicional y sin descontar nuevamente.
 
+DECISIÓN VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS
+
+Decisión vigente implementada y validada:
+
+el consumo de fichas incorpora una aduana reemplazable entre app-base y el futuro controlador externo.
+
+Piezas vigentes:
+
+SelfServiceTokenConsumptionRequestFactory
+
+SelfServiceTokenConsumptionGateway
+
+SimulatedTokenConsumptionGateway
+
+Motivo:
+
+evitar que confirmSimulated() quede acoplado a una simulación interna directa cuando el siguiente paso natural es integrar un controlador externo real.
+
+Reglas:
+
+app-base conserva autoridad de negocio.
+
+el gateway solo traduce, simula o normaliza comunicación externa.
+
+el gateway no decide saldo.
+
+el gateway no decide customer.
+
+el gateway no decide tenant.
+
+el gateway no decide punto.
+
+el gateway no crea movement.
+
+el gateway no descuenta pocket.
+
+el gateway no confirma attempt por sí mismo.
+
+response approved normalizada habilita a app-base a ejecutar efectos internos.
+
+calls_external_controller = true indica que se atravesó la aduana simulada.
+
+calls_external_controller = true no indica hardware físico real.
+
+Caso validado:
+
+saldo real generado por checkout de tienda.
+
+attempt 7 asociado a Box 1.
+
+gateway simulado approved.
+
+movement consumption creado.
+
+pocket descontado.
+
+idempotencia validada.
+
+No se creó Document, InventoryMovement, Payment ni PaymentAttempt.
+
+Queda pendiente:
+
+controlador externo real.
+
+payload físico definitivo.
+
+respuesta confiable de hardware.
+
+manejo de rechazo real.
+
+manejo de timeout.
+
+reversa o compensación.
+
+lectura operativa de errores por punto.
+
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>

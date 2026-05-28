@@ -1465,6 +1465,87 @@ sesión externa mínima no autoriza shops.*
 
 <<END SECTION>>
 
+<<SECTION: RELACIÓN CONCEPTUAL — POCKET DE FICHAS>>
+SECTION_VERSION: 00001
+
+RELACIÓN CONCEPTUAL — POCKET DE FICHAS
+
+Relación conceptual vigente para fichas compradas por customer externo:
+
+Tenant
+↓
+SelfServiceCustomerAccount
+↓
+SelfServiceStoreCustomer
+↓
+SelfServiceTokenPocket
+↓
+SelfServiceTokenPocketMovement
+↓
+Product
+
+Lectura:
+
+SelfServiceTokenPocket representa el pocket de fichas del customer externo para un producto ficha determinado.
+
+SelfServiceTokenPocketMovement representa movimientos trazables del pocket.
+
+Movimiento vigente implementado:
+
+purchase_credit
+
+Origen funcional vigente:
+
+SelfServiceCart checked_out
+↓
+Order group = sale
+↓
+SelfServiceTokenPocketMovement purchase_credit
+
+Reglas:
+
+SelfServiceTokenPocket no reemplaza SelfServiceCart.
+
+SelfServiceTokenPocket no reemplaza Order.
+
+SelfServiceTokenPocket no reemplaza Product.
+
+SelfServiceTokenPocket no reemplaza ShopItem.
+
+SelfServiceTokenPocket no reemplaza InventoryMovement.
+
+SelfServiceTokenPocket no reemplaza Document.
+
+SelfServiceTokenPocket no reemplaza Payment ni PaymentAttempt.
+
+SelfServiceTokenPocketMovement no es movimiento físico de stock.
+
+SelfServiceTokenPocketMovement no es comprobante.
+
+SelfServiceTokenPocketMovement no es pago.
+
+SelfServiceTokenPocketMovement registra movimiento lógico de derecho de uso dentro del plano self_service_sales.
+
+Relación con Product:
+
+Product conserva la definición del producto ficha.
+
+ShopItem conserva la publicación comercial concreta.
+
+SelfServiceCartItem conserva la línea de carrito externo.
+
+OrderItem conserva la línea formalizada de venta interna.
+
+SelfServiceTokenPocket conserva la disponibilidad lógica comprada por el customer externo.
+
+Regla:
+
+producir ficha, vender ficha, acreditar ficha y consumir ficha son momentos distintos.
+
+No deben comprimirse en una única entidad ni en un único movimiento.
+
+<<END SECTION>>
+
 <<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
 SECTION_VERSION: 00003
 

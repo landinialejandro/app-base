@@ -502,6 +502,119 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — POCKET DE FICHAS>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — POCKET DE FICHAS
+
+Estado vigente:
+
+primer corte mínimo implementado y validado.
+
+Cierre parcial consolidado:
+
+checkout aprobado de ficha lógica acredita cantidad comprada en pocket del customer externo.
+
+Archivos creados:
+
+database/migrations/2026_05_28_120000_create_self_service_token_pockets_table.php
+
+database/migrations/2026_05_28_120001_create_self_service_token_pocket_movements_table.php
+
+app/Models/SelfServiceTokenPocket.php
+
+app/Models/SelfServiceTokenPocketMovement.php
+
+app/Support/SelfServiceSales/SelfServiceTokenPocketService.php
+
+Archivo modificado:
+
+app/Support/SelfServiceSales/SelfServiceCheckoutService.php
+
+Validaciones realizadas:
+
+php -l sobre modelos y service nuevos.
+
+php -l sobre SelfServiceCheckoutService.
+
+php artisan optimize:clear.
+
+php artisan migrate.
+
+Tinker sobre cart_id = 21 / order_id = 52.
+
+Resultado validado:
+
+3 fichas acreditadas.
+
+unit_seconds_snapshot = 300.
+
+movement_type = purchase_credit.
+
+segunda ejecución idempotente sin duplicar saldo.
+
+Criterios vigentes:
+
+la ficha comprada se acredita en pocket.
+
+la ficha comprada no se consume al comprarla.
+
+la ficha consumida será otro corte.
+
+el pocket no reemplaza Inventory.
+
+el pocket no reemplaza Order.
+
+el pocket no reemplaza Document.
+
+el pocket no reemplaza Payment.
+
+el pocket no reemplaza PaymentAttempt.
+
+Pendientes directos:
+
+mostrar saldo disponible al customer externo.
+
+definir pantalla o lectura pública de pocket.
+
+definir recorrido QR.
+
+definir entidad o contrato de intento de consumo.
+
+definir gateway/controlador externo simulado.
+
+descontar pocket solo contra consumo confirmado.
+
+definir reversa o ajuste administrativo.
+
+evaluar lectura interna de pockets/movimientos desde Shop Profile.
+
+evaluar trazabilidad operativa si corresponde.
+
+No implementar todavía:
+
+QR funcional completo.
+
+hardware real.
+
+provider real de pago.
+
+Payment formal.
+
+PaymentAttempt formal.
+
+Document posterior.
+
+InventoryMovement posterior.
+
+descuento de stock global por venta.
+
+reversa automática.
+
+consumo sin confirmación externa.
+
+<<END SECTION>>
+
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
 SECTION_VERSION: 00020
 

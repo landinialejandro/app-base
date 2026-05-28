@@ -716,6 +716,85 @@ si una lectura contextual puede integrarse naturalmente al host mediante surface
 
 <<END SECTION>>
 
+<<SECTION: RECORRIDO FUNCIONAL — POCKET DE FICHAS>>
+SECTION_VERSION: 00001
+
+RECORRIDO FUNCIONAL — POCKET DE FICHAS
+
+Recorrido funcional vigente de acreditación de fichas:
+
+/shop/{tenant:slug}
+↓
+carrito persistente externo
+↓
+checkout backend real con provider externo simulado aprobado
+↓
+SelfServiceCart checked_out
+↓
+Order group = sale
+↓
+SelfServiceTokenPocket
+↓
+SelfServiceTokenPocketMovement purchase_credit
+
+Lectura:
+
+este recorrido pertenece al plano externo customer de self_service_sales.
+
+No abre navegación interna tenant.
+
+No crea navegación propia de Pocket.
+
+No crea módulo CRUD ordinario.
+
+No crea pantalla interna de administración de pockets en este corte.
+
+No crea recorrido QR.
+
+No crea consumo.
+
+No crea gateway de controlador externo.
+
+Reglas:
+
+carrito visible no equivale a pocket acreditado.
+
+checkout visible no equivale a pocket acreditado.
+
+provider visual aprobado no equivale por sí mismo a acreditación.
+
+la acreditación ocurre solo después del checkout aprobado y la formalización de Order según backend.
+
+pocket acreditado no equivale a ficha consumida.
+
+saldo visible futuro no deberá autorizar consumo por sí mismo.
+
+consumo futuro requerirá validación backend y frontera explícita con controlador o gateway correspondiente.
+
+Recorrido futuro pendiente:
+
+/shop/{tenant:slug}
+↓
+customer externo habilitado
+↓
+lectura de saldo/pocket
+↓
+QR de box o punto de consumo
+↓
+intento de consumo
+↓
+gateway/controlador externo
+↓
+confirmación
+↓
+descuento de pocket
+
+Regla:
+
+el recorrido futuro de consumo no queda implementado por la existencia del pocket.
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE LECTURA>>
 SECTION_VERSION: 00002
 

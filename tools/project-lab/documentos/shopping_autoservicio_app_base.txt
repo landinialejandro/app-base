@@ -981,6 +981,142 @@ Attachment is_image = true
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — POCKET DE FICHAS>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — POCKET DE FICHAS
+
+self_service_sales incorpora un primer corte mínimo de Pocket de fichas.
+
+Lectura vigente:
+
+cuando un checkout aprobado incluye un producto ficha lógica, la cantidad comprada se acredita en un pocket del customer externo.
+
+Flujo validado:
+
+SelfServiceCart checked_out
+↓
+Order group = sale formalizada por bridge vigente
+↓
+SelfServiceTokenPocket
+↓
+SelfServiceTokenPocketMovement movement_type = purchase_credit
+
+Entidades vigentes del corte:
+
+SelfServiceTokenPocket
+SelfServiceTokenPocketMovement
+
+Responsabilidad de SelfServiceTokenPocket:
+
+custodiar la cantidad disponible de fichas compradas por un customer externo para un producto ficha determinado dentro del tenant y relación customer-tienda correspondiente.
+
+Responsabilidad de SelfServiceTokenPocketMovement:
+
+registrar movimientos trazables del pocket.
+
+Movimiento implementado en este corte:
+
+purchase_credit
+
+Criterio técnico vigente de ficha lógica en este corte:
+
+Product.unit_label = ficha
+
+y
+
+ProductComponent asociado a un componentProduct de tipo service con unit_label = segundo.
+
+La duración de la ficha se conserva como snapshot:
+
+unit_seconds_snapshot
+
+Caso validado:
+
+LAV-FICHA acredita 3 fichas al pocket.
+
+unit_seconds_snapshot = 300.
+
+Regla de idempotencia vigente:
+
+la acreditación no debe duplicarse si se ejecuta más de una vez para el mismo cart item y producto.
+
+idempotency_key vigente:
+
+self_service_token_pocket:purchase_credit:cart:{cart_id}:item:{cart_item_id}:product:{product_id}
+
+Validación runtime consolidada:
+
+primera ejecución sobre cart_id = 21 / order_id = 52 acreditó 3 fichas.
+
+segunda ejecución no duplicó saldo ni creó un segundo movimiento.
+
+Reglas:
+
+la ficha comprada no se consume al comprarla.
+
+la ficha comprada se acredita en el pocket.
+
+el pocket no es InventoryMovement.
+
+el pocket no es Document.
+
+el pocket no es Payment.
+
+el pocket no es PaymentAttempt.
+
+el pocket no reemplaza Order.
+
+el pocket no reemplaza SelfServiceCart.
+
+el pocket no reemplaza ShopItem.
+
+la acreditación al pocket no implementa QR.
+
+la acreditación al pocket no implementa consumo.
+
+la acreditación al pocket no implementa gateway de controlador externo.
+
+la acreditación al pocket no mueve stock físico.
+
+la acreditación al pocket no crea Document.
+
+la acreditación al pocket no crea Payment ni PaymentAttempt.
+
+la acreditación al pocket no confirma pago real externo.
+
+la acreditación al pocket no implica operación comercial completa.
+
+Lectura doctrinal:
+
+producción genera disponibilidad de fichas.
+
+venta formalizada acredita fichas al customer externo.
+
+pocket custodia fichas compradas.
+
+consumo QR futuro deberá descontar fichas del pocket solo bajo contrato explícito y validación backend.
+
+Queda pendiente:
+
+lectura visual de saldo para customer externo
+recorrido QR
+intento de consumo
+gateway/controlador externo
+descuento de pocket por consumo confirmado
+reversa o ajuste
+relación futura con stock comprometible si se define
+relación futura con Payment formal si se implementa
+relación futura con Document si se define política documental
+
+Regla:
+
+el corte vigente cierra solo la acreditación post-checkout de fichas al pocket.
+
+No cierra consumo de fichas.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

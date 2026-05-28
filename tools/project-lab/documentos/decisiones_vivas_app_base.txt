@@ -1127,6 +1127,105 @@ las operaciones futuras requieren contrato específico, autorización externa ef
 
 <<END SECTION>>
 
+<<SECTION: DECISIÓN VIGENTE — POCKET DE FICHAS POST-CHECKOUT>>
+SECTION_VERSION: 00001
+
+DECISIÓN VIGENTE — POCKET DE FICHAS POST-CHECKOUT
+
+Decisión vigente implementada y validada:
+
+el checkout aprobado de una ficha lógica acredita la cantidad comprada en un pocket del customer externo.
+
+Flujo vigente:
+
+SelfServiceCart checked_out
+↓
+Order group = sale formalizada
+↓
+SelfServiceTokenPocket
+↓
+SelfServiceTokenPocketMovement purchase_credit
+
+Motivo:
+
+separar venta de consumo.
+
+La ficha comprada no se consume al comprarla.
+
+La ficha comprada queda disponible para uso posterior por el customer externo.
+
+El consumo por QR o controlador externo se resolverá en un corte futuro.
+
+Criterio vigente de ficha lógica en este corte:
+
+Product.unit_label = ficha
+
+y
+
+componente service/segundo asociado mediante ProductComponent.
+
+Snapshot vigente:
+
+unit_seconds_snapshot
+
+Caso validado:
+
+cart_id = 21
+order_id = 52
+product_id = 11
+sku = LAV-FICHA
+quantity_available = 3
+unit_seconds_snapshot = 300
+movement_type = purchase_credit
+
+Idempotencia validada:
+
+repetir la acreditación para el mismo cart item y producto no duplica saldo ni crea un segundo movimiento.
+
+Reglas:
+
+SelfServiceTokenPocket pertenece al plano externo customer de self_service_sales.
+
+No pertenece al panel interno como módulo CRUD ordinario.
+
+No administra shops.
+
+No administra Products.
+
+No administra Inventory.
+
+No administra Documents.
+
+No administra Payments.
+
+No implementa QR.
+
+No implementa consumo.
+
+No implementa controlador externo.
+
+No mueve stock físico.
+
+No crea Document.
+
+No crea Payment.
+
+No crea PaymentAttempt.
+
+No reemplaza la Order lógica interna.
+
+Queda pendiente:
+
+mostrar saldo al customer externo
+definir recorrido QR
+definir intento de consumo
+definir gateway/controlador externo
+definir descuento de pocket por consumo confirmado
+definir reversas o ajustes
+definir si el movimiento lógico de pocket tendrá lectura interna en shops o customer profile externo
+
+<<END SECTION>>
+
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
 SECTION_VERSION: 00003
 

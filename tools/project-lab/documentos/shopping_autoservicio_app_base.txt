@@ -1447,6 +1447,105 @@ el consumo confirmado simulado cierra el ciclo lógico interno de fichas dentro 
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
+
+self_service_sales y shops incorporan una lectura interna read-only de fichas en Shop Profile.
+
+Recorrido vigente validado:
+
+/shops/{shop}
+↓
+tab Fichas
+↓
+ShopTokenConsumptionSummaryService
+↓
+ShopItem
+↓
+Product
+↓
+SelfServiceTokenPocket / SelfServiceTokenConsumptionAttempt / SelfServiceTokenPocketMovement
+
+Lectura:
+
+Shop Profile puede mostrar información contextual interna de fichas cuando puede vincularla por productos configurados o publicados en esa tienda.
+
+El vínculo se resuelve mediante:
+
+Shop → ShopItem → Product → Pocket/Attempt/Movement por product_id.
+
+Entidad de lectura creada:
+
+ShopTokenConsumptionSummaryService
+
+Vista creada:
+
+shops.tabs.tokens
+
+Métricas validadas:
+
+pockets_count = 1
+
+available_quantity = 1
+
+pending_attempts_count = 1
+
+confirmed_attempts_count = 2
+
+purchase_credit_quantity = 3
+
+consumption_quantity = 2
+
+Reglas:
+
+la tab Fichas es solo lectura.
+
+shops muestra lectura contextual interna.
+
+self_service_sales conserva ownership de pockets, attempts y movements.
+
+Shop no administra pockets.
+
+Shop no administra attempts.
+
+Shop no administra movements.
+
+Shop no descuenta saldo.
+
+Shop no confirma attempts.
+
+Shop no crea movements.
+
+Shop no crea relación física con pockets.
+
+No existe shop_id en pockets, attempts ni movements.
+
+No debe agregarse shop_id para resolver esta lectura.
+
+La lectura no toca tienda pública.
+
+La lectura no toca checkout.
+
+La lectura no toca Orders.
+
+La lectura no toca Inventory.
+
+La lectura no toca Products.
+
+La lectura no toca Documents.
+
+La lectura no toca Payments.
+
+Frontera vigente:
+
+lectura interna de fichas = contexto operativo para owner/usuario interno autorizado.
+
+administración de saldo, reversa, ajuste o integración física = cortes futuros separados.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

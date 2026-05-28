@@ -1485,6 +1485,87 @@ lectura interna futura de attempts, pockets y movements si se decide.
 
 <<END SECTION>>
 
+<<SECTION: DECISIÓN VIGENTE — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
+SECTION_VERSION: 00001
+
+DECISIÓN VIGENTE — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
+
+Decisión vigente implementada y validada:
+
+/shops/{shop} incorpora una tab interna Fichas para mostrar pockets, attempts y movements vinculables contextualmente a los productos de esa tienda.
+
+Motivo:
+
+permitir al usuario interno autorizado auditar el ciclo lógico de fichas sin abrir acciones administrativas ni mezclar plano interno con tienda pública.
+
+Criterio de relación:
+
+Shop
+↓
+ShopItem
+↓
+Product
+↓
+SelfServiceTokenPocket / SelfServiceTokenConsumptionAttempt / SelfServiceTokenPocketMovement
+
+Reglas:
+
+la relación es contextual de lectura.
+
+No es relación física.
+
+No existe shop_id en pockets, attempts ni movements.
+
+No debe agregarse shop_id para resolver esta lectura.
+
+Shop muestra contexto.
+
+self_service_sales conserva ownership del ledger lógico de fichas.
+
+La tab Fichas no administra saldo.
+
+La tab Fichas no confirma attempts.
+
+La tab Fichas no crea movements.
+
+La tab Fichas no descuenta pocket.
+
+La tab Fichas no habilita reversas ni ajustes.
+
+Caso validado:
+
+Shop Cliente demo.
+
+pockets_count = 1.
+
+available_quantity = 1.
+
+pending_attempts_count = 1.
+
+confirmed_attempts_count = 2.
+
+purchase_credit_quantity = 3.
+
+consumption_quantity = 2.
+
+Validación visual browser:
+
+la tab Fichas se visualizó correctamente en /shops/{shop} con usuario interno autorizado.
+
+Queda pendiente:
+
+definir si habrá auditoría interna ampliada de attempts, pockets y movements.
+
+definir si habrá acciones administrativas futuras.
+
+definir seguridad específica para reversas o ajustes si se implementan.
+
+definir integración real con gateway/controlador externo.
+
+definir QR real de box o punto de consumo.
+
+<<END SECTION>>
+
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
 SECTION_VERSION: 00003
 

@@ -1068,6 +1068,99 @@ el recorrido futuro de integración física no queda implementado por la confirm
 
 <<END SECTION>>
 
+<<SECTION: RECORRIDO FUNCIONAL — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
+SECTION_VERSION: 00001
+
+RECORRIDO FUNCIONAL — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
+
+Recorrido funcional interno vigente:
+
+/shops/{shop}
+↓
+Shop Profile
+↓
+tab Fichas
+↓
+lectura contextual de pockets, attempts y movements
+↓
+métricas y tablas read-only
+
+Ruta vigente:
+
+shops.show
+
+Middleware vigente:
+
+web
+auth
+tenant
+
+Lectura:
+
+este recorrido pertenece al plano interno autorizado.
+
+No pertenece al plano externo customer.
+
+No usa sesión externa self_service_sales.
+
+No abre rutas públicas nuevas.
+
+No crea navegación propia de pockets.
+
+No crea navegación propia de attempts.
+
+No crea navegación propia de movements.
+
+No crea módulo CRUD ordinario.
+
+La navegación muestra contexto interno de fichas dentro del perfil de tienda.
+
+Reglas:
+
+tab Fichas no equivale a administración de saldo.
+
+tab Fichas no equivale a ownership de Shop sobre pockets.
+
+tab Fichas no autoriza reversas.
+
+tab Fichas no autoriza ajustes.
+
+tab Fichas no confirma attempts.
+
+tab Fichas no crea movements.
+
+tab Fichas no descuenta pocket.
+
+tab Fichas no expone tienda pública.
+
+tab Fichas no reemplaza self_service_sales.
+
+tab Fichas no reemplaza Products.
+
+tab Fichas no reemplaza Inventory.
+
+tab Fichas no reemplaza Orders.
+
+tab Fichas no reemplaza Documents.
+
+Recorrido futuro pendiente:
+
+/shops/{shop}
+↓
+tab Fichas
+↓
+lectura interna
+↓
+posible auditoría interna de attempts, pockets y movements
+↓
+posibles acciones administrativas futuras solo si se definen contrato, seguridad y validación backend
+
+Regla:
+
+las acciones futuras sobre fichas no quedan habilitadas por la existencia de esta tab.
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE LECTURA>>
 SECTION_VERSION: 00002
 

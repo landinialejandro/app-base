@@ -990,6 +990,137 @@ consumo físico sin respuesta confiable de controlador.
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
+
+Estado vigente:
+
+quinto corte mínimo implementado y validado.
+
+Cierre parcial consolidado:
+
+Shop Profile incorpora tab Fichas como lectura interna read-only de pockets, attempts y movements vinculables contextualmente por productos configurados o publicados en la tienda.
+
+Archivos creados:
+
+app/Support/Shops/ShopTokenConsumptionSummaryService.php
+
+resources/views/shops/tabs/tokens.blade.php
+
+Archivos modificados:
+
+app/Http/Controllers/ShopController.php
+
+resources/views/shops/show.blade.php
+
+Validaciones realizadas:
+
+git status inicial limpio.
+
+php -l sobre ShopTokenConsumptionSummaryService.
+
+php -l sobre ShopController.
+
+php -l sobre shops.show.
+
+php -l sobre shops.tabs.tokens.
+
+php artisan optimize:clear.
+
+route-list de shops.show.
+
+Tinker de ShopTokenConsumptionSummaryService.
+
+Validación visual browser realizada por usuario.
+
+Resultado validado:
+
+/shops/{shop} muestra tab Fichas.
+
+La tab muestra métricas, pockets, attempts y movements.
+
+La lectura usa ShopItem → Product → Pocket/Attempt/Movement.
+
+No se agregó shop_id.
+
+No se creó relación física Shop-Pocket.
+
+No se modificó saldo.
+
+No se crearon movements.
+
+No se confirmaron attempts.
+
+No se tocaron rutas públicas.
+
+No se tocó tienda pública.
+
+No se tocó checkout.
+
+No se tocó Inventory.
+
+No se tocó Orders.
+
+No se tocó Products.
+
+No se tocó Documents.
+
+No se tocó Payments.
+
+Métricas runtime validadas:
+
+pockets_count = 1.
+
+available_quantity = 1.
+
+pending_attempts_count = 1.
+
+confirmed_attempts_count = 2.
+
+purchase_credit_quantity = 3.
+
+consumption_quantity = 2.
+
+Pendientes directos:
+
+cierre documental del corte.
+
+definir si habrá auditoría interna ampliada de attempts, pockets y movements.
+
+definir si habrá acciones administrativas futuras sobre fichas.
+
+definir reversa o ajuste administrativo si corresponde.
+
+definir QR real de box o punto de consumo.
+
+definir gateway/controlador externo real o simulado por interface reemplazable.
+
+No implementar todavía:
+
+hardware real.
+
+gateway real.
+
+reversa.
+
+ajuste manual.
+
+cancelación administrativa de attempts.
+
+confirmación interna desde Shop Profile.
+
+Payment formal.
+
+PaymentAttempt formal.
+
+Document posterior.
+
+InventoryMovement posterior.
+
+<<END SECTION>>
+
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
 SECTION_VERSION: 00020
 

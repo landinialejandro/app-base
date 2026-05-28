@@ -1772,6 +1772,69 @@ QR público por punto no equivale a hardware habilitado.
 
 QR público por punto no equivale a descuento de fichas.
 
+NORMALIZACIÓN SEMÁNTICA VIGENTE
+
+Lectura vigente:
+
+attempt pending conserva:
+
+meta.stage = pending_attempt
+meta.consumes_balance = false
+meta.calls_external_controller = false
+
+attempt confirmed por confirmación simulada conserva:
+
+meta.stage = simulated_confirmed
+meta.consumes_balance = true
+meta.calls_external_controller = false
+
+Cuando el attempt está asociado a ShopConsumptionPoint, conserva además:
+
+meta.consumption_point_id
+meta.consumption_point_label
+
+Reglas:
+
+consumes_balance = true en attempt confirmed significa consumo lógico del pocket dentro de app-base.
+
+No significa hardware activado.
+
+No significa gateway real.
+
+No significa controlador externo real.
+
+calls_external_controller = false mantiene explícita la ausencia de hardware o gateway real.
+
+El descuento operativo sigue representado por SelfServiceTokenPocketMovement movement_type = consumption.
+
+La metadata acompaña trazabilidad y lectura semántica.
+
+No reemplaza al movement.
+
+No reemplaza al balance del pocket.
+
+No reemplaza validación backend.
+
+Caso validado:
+
+attempt id = 6
+status = confirmed
+source_type = App\Models\ShopConsumptionPoint
+source_id = 1
+meta.stage = simulated_confirmed
+meta.consumes_balance = true
+meta.calls_external_controller = false
+meta.consumption_point_id = 1
+meta.consumption_point_label = Box 1
+
+pocket quantity_available = 0.00
+
+consumption_movements_count = 3
+
+No se creó movement adicional.
+
+No se descontó pocket adicionalmente.
+
 <<END SECTION>>
 
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>

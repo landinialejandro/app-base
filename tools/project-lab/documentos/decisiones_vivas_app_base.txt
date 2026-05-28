@@ -1740,6 +1740,36 @@ definir lectura interna de attempts y movements por punto.
 
 definir tratamiento de punto inactivo con attempts pendientes.
 
+Decisión vigente adicional:
+
+la metadata de attempts confirmados por consumo simulado debe distinguir intención pendiente de consumo lógico confirmado.
+
+Reglas:
+
+attempt pending:
+
+consumes_balance = false
+
+attempt confirmed:
+
+consumes_balance = true
+
+attempt confirmed:
+
+calls_external_controller = false mientras no exista hardware, gateway o controlador externo real.
+
+Motivo:
+
+evitar que futuras auditorías, lecturas internas o IA interpreten un consumo confirmado como intento que no consumió saldo.
+
+La fuente operativa del descuento sigue siendo SelfServiceTokenPocketMovement movement_type = consumption.
+
+No se debe usar la metadata como sustituto del movement ni del balance.
+
+Caso validado:
+
+attempt #6 asociado a Box 1 normalizó meta sin crear movement adicional y sin descontar nuevamente.
+
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>

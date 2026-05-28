@@ -1383,6 +1383,45 @@ Document posterior.
 
 InventoryMovement posterior.
 
+Cierre menor consolidado:
+
+normalización semántica de metadata de consumo simulado.
+
+Archivo modificado:
+
+app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php
+
+Resultado:
+
+attempt confirmed ahora queda con:
+
+meta.stage = simulated_confirmed
+meta.consumes_balance = true
+meta.calls_external_controller = false
+
+Cuando corresponde, conserva:
+
+meta.consumption_point_id
+meta.consumption_point_label
+
+Validación:
+
+attempt id = 6 normalizado.
+
+pocket quantity_available permaneció en 0.00.
+
+consumption_movements_count permaneció en 3.
+
+no se creó movement adicional.
+
+no se descontó nuevamente.
+
+no se hizo backfill histórico.
+
+no se implementó hardware real.
+
+no se implementó gateway real.
+
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/shop.blade.php | V14 --}}
+{{-- FILE: resources/views/self-service-sales/shop.blade.php | V15 --}}
 
 @php
     $publicPage = true;
@@ -23,6 +23,7 @@
         $shopItems = $shopItems ?? collect();
         $shopCatalogStatus = $shopCatalogStatus ?? 'without_active_shop';
         $cartExperienceEnabled = $cartExperienceEnabled ?? false;
+        $tokenPockets = $tokenPockets ?? [];
     @endphp
 
     <x-page>
@@ -46,6 +47,7 @@
                 @include('self-service-sales.partials.customer-status', [
                     'tenant' => $tenant,
                     'externalCustomer' => $externalCustomer,
+                    'tokenPockets' => $tokenPockets,
                 ])
 
                 @include('self-service-sales.partials.product-masonry', [

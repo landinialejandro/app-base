@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V6
+// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Support\SelfServiceSales\SelfServiceCustomerConfirmer;
 use App\Support\SelfServiceSales\SelfServiceCustomerRegistrar;
 use App\Support\SelfServiceSales\SelfServiceExternalSession;
+use App\Support\SelfServiceSales\SelfServiceTokenPocketService;
 use App\Support\Shops\ShopPublishedCatalogReader;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -20,9 +21,11 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
     public function shop(
         Request $request,
         Tenant $tenant,
-        ShopPublishedCatalogReader $shopCatalogReader
+        ShopPublishedCatalogReader $shopCatalogReader,
+        SelfServiceTokenPocketService $tokenPockets
     ) {
         $externalCustomer = null;
+        $tokenPocketSummary = [];
         $activeShop = $shopCatalogReader->activeShopForTenant($tenant);
         $shopItems = $activeShop
             ? $shopCatalogReader->visibleItemsForShop($activeShop)
@@ -54,6 +57,13 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
                 'can_operate' => $payload['can_operate'] === true,
             ];
 
+            if ($storeCustomer->isActive() && $account?->isActive()) {
+                $tokenPocketSummary = $tokenPockets->summaryForExternalCustomer(
+                    tenantId: (string) $tenant->id,
+                    accountId: (int) $account->id,
+                    storeCustomerId: (int) $storeCustomer->id,
+                );
+            }
         }
 
         $cartExperienceEnabled = (bool) ($externalCustomer['can_operate'] ?? false);
@@ -65,6 +75,7 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
             'shopItems' => $shopItems,
             'shopCatalogStatus' => $shopCatalogStatus,
             'cartExperienceEnabled' => $cartExperienceEnabled,
+            'tokenPockets' => $tokenPocketSummary,
         ]);
     }
 

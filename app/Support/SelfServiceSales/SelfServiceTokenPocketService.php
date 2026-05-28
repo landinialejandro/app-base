@@ -19,6 +19,46 @@ use InvalidArgumentException;
 
 class SelfServiceTokenPocketService
 {
+    public function summaryForExternalCustomer(string $tenantId, int $accountId, int $storeCustomerId): array
+    {
+        return SelfServiceTokenPocket::query()
+            ->with('product')
+            ->where('tenant_id', $tenantId)
+            ->where('self_service_customer_account_id', $accountId)
+            ->where('self_service_store_customer_id', $storeCustomerId)
+            ->where('status', SelfServiceTokenPocket::STATUS_ACTIVE)
+            ->orderBy('product_id')
+            ->get()
+            ->map(function (SelfServiceTokenPocket $pocket): array {
+                $quantity = $this->normalizeNumber((float) $pocket->quantity_available);
+                $unitSeconds = $pocket->unit_seconds_snapshot;
+                $totalSeconds = $unitSeconds !== null
+                    ? $this->normalizeNumber((float) $pocket->quantity_available * (int) $unitSeconds)
+                    : null;
+                $totalMinutes = $totalSeconds !== null
+                    ? $this->normalizeNumber((float) $totalSeconds / 60)
+                    : null;
+
+                return [
+                    'product_id' => $pocket->product_id,
+                    'sku' => $pocket->product?->sku,
+                    'name' => $pocket->product?->name ?: 'Ficha',
+                    'quantity_available' => $quantity,
+                    'unit_label' => $pocket->unit_label_snapshot,
+                    'unit_seconds' => $unitSeconds,
+                    'total_seconds' => $totalSeconds,
+                    'total_minutes' => $totalMinutes,
+                    'summary_label' => $this->summaryLabel(
+                        quantity: $quantity,
+                        unitLabel: $pocket->unit_label_snapshot,
+                        totalMinutes: $totalMinutes,
+                    ),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
     public function creditFromCheckout(SelfServiceCart $cart, Order $order): array
     {
         return DB::transaction(function () use ($cart, $order): array {
@@ -206,5 +246,41 @@ class SelfServiceTokenPocketService
             $cartItem->id,
             $cartItem->product_id,
         );
+    }
+
+    private function summaryLabel(int|float $quantity, ?string $unitLabel, int|float|null $totalMinutes): string
+    {
+        $unit = $unitLabel ?: 'ficha';
+        $availableLabel = $quantity === 1 ? 'disponible' : 'disponibles';
+        $label = sprintf('%s %s %s', $this->formatNumber($quantity), $this->pluralizeUnit($unit, $quantity), $availableLabel);
+
+        if ($totalMinutes !== null) {
+            $label .= sprintf(' · %s min', $this->formatNumber($totalMinutes));
+        }
+
+        return $label;
+    }
+
+    private function normalizeNumber(float $value): int|float
+    {
+        return floor($value) === $value ? (int) $value : $value;
+    }
+
+    private function formatNumber(int|float $value): string
+    {
+        if (is_int($value) || floor($value) === $value) {
+            return (string) (int) $value;
+        }
+
+        return rtrim(rtrim(number_format($value, 2, ',', '.'), '0'), ',');
+    }
+
+    private function pluralizeUnit(string $unitLabel, int|float $quantity): string
+    {
+        if ($quantity === 1) {
+            return $unitLabel;
+        }
+
+        return str_ends_with($unitLabel, 's') ? $unitLabel : $unitLabel.'s';
     }
 }

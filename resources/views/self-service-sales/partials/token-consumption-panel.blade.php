@@ -1,7 +1,8 @@
-{{-- FILE: resources/views/self-service-sales/partials/token-consumption-panel.blade.php | V2 --}}
+{{-- FILE: resources/views/self-service-sales/partials/token-consumption-panel.blade.php | V3 --}}
 
 @php
     $tokenPockets = $tokenPockets ?? [];
+    $consumptionPointContext = $consumptionPointContext ?? null;
 @endphp
 
 <aside class="shop-drawer" data-token-consumption-panel hidden>
@@ -18,6 +19,22 @@
 
         <div class="shop-checkout__body">
             @if($externalCustomer && ! empty($tokenPockets))
+                @if($consumptionPointContext)
+                    <div class="shop-cart__total">
+                        <span>Punto de consumo</span>
+                        <strong>
+                            {{ $consumptionPointContext['name'] }}
+                            @if(! empty($consumptionPointContext['code']))
+                                · {{ $consumptionPointContext['code'] }}
+                            @endif
+                        </strong>
+                    </div>
+
+                    <p>
+                        Este QR identifica el punto de consumo. El intento queda asociado a este punto.
+                    </p>
+                @endif
+
                 <div class="shop-cart__total">
                     <span>Saldo disponible</span>
                     <strong data-token-consumption-balance>{{ $tokenPockets[0]['summary_label'] }}</strong>

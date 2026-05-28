@@ -1,4 +1,4 @@
-// FILE: public/js/self-service-sales-shop.js | V6
+// FILE: public/js/self-service-sales-shop.js | V7
 
 (function () {
     const root = document.querySelector('[data-shop-app]');
@@ -25,6 +25,8 @@
     const cartClearUrl = root.dataset.cartClearUrl;
     const checkoutUrl = root.dataset.checkoutUrl;
     const tokenConsumptionAttemptUrl = root.dataset.tokenConsumptionAttemptUrl;
+    const tokenConsumptionPointId = root.dataset.tokenConsumptionPointId || '';
+    const tokenConsumptionAutoOpen = root.dataset.tokenConsumptionAutoOpen === 'true';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
     const productModal = document.querySelector('[data-product-modal]');
@@ -476,6 +478,7 @@
                 body: JSON.stringify({
                     pocket_id: Number(option.value),
                     quantity,
+                    consumption_point_id: tokenConsumptionPointId || null,
                 }),
             });
 
@@ -692,4 +695,8 @@
 
     renderCart();
     loadCart();
+
+    if (tokenConsumptionAutoOpen) {
+        openTokenConsumption();
+    }
 })();

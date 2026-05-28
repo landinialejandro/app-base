@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceTokenConsumptionAttemptController.php | V2
+// FILE: app/Http/Controllers/SelfServiceTokenConsumptionAttemptController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -46,6 +46,7 @@ class SelfServiceTokenConsumptionAttemptController extends Controller
         $validator = Validator::make($request->all(), [
             'pocket_id' => ['required', 'integer'],
             'quantity' => ['required', 'numeric', 'gt:0'],
+            'consumption_point_id' => ['nullable', 'integer'],
         ]);
 
         if ($validator->fails()) {
@@ -64,6 +65,9 @@ class SelfServiceTokenConsumptionAttemptController extends Controller
                 storeCustomerId: (int) $storeCustomer->id,
                 pocketId: (int) $data['pocket_id'],
                 quantity: (float) $data['quantity'],
+                consumptionPointId: isset($data['consumption_point_id'])
+                    ? (int) $data['consumption_point_id']
+                    : null,
             );
         } catch (HttpExceptionInterface $exception) {
             return response()->json([

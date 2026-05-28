@@ -1,12 +1,15 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php | V2
+// FILE: app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php | V3
 
 namespace App\Support\SelfServiceSales;
 
 use App\Models\SelfServiceTokenConsumptionAttempt;
 use App\Models\SelfServiceTokenPocket;
 use App\Models\SelfServiceTokenPocketMovement;
+use App\Models\Shop;
+use App\Models\ShopConsumptionPoint;
+use App\Models\ShopItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -16,6 +19,7 @@ class SelfServiceTokenConsumptionAttemptService
     public const MESSAGE_INVALID_QUANTITY = 'La cantidad solicitada no es válida.';
     public const MESSAGE_NOT_AVAILABLE = 'No hay fichas disponibles para la cantidad solicitada.';
     public const MESSAGE_ATTEMPT_NOT_CONFIRMABLE = 'El intento de consumo no puede confirmarse.';
+    public const MESSAGE_CONSUMPTION_POINT_NOT_AVAILABLE = 'El punto de consumo no está disponible.';
 
     public function createPendingAttempt(
         string $tenantId,
@@ -23,8 +27,9 @@ class SelfServiceTokenConsumptionAttemptService
         int $storeCustomerId,
         int $pocketId,
         int|float $quantity,
+        ?int $consumptionPointId = null,
     ): SelfServiceTokenConsumptionAttempt {
-        return DB::transaction(function () use ($tenantId, $accountId, $storeCustomerId, $pocketId, $quantity): SelfServiceTokenConsumptionAttempt {
+        return DB::transaction(function () use ($tenantId, $accountId, $storeCustomerId, $pocketId, $quantity, $consumptionPointId): SelfServiceTokenConsumptionAttempt {
             $quantity = (float) $quantity;
 
             if ($quantity <= 0) {
@@ -48,12 +53,31 @@ class SelfServiceTokenConsumptionAttemptService
                 throw new HttpException(422, self::MESSAGE_NOT_AVAILABLE);
             }
 
+            $consumptionPoint = $consumptionPointId !== null
+                ? $this->availableConsumptionPointForPocket($tenantId, $consumptionPointId, $pocket)
+                : null;
+
             $unitSeconds = $pocket->unit_seconds_snapshot !== null
                 ? (int) $pocket->unit_seconds_snapshot
                 : null;
             $totalSeconds = $unitSeconds !== null
                 ? (int) round($quantity * $unitSeconds)
                 : null;
+            $requestPayload = [
+                'quantity' => $quantity,
+            ];
+            $meta = [
+                'stage' => 'pending_attempt',
+                'consumes_balance' => false,
+                'calls_external_controller' => false,
+            ];
+
+            if ($consumptionPoint instanceof ShopConsumptionPoint) {
+                $requestPayload['consumption_point_id'] = $consumptionPoint->id;
+                $requestPayload['consumption_point_label'] = $consumptionPoint->displayName();
+                $meta['consumption_point_id'] = $consumptionPoint->id;
+                $meta['consumption_point_label'] = $consumptionPoint->displayName();
+            }
 
             return SelfServiceTokenConsumptionAttempt::query()->create([
                 'tenant_id' => $tenantId,
@@ -66,18 +90,16 @@ class SelfServiceTokenConsumptionAttemptService
                 'unit_seconds_snapshot' => $unitSeconds,
                 'total_seconds' => $totalSeconds,
                 'status' => SelfServiceTokenConsumptionAttempt::STATUS_PENDING,
-                'source_type' => 'self_service_sales.token_consumption',
-                'source_id' => $pocket->id,
+                'source_type' => $consumptionPoint instanceof ShopConsumptionPoint
+                    ? ShopConsumptionPoint::class
+                    : 'self_service_sales.token_consumption',
+                'source_id' => $consumptionPoint instanceof ShopConsumptionPoint
+                    ? $consumptionPoint->id
+                    : $pocket->id,
                 'idempotency_key' => (string) Str::uuid(),
-                'request_payload' => [
-                    'quantity' => $quantity,
-                ],
+                'request_payload' => $requestPayload,
                 'response_payload' => null,
-                'meta' => [
-                    'stage' => 'pending_attempt',
-                    'consumes_balance' => false,
-                    'calls_external_controller' => false,
-                ],
+                'meta' => $meta,
             ]);
         });
     }
@@ -163,6 +185,9 @@ class SelfServiceTokenConsumptionAttemptService
                     'simulated' => true,
                     'attempt_id' => $attempt->id,
                     'total_seconds' => $attempt->total_seconds,
+                    'consumption_point_id' => $attempt->source_type === ShopConsumptionPoint::class
+                        ? $attempt->source_id
+                        : null,
                 ],
             ]);
 
@@ -202,5 +227,41 @@ class SelfServiceTokenConsumptionAttemptService
             $attempt->self_service_token_pocket_id,
             $attempt->product_id,
         );
+    }
+
+    private function availableConsumptionPointForPocket(
+        string $tenantId,
+        int $consumptionPointId,
+        SelfServiceTokenPocket $pocket,
+    ): ShopConsumptionPoint {
+        $point = ShopConsumptionPoint::query()
+            ->whereKey($consumptionPointId)
+            ->where('tenant_id', $tenantId)
+            ->with('shop')
+            ->first();
+
+        if (
+            ! $point instanceof ShopConsumptionPoint
+            || ! $point->isActive()
+            || ! $point->shop instanceof Shop
+            || (string) $point->shop->tenant_id !== $tenantId
+            || ! $point->shop->isActive()
+        ) {
+            throw new HttpException(422, self::MESSAGE_CONSUMPTION_POINT_NOT_AVAILABLE);
+        }
+
+        $publishedForPointShop = ShopItem::query()
+            ->where('tenant_id', $tenantId)
+            ->where('self_service_shop_id', $point->self_service_shop_id)
+            ->where('product_id', $pocket->product_id)
+            ->where('status', ShopItem::STATUS_PUBLISHED)
+            ->where('is_visible', true)
+            ->exists();
+
+        if (! $publishedForPointShop) {
+            throw new HttpException(422, self::MESSAGE_CONSUMPTION_POINT_NOT_AVAILABLE);
+        }
+
+        return $point;
     }
 }

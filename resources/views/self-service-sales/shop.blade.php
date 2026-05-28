@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/shop.blade.php | V16 --}}
+{{-- FILE: resources/views/self-service-sales/shop.blade.php | V17 --}}
 
 @php
     $publicPage = true;
@@ -24,6 +24,7 @@
         $shopCatalogStatus = $shopCatalogStatus ?? 'without_active_shop';
         $cartExperienceEnabled = $cartExperienceEnabled ?? false;
         $tokenPockets = $tokenPockets ?? [];
+        $consumptionPointContext = $consumptionPointContext ?? null;
     @endphp
 
     <x-page>
@@ -37,6 +38,9 @@
             data-cart-clear-url="{{ route('self_service_sales.cart.clear', ['tenant' => $tenant]) }}"
             data-checkout-url="{{ route('self_service_sales.checkout.process', ['tenant' => $tenant]) }}"
             data-token-consumption-attempt-url="{{ route('self_service_sales.token_consumption_attempts.store', ['tenant' => $tenant]) }}"
+            data-token-consumption-point-id="{{ $consumptionPointContext['id'] ?? '' }}"
+            data-token-consumption-point-name="{{ $consumptionPointContext['name'] ?? '' }}"
+            data-token-consumption-auto-open="{{ $consumptionPointContext ? 'true' : 'false' }}"
         >
             @include('self-service-sales.partials.shop-header', [
                 'tenant' => $tenant,
@@ -65,6 +69,7 @@
             @include('self-service-sales.partials.token-consumption-panel', [
                 'externalCustomer' => $externalCustomer,
                 'tokenPockets' => $tokenPockets,
+                'consumptionPointContext' => $consumptionPointContext,
             ])
             @include('self-service-sales.partials.not-implemented-modal')
             @include('self-service-sales.partials.bottom-nav', [

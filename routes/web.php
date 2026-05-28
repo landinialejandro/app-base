@@ -27,6 +27,7 @@ use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SelfServiceCustomerIdentityCompletionController;
 use App\Http\Controllers\SelfServiceSalesAccessController;
 use App\Http\Controllers\SelfServiceSalesCartController;
+use App\Http\Controllers\SelfServiceSalesConsumptionPointController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
 use App\Http\Controllers\SelfServiceSalesProductImageController;
 use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
@@ -179,6 +180,8 @@ Route::prefix('shop/{tenant:slug}')
     ->group(function () {
         Route::get('/', [SelfServiceSalesCustomerRegistrationController::class, 'shop'])
             ->name('shop');
+        Route::get('/consume/{publicToken}', [SelfServiceSalesConsumptionPointController::class, 'show'])
+            ->name('consumption_points.show');
         Route::get('/products/{product}/images/{attachment}', [SelfServiceSalesProductImageController::class, 'show'])
             ->name('product_images.show');
         Route::get('/register', [SelfServiceSalesCustomerRegistrationController::class, 'create'])

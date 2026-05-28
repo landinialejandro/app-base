@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/shops/show.blade.php | V3 --}}
+{{-- FILE: resources/views/shops/show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -13,6 +13,8 @@
         $items = $shop->items ?? collect();
         $selfServiceCarts = $selfServiceCarts ?? collect();
         $selfServiceOrders = $selfServiceOrders ?? collect();
+        $tokenConsumptionSummary = $tokenConsumptionSummary ?? [];
+        $tokenConsumptionMetrics = $tokenConsumptionSummary['metrics'] ?? [];
         $commercialConfig = $commercialConfig ?? [];
         $openingStatus = $openingStatus ?? [];
 
@@ -62,6 +64,19 @@
                     'shop' => $shop,
                     'selfServiceCarts' => $selfServiceCarts,
                     'trailQuery' => $trailQuery,
+                ],
+            ],
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'tokens',
+                'label' => 'Fichas',
+                'priority' => 18,
+                'count' => (int) ($tokenConsumptionMetrics['pockets_count'] ?? 0),
+                'view' => 'shops.tabs.tokens',
+                'data' => [
+                    'shop' => $shop,
+                    'tokenConsumptionSummary' => $tokenConsumptionSummary,
                 ],
             ],
             [

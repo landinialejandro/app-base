@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/ShopController.php | V3
+// FILE: app/Http/Controllers/ShopController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -19,6 +19,7 @@ use App\Support\Catalogs\OrderCatalog;
 use App\Support\Shops\ShopItemCommercialPolicyResolver;
 use App\Support\Shops\ShopPublishedCatalogReader;
 use App\Support\Shops\ShopPublisher;
+use App\Support\Shops\ShopTokenConsumptionSummaryService;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\ShopNavigationTrail;
 use Illuminate\Http\RedirectResponse;
@@ -175,6 +176,8 @@ class ShopController extends Controller
             ->limit(20)
             ->get();
 
+        $tokenConsumptionSummary = app(ShopTokenConsumptionSummaryService::class)->forShop($shop);
+
         $navigationTrail = ShopNavigationTrail::show(
             $request,
             $shop,
@@ -189,6 +192,7 @@ class ShopController extends Controller
             'canDeleteShop' => $request->user()?->can('delete', $shop) === true,
             'selfServiceCarts' => $selfServiceCarts,
             'selfServiceOrders' => $selfServiceOrders,
+            'tokenConsumptionSummary' => $tokenConsumptionSummary,
             'commercialConfig' => $commercialConfig,
             'openingStatus' => $openingStatus,
             'navigationTrail' => $navigationTrail,

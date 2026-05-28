@@ -1630,6 +1630,77 @@ intención de consumo, consumo confirmado y habilitación física no deben compr
 
 <<END SECTION>>
 
+<<SECTION: RELACIÓN CONCEPTUAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS>>
+SECTION_VERSION: 00001
+
+RELACIÓN CONCEPTUAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS
+
+Relación conceptual vigente para consumo confirmado simulado:
+
+Tenant
+↓
+SelfServiceCustomerAccount
+↓
+SelfServiceStoreCustomer
+↓
+SelfServiceTokenPocket
+↓
+SelfServiceTokenConsumptionAttempt
+↓
+SelfServiceTokenPocketMovement movement_type = consumption
+↓
+Product
+
+Lectura:
+
+SelfServiceTokenConsumptionAttempt conserva la intención de uso y su estado.
+
+SelfServiceTokenPocketMovement registra el movimiento lógico efectivo del pocket.
+
+movement_type = consumption representa consumo lógico confirmado dentro de app-base.
+
+El descuento del pocket se registra en quantity_available y balance_after.
+
+Reglas:
+
+SelfServiceTokenPocketMovement consumption no reemplaza InventoryMovement.
+
+SelfServiceTokenPocketMovement consumption no reemplaza Document.
+
+SelfServiceTokenPocketMovement consumption no reemplaza Payment.
+
+SelfServiceTokenPocketMovement consumption no reemplaza PaymentAttempt.
+
+SelfServiceTokenPocketMovement consumption no reemplaza Order.
+
+SelfServiceTokenPocketMovement consumption no reemplaza Product.
+
+SelfServiceTokenPocketMovement consumption no mueve stock físico.
+
+SelfServiceTokenPocketMovement consumption no habilita hardware real por sí mismo.
+
+SelfServiceTokenConsumptionAttempt confirmed no equivale a confirmación de controlador externo real.
+
+Momentos conceptuales separados:
+
+producción genera disponibilidad.
+
+venta acredita fichas al pocket.
+
+saldo visible informa disponibilidad.
+
+attempt pending registra intención de uso.
+
+confirmación simulada descuenta pocket dentro de app-base.
+
+gateway/controlador real futuro habilitará operación física si corresponde.
+
+Regla:
+
+consumo lógico interno, confirmación externa real y habilitación física no deben comprimirse en una única entidad.
+
+<<END SECTION>>
+
 <<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
 SECTION_VERSION: 00003
 

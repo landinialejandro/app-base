@@ -975,6 +975,99 @@ el recorrido futuro de consumo confirmado no queda implementado por la existenci
 
 <<END SECTION>>
 
+<<SECTION: RECORRIDO FUNCIONAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS>>
+SECTION_VERSION: 00001
+
+RECORRIDO FUNCIONAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS
+
+Recorrido funcional vigente:
+
+/shop/{tenant:slug}
+↓
+customer externo activo
+↓
+saldo visible del pocket
+↓
+Escanear QR
+↓
+panel Usar fichas
+↓
+registrar attempt pending
+↓
+confirmar consumo simulado
+↓
+POST /shop/{tenant:slug}/token-consumption-attempts/{attempt}/confirm-simulated
+↓
+SelfServiceTokenConsumptionAttempt confirmed
+↓
+SelfServiceTokenPocketMovement consumption
+↓
+descuento de pocket
+
+Ruta vigente:
+
+self_service_sales.token_consumption_attempts.confirm_simulated
+
+Lectura:
+
+este recorrido pertenece al plano externo customer de self_service_sales.
+
+No abre navegación interna tenant.
+
+No crea navegación propia de consumption.
+
+No crea módulo CRUD ordinario.
+
+No crea pantalla interna de administración de consumos.
+
+No crea hardware real.
+
+No crea gateway real.
+
+No crea controlador externo real.
+
+Reglas:
+
+botón visible no equivale a consumo.
+
+panel visible no equivale a consumo.
+
+attempt pending no equivale a consumo.
+
+solo confirmación backend descuenta pocket.
+
+consumo confirmado simulado no equivale a QR real de box.
+
+consumo confirmado simulado no equivale a habilitación física.
+
+consumo confirmado simulado no equivale a operación con controlador externo real.
+
+Recorrido futuro pendiente:
+
+/shop/{tenant:slug}
+↓
+customer externo habilitado
+↓
+QR real de box o punto de consumo
+↓
+attempt pending
+↓
+gateway/controlador externo
+↓
+confirmación confiable externa
+↓
+movement consumption
+↓
+descuento de pocket
+↓
+respuesta operativa del controlador
+
+Regla:
+
+el recorrido futuro de integración física no queda implementado por la confirmación simulada.
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE LECTURA>>
 SECTION_VERSION: 00002
 

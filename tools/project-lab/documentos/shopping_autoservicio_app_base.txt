@@ -1336,6 +1336,117 @@ SelfServiceTokenConsumptionAttempt no equivale a habilitación de box.
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — CONSUMO CONFIRMADO SIMULADO DE FICHAS>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — CONSUMO CONFIRMADO SIMULADO DE FICHAS
+
+self_service_sales incorpora confirmación simulada backend de consumo de fichas.
+
+Recorrido vigente validado:
+
+SelfServiceTokenConsumptionAttempt pending
+↓
+confirmación simulada backend
+↓
+SelfServiceTokenPocketMovement movement_type = consumption
+↓
+descuento de SelfServiceTokenPocket.quantity_available
+↓
+SelfServiceTokenConsumptionAttempt status = confirmed
+
+Ruta vigente:
+
+self_service_sales.token_consumption_attempts.confirm_simulated
+
+Endpoint vigente:
+
+POST /shop/{tenant:slug}/token-consumption-attempts/{attempt}/confirm-simulated
+
+Controller vigente:
+
+SelfServiceTokenConsumptionAttemptController@confirm
+
+Middleware vigente:
+
+web
+
+self_service_external_customer
+
+Caso validado:
+
+attempt id = 1
+
+status = confirmed
+
+quantity = 1
+
+unit_seconds_snapshot = 300
+
+total_seconds = 300
+
+pocket quantity_available pasa de 3 a 2
+
+movement_type = consumption
+
+balance_after = 2
+
+Idempotencia validada:
+
+repetir confirmación del mismo attempt no descuenta nuevamente.
+
+consumption_movements_count permanece en 1.
+
+Reglas:
+
+solo un attempt confirmado por backend puede descontar pocket.
+
+attempt pending no consume.
+
+confirmación simulada consume lógicamente dentro de app-base.
+
+confirmación simulada no equivale a hardware real.
+
+confirmación simulada no equivale a gateway real.
+
+confirmación simulada no equivale a controlador externo real.
+
+confirmación simulada no equivale a QR real de box.
+
+movement consumption no es InventoryMovement.
+
+movement consumption no crea Document.
+
+movement consumption no crea Payment.
+
+movement consumption no crea PaymentAttempt.
+
+movement consumption no modifica Orders.
+
+movement consumption no modifica Products.
+
+movement consumption no modifica Inventory.
+
+Lectura doctrinal:
+
+purchase_credit acredita fichas compradas.
+
+attempt pending registra intención de uso.
+
+confirmación simulada convierte intención en consumo lógico confirmado.
+
+movement consumption descuenta el pocket.
+
+gateway/controlador real queda pendiente.
+
+hardware real queda pendiente.
+
+Regla:
+
+el consumo confirmado simulado cierra el ciclo lógico interno de fichas dentro de app-base, pero no cierra integración física con lavadero.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

@@ -869,6 +869,127 @@ movement consumption sin confirmación.
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — CONSUMO CONFIRMADO SIMULADO DE FICHAS>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — CONSUMO CONFIRMADO SIMULADO DE FICHAS
+
+Estado vigente:
+
+cuarto corte mínimo implementado y validado.
+
+Cierre parcial consolidado:
+
+un SelfServiceTokenConsumptionAttempt pending puede confirmarse de forma simulada por backend.
+
+La confirmación simulada crea movement consumption, descuenta el pocket y marca el attempt como confirmed.
+
+Archivos modificados:
+
+app/Http/Controllers/SelfServiceTokenConsumptionAttemptController.php
+
+app/Models/SelfServiceTokenPocketMovement.php
+
+app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php
+
+public/js/self-service-sales-shop.js
+
+resources/views/self-service-sales/partials/token-consumption-panel.blade.php
+
+routes/web.php
+
+Ruta creada:
+
+self_service_sales.token_consumption_attempts.confirm_simulated
+
+Endpoint:
+
+POST /shop/{tenant:slug}/token-consumption-attempts/{attempt}/confirm-simulated
+
+Validaciones realizadas:
+
+git status inicial limpio.
+
+php -l sobre modelo, service, controller, Blade y JS modificados.
+
+node --check sobre self-service-sales-shop.js.
+
+php artisan optimize:clear.
+
+route-list por nombre de ruta.
+
+Tinker de confirmación.
+
+Tinker de idempotencia.
+
+Resultado validado:
+
+attempt pending pasa a confirmed.
+
+pocket quantity_available pasa de 3 a 2.
+
+movement_type = consumption.
+
+balance_after = 2.
+
+repetir confirmación no descuenta otra vez.
+
+consumption_movements_count permanece en 1.
+
+Criterios vigentes:
+
+el consumo confirmado simulado descuenta pocket.
+
+el consumo confirmado simulado no implementa hardware real.
+
+el consumo confirmado simulado no implementa gateway real.
+
+el consumo confirmado simulado no implementa controlador externo real.
+
+el consumo confirmado simulado no crea InventoryMovement.
+
+el consumo confirmado simulado no crea Document.
+
+el consumo confirmado simulado no crea Payment ni PaymentAttempt.
+
+Pendientes directos:
+
+validación visual browser si no se ejecutó.
+
+definir QR real de box o punto de consumo.
+
+definir contrato de box o referencia operativa equivalente.
+
+definir gateway/controlador externo mediante frontera reemplazable.
+
+confirmar consumo contra gateway/controlador confiable.
+
+definir reversa o ajuste administrativo.
+
+evaluar lectura interna de attempts, pockets y movements desde Shop Profile si corresponde.
+
+No implementar todavía:
+
+hardware real.
+
+provider real de pago.
+
+Payment formal.
+
+PaymentAttempt formal.
+
+Document posterior.
+
+InventoryMovement posterior.
+
+descuento de stock global por venta.
+
+consumo sin confirmación backend.
+
+consumo físico sin respuesta confiable de controlador.
+
+<<END SECTION>>
+
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
 SECTION_VERSION: 00020
 

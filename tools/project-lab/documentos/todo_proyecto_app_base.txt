@@ -1260,6 +1260,131 @@ InventoryMovement posterior.
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — QR PÚBLICO POR PUNTO DE CONSUMO>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — QR PÚBLICO POR PUNTO DE CONSUMO
+
+Estado vigente:
+
+séptimo corte mínimo implementado, validado y commiteado.
+
+Cierre parcial consolidado:
+
+el public_token de ShopConsumptionPoint abre una ruta pública controlada que resuelve el punto, valida tenant, Shop activa y punto activo, y permite crear un attempt pending asociado al punto.
+
+Archivos creados:
+
+app/Http/Controllers/SelfServiceSalesConsumptionPointController.php
+
+Archivos modificados:
+
+app/Http/Controllers/SelfServiceTokenConsumptionAttemptController.php
+
+app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php
+
+resources/views/self-service-sales/shop.blade.php
+
+resources/views/self-service-sales/partials/token-consumption-panel.blade.php
+
+public/js/self-service-sales-shop.js
+
+routes/web.php
+
+Ruta creada:
+
+self_service_sales.consumption_points.show
+
+Endpoint:
+
+GET /shop/{tenant:slug}/consume/{publicToken}
+
+Validaciones realizadas:
+
+git status inicial limpio.
+
+php -l sobre controller nuevo, controller de attempts, service de attempts, Blades, JS y routes.
+
+node --check sobre self-service-sales-shop.js.
+
+php artisan optimize:clear.
+
+route-list de ruta pública por punto.
+
+Tinker de resolución del punto.
+
+Tinker de attempt con punto.
+
+Tinker de no efectos.
+
+Validación visual browser realizada por usuario.
+
+Resultado validado:
+
+Box 1 resuelve desde public_token.
+
+attempt creado desde QR público queda pending.
+
+attempt source_type = App\Models\ShopConsumptionPoint.
+
+attempt source_id = 1.
+
+pocket quantity_available no cambia.
+
+no se crea movement consumption al crear attempt.
+
+Criterios vigentes:
+
+QR público por punto resuelve contexto operativo.
+
+QR público por punto no consume fichas.
+
+QR público por punto no descuenta pocket.
+
+QR público por punto no crea movement consumption.
+
+QR público por punto no implementa hardware real.
+
+QR público por punto no implementa gateway real.
+
+Pendientes directos:
+
+cierre documental del corte.
+
+definir payload de controlador externo.
+
+definir gateway/controlador externo real o simulado por interface reemplazable.
+
+definir confirmación confiable de uso por punto.
+
+definir lectura interna agrupada de attempts y consumos por punto.
+
+definir comportamiento de puntos inactivos con attempts pendientes.
+
+No implementar todavía:
+
+hardware real.
+
+gateway real.
+
+activación física de box.
+
+descuento desde apertura de QR.
+
+descuento desde attempt pending.
+
+movement consumption sin confirmación.
+
+Payment formal.
+
+PaymentAttempt formal.
+
+Document posterior.
+
+InventoryMovement posterior.
+
+<<END SECTION>>
+
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
 SECTION_VERSION: 00020
 

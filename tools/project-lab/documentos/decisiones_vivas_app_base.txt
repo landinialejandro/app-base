@@ -1657,6 +1657,91 @@ definir lectura interna futura de consumos por punto.
 
 <<END SECTION>>
 
+<<SECTION: DECISIÓN VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO>>
+SECTION_VERSION: 00001
+
+DECISIÓN VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO
+
+Decisión vigente implementada y validada:
+
+el public_token de ShopConsumptionPoint puede resolver una ruta pública controlada de consumo por punto.
+
+Motivo:
+
+hacer que el QR deje de ser una acción genérica y pase a representar un punto operativo real sin adelantar hardware ni consumo confirmado.
+
+Lectura vigente:
+
+public_token identifica el punto.
+
+ruta pública valida tenant, Shop activa y punto activo.
+
+la tienda pública muestra contexto del punto.
+
+el customer externo habilitado puede registrar attempt desde ese contexto.
+
+el attempt queda asociado a ShopConsumptionPoint.
+
+Reglas:
+
+public_token no autoriza consumo por sí mismo.
+
+QR público no autoriza consumo por sí mismo.
+
+abrir QR no descuenta pocket.
+
+registrar attempt desde QR no descuenta pocket.
+
+registrar attempt desde QR no crea movement consumption.
+
+registrar attempt desde QR no confirma hardware.
+
+registrar attempt desde QR no llama gateway/controlador externo.
+
+attempt asociado a punto queda pending.
+
+confirmación simulada sigue siendo paso separado.
+
+Caso validado:
+
+URL pública de punto generada.
+
+Box 1 resuelto correctamente.
+
+Attempt id = 4.
+
+status = pending.
+
+source_type = App\Models\ShopConsumptionPoint.
+
+source_id = 1.
+
+pocket quantity_available permanece en 1.
+
+movements_count permanece en 3.
+
+consumption_movements_count permanece en 2.
+
+Validación visual browser:
+
+la URL pública del punto abrió correctamente, mostró contexto del punto, permitió registrar attempt y no descontó saldo.
+
+Queda pendiente:
+
+usar punto en confirmación contra gateway/controlador real.
+
+definir payload al controlador externo.
+
+definir respuesta confiable de hardware/controlador.
+
+definir agrupación interna de consumos por punto.
+
+definir lectura interna de attempts y movements por punto.
+
+definir tratamiento de punto inactivo con attempts pendientes.
+
+<<END SECTION>>
+
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
 SECTION_VERSION: 00003
 

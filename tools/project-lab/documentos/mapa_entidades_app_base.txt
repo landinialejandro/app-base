@@ -1859,6 +1859,87 @@ la existencia de ShopConsumptionPoint no implica que los attempts actuales ya es
 
 <<END SECTION>>
 
+<<SECTION: RELACIÓN CONCEPTUAL — QR PÚBLICO POR PUNTO DE CONSUMO>>
+SECTION_VERSION: 00001
+
+RELACIÓN CONCEPTUAL — QR PÚBLICO POR PUNTO DE CONSUMO
+
+Relación conceptual vigente:
+
+Tenant
+↓
+Shop
+↓
+ShopConsumptionPoint
+↓
+public_token
+↓
+ruta pública de consumo por punto
+↓
+SelfServiceTokenConsumptionAttempt
+
+Lectura:
+
+public_token permite resolver públicamente un ShopConsumptionPoint bajo tenant correcto.
+
+La ruta pública no convierte el punto en consumo.
+
+La ruta pública no convierte el token en autorización crítica.
+
+La ruta pública no convierte al visitante en customer operativo.
+
+La ruta pública no habilita panel interno.
+
+SelfServiceTokenConsumptionAttempt puede quedar asociado al ShopConsumptionPoint mediante:
+
+source_type = App\Models\ShopConsumptionPoint
+
+source_id = point.id
+
+Reglas:
+
+ShopConsumptionPoint conserva ownership interno de configuración de punto.
+
+self_service_sales consume el punto como contexto externo.
+
+SelfServiceTokenConsumptionAttempt conserva intención de uso.
+
+SelfServiceTokenPocket conserva saldo disponible.
+
+SelfServiceTokenPocketMovement conserva movimientos del pocket.
+
+public_token no reemplaza validación backend.
+
+public_token no reemplaza sesión externa habilitada.
+
+public_token no reemplaza operation_enabled.
+
+public_token no reemplaza saldo disponible.
+
+public_token no reemplaza confirmación.
+
+public_token no reemplaza hardware.
+
+Momentos separados:
+
+punto configurado internamente
+
+QR público resuelto
+
+attempt pending asociado al punto
+
+consumo confirmado simulado o futuro
+
+movement consumption
+
+gateway/controlador real futuro
+
+Regla:
+
+asociar attempt a ShopConsumptionPoint no equivale a consumir ficha.
+
+<<END SECTION>>
+
 <<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
 SECTION_VERSION: 00003
 

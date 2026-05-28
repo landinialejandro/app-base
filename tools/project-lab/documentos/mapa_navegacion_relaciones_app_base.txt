@@ -1254,6 +1254,89 @@ el recorrido futuro de QR real no queda implementado por la existencia de la tab
 
 <<END SECTION>>
 
+<<SECTION: RECORRIDO FUNCIONAL — QR PÚBLICO POR PUNTO DE CONSUMO>>
+SECTION_VERSION: 00001
+
+RECORRIDO FUNCIONAL — QR PÚBLICO POR PUNTO DE CONSUMO
+
+Recorrido funcional público vigente:
+
+/shop/{tenant:slug}/consume/{publicToken}
+↓
+validación de tenant
+↓
+validación de Shop activa
+↓
+validación de ShopConsumptionPoint activo
+↓
+tienda pública con contexto de punto
+↓
+panel Usar fichas orientado al punto
+↓
+registro de attempt pending asociado al punto
+
+Ruta vigente:
+
+self_service_sales.consumption_points.show
+
+Lectura:
+
+este recorrido pertenece al plano público externo customer.
+
+No pertenece al plano interno shops.
+
+No usa ShopConsumptionPointController.
+
+No abre administración interna.
+
+No habilita edición del punto.
+
+No habilita hardware.
+
+No confirma consumo.
+
+No descuenta pocket.
+
+Reglas:
+
+abrir QR no equivale a operar fichas.
+
+ver contexto del punto no equivale a consumo.
+
+registrar attempt no equivale a consumo confirmado.
+
+attempt pending no equivale a hardware activado.
+
+attempt pending asociado al punto no equivale a movement consumption.
+
+Ruta pública de punto no equivale a autorización interna.
+
+Recorrido futuro pendiente:
+
+/shop/{tenant:slug}/consume/{publicToken}
+↓
+punto activo validado
+↓
+customer externo habilitado
+↓
+attempt asociado al punto
+↓
+gateway/controlador externo
+↓
+confirmación confiable
+↓
+movement consumption
+↓
+descuento de pocket
+↓
+respuesta operativa del controlador
+
+Regla:
+
+el recorrido futuro de integración física no queda implementado por la ruta pública de punto.
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE LECTURA>>
 SECTION_VERSION: 00002
 

@@ -1655,6 +1655,125 @@ hardware real = corte futuro.
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO
+
+self_service_sales incorpora una ruta pública controlada para resolver puntos de consumo por public_token.
+
+Ruta vigente:
+
+self_service_sales.consumption_points.show
+
+Endpoint vigente:
+
+GET /shop/{tenant:slug}/consume/{publicToken}
+
+Controller vigente:
+
+SelfServiceSalesConsumptionPointController@show
+
+Middleware vigente:
+
+web
+
+self_service_external_customer
+
+Recorrido vigente validado:
+
+/shop/{tenant:slug}/consume/{publicToken}
+↓
+resolución de Tenant por slug
+↓
+resolución de ShopConsumptionPoint por public_token
+↓
+validación de tenant correcto
+↓
+validación de Shop activa
+↓
+validación de punto activo
+↓
+tienda pública con contexto del punto
+↓
+registro de SelfServiceTokenConsumptionAttempt pending asociado al punto
+
+Caso validado:
+
+ShopConsumptionPoint:
+
+name = Box 1
+
+code = BOX-1
+
+status = active
+
+public_token length = 40
+
+Attempt generado desde QR público por punto:
+
+status = pending
+
+source_type = App\Models\ShopConsumptionPoint
+
+source_id = 1
+
+request_payload.consumption_point_id = 1
+
+request_payload.consumption_point_label = Box 1
+
+meta.consumes_balance = false
+
+meta.calls_external_controller = false
+
+pocket quantity_available permanece en 1.
+
+movements_count permanece en 3.
+
+consumption_movements_count permanece en 2.
+
+Reglas:
+
+public_token identifica un punto.
+
+public_token no autoriza consumo por sí mismo.
+
+QR público no autoriza consumo por sí mismo.
+
+abrir QR no descuenta pocket.
+
+abrir QR no crea attempt por sí mismo.
+
+registrar attempt desde QR no descuenta pocket.
+
+registrar attempt desde QR no crea movement consumption.
+
+registrar attempt desde QR no confirma uso.
+
+registrar attempt desde QR no habilita box.
+
+registrar attempt desde QR no llama gateway/controlador externo.
+
+attempt asociado a punto sigue siendo pending.
+
+confirmación simulada sigue siendo paso separado.
+
+hardware real sigue pendiente.
+
+gateway/controlador real sigue pendiente.
+
+Lectura doctrinal:
+
+QR público por punto = contexto operativo de consumo.
+
+QR público por punto no equivale a consumo confirmado.
+
+QR público por punto no equivale a hardware habilitado.
+
+QR público por punto no equivale a descuento de fichas.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

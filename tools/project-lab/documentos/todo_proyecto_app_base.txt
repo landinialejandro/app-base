@@ -1121,6 +1121,145 @@ InventoryMovement posterior.
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — PUNTOS DE CONSUMO DE TIENDA>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — PUNTOS DE CONSUMO DE TIENDA
+
+Estado vigente:
+
+sexto corte mínimo implementado.
+
+Cierre parcial consolidado:
+
+Shop Profile incorpora puntos internos de consumo mediante ShopConsumptionPoint.
+
+Archivos creados:
+
+app/Models/ShopConsumptionPoint.php
+
+app/Http/Controllers/ShopConsumptionPointController.php
+
+app/Http/Requests/StoreShopConsumptionPointRequest.php
+
+app/Http/Requests/UpdateShopConsumptionPointRequest.php
+
+resources/views/shops/tabs/consumption-points.blade.php
+
+database/migrations/2026_05_28_180000_create_self_service_shop_consumption_points_table.php
+
+Archivos modificados:
+
+app/Models/Shop.php
+
+app/Http/Controllers/ShopController.php
+
+resources/views/shops/show.blade.php
+
+routes/web.php
+
+Rutas creadas:
+
+shops.consumption_points.store
+
+shops.consumption_points.update
+
+Validaciones realizadas:
+
+git status inicial limpio.
+
+php -l sobre modelo, requests, controller, Shop, ShopController, show, tab y routes.
+
+php artisan optimize:clear.
+
+php artisan migrate.
+
+route-list de rutas internas de consumption-points.
+
+Tinker de creación de Box 1.
+
+Tinker de no efectos sobre pockets, attempts y movements.
+
+Resultado validado:
+
+ShopConsumptionPoint Box 1 creado.
+
+code = BOX-1.
+
+status = active.
+
+public_token presente.
+
+public_token length = 40.
+
+shop->consumptionPoints incluye Box 1.
+
+No efectos:
+
+pockets_count permanece en 1.
+
+attempts_count permanece en 3.
+
+movements_count permanece en 3.
+
+Criterios vigentes:
+
+ShopConsumptionPoint configura punto lógico-operativo interno.
+
+ShopConsumptionPoint no implementa QR real.
+
+ShopConsumptionPoint no implementa hardware real.
+
+ShopConsumptionPoint no consume fichas.
+
+ShopConsumptionPoint no crea attempts.
+
+ShopConsumptionPoint no crea movements.
+
+ShopConsumptionPoint no descuenta pocket.
+
+Pendientes directos:
+
+validación visual browser si no se ejecutó.
+
+definir ruta pública futura de QR o consumo por punto.
+
+definir cómo el customer externo llega desde QR al panel de consumo.
+
+vincular attempt futuro a ShopConsumptionPoint.
+
+validar punto activo antes de crear attempt futuro.
+
+definir payload futuro para controlador externo.
+
+definir gateway/controlador externo real o simulado por interface reemplazable.
+
+evaluar lectura interna futura de consumos agrupados por punto.
+
+No implementar todavía:
+
+QR real.
+
+hardware real.
+
+gateway real.
+
+attempt vinculado a punto.
+
+payload al controlador externo.
+
+descuento adicional de pocket por punto.
+
+Payment formal.
+
+PaymentAttempt formal.
+
+Document posterior.
+
+InventoryMovement posterior.
+
+<<END SECTION>>
+
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
 SECTION_VERSION: 00020
 

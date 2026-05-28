@@ -1566,6 +1566,97 @@ definir QR real de box o punto de consumo.
 
 <<END SECTION>>
 
+<<SECTION: DECISIÓN VIGENTE — PUNTOS DE CONSUMO DE TIENDA>>
+SECTION_VERSION: 00001
+
+DECISIÓN VIGENTE — PUNTOS DE CONSUMO DE TIENDA
+
+Decisión vigente implementada y validada:
+
+Shop incorpora ShopConsumptionPoint como configuración interna de puntos lógico-operativos de consumo.
+
+Motivo:
+
+preparar la frontera futura del QR real sin mezclar todavía consumo, pocket, hardware ni attempt.
+
+Lectura vigente:
+
+ShopConsumptionPoint representa el lugar operativo futuro donde podrá aplicarse un consumo.
+
+Ejemplos:
+
+Box 1
+Box 2
+Aspiradora
+Sector lavado
+Pista 3
+
+Reglas:
+
+ShopConsumptionPoint pertenece a Shop.
+
+ShopConsumptionPoint no pertenece al pocket.
+
+ShopConsumptionPoint no pertenece al customer externo.
+
+ShopConsumptionPoint no pertenece al producto.
+
+ShopConsumptionPoint no consume fichas.
+
+ShopConsumptionPoint no crea attempts.
+
+ShopConsumptionPoint no crea movements.
+
+ShopConsumptionPoint no descuenta pocket.
+
+ShopConsumptionPoint no representa hardware real.
+
+ShopConsumptionPoint no representa gateway real.
+
+ShopConsumptionPoint no representa controlador externo real.
+
+public_token prepara QR futuro.
+
+public_token no autoriza consumo por sí mismo.
+
+Caso validado:
+
+Shop Cliente demo.
+
+Box 1 creado.
+
+code = BOX-1.
+
+status = active.
+
+public_token estable de 40 caracteres.
+
+No efectos validados:
+
+pockets_count no cambió.
+
+attempts_count no cambió.
+
+movements_count no cambió.
+
+Queda pendiente:
+
+validación visual browser si no fue realizada.
+
+ruta pública futura de QR o consumo por punto.
+
+vincular attempt futuro a ShopConsumptionPoint.
+
+validar punto activo al iniciar consumo.
+
+definir contrato de payload hacia controlador externo.
+
+definir hardware real o gateway externo.
+
+definir lectura interna futura de consumos por punto.
+
+<<END SECTION>>
+
 <<SECTION: DECISIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
 SECTION_VERSION: 00003
 

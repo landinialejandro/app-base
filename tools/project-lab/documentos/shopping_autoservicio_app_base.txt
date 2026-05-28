@@ -1546,6 +1546,115 @@ administración de saldo, reversa, ajuste o integración física = cortes futuro
 
 <<END SECTION>>
 
+<<SECTION: CORTE OPERATIVO VIGENTE — PUNTOS DE CONSUMO DE TIENDA>>
+SECTION_VERSION: 00001
+
+CORTE OPERATIVO VIGENTE — PUNTOS DE CONSUMO DE TIENDA
+
+shops incorpora puntos internos de consumo asociados a una tienda.
+
+Entidad vigente:
+
+ShopConsumptionPoint
+
+Tabla vigente:
+
+self_service_shop_consumption_points
+
+Recorrido interno vigente:
+
+/shops/{shop}
+↓
+tab Puntos de consumo
+↓
+crear o actualizar punto lógico de consumo
+↓
+public_token estable para futuro QR
+
+Caso validado:
+
+Shop Cliente demo.
+
+ShopConsumptionPoint:
+
+name = Box 1
+
+code = BOX-1
+
+status = active
+
+public_token estable de 40 caracteres.
+
+Rutas internas vigentes:
+
+shops.consumption_points.store
+
+shops.consumption_points.update
+
+Lectura:
+
+ShopConsumptionPoint representa un punto lógico-operativo de consumo dentro de una Shop.
+
+Puede representar:
+
+box
+sector
+pista
+aspiradora
+punto futuro de QR
+
+Reglas:
+
+ShopConsumptionPoint pertenece a Shop.
+
+ShopConsumptionPoint pertenece al tenant.
+
+ShopConsumptionPoint no pertenece al pocket.
+
+ShopConsumptionPoint no pertenece al customer externo.
+
+ShopConsumptionPoint no pertenece al producto.
+
+ShopConsumptionPoint no representa hardware real.
+
+ShopConsumptionPoint no representa gateway real.
+
+ShopConsumptionPoint no representa controlador externo real.
+
+ShopConsumptionPoint no consume fichas.
+
+ShopConsumptionPoint no crea attempts.
+
+ShopConsumptionPoint no crea movements.
+
+ShopConsumptionPoint no descuenta pocket.
+
+ShopConsumptionPoint no crea InventoryMovement.
+
+ShopConsumptionPoint no crea Order.
+
+ShopConsumptionPoint no crea Document.
+
+ShopConsumptionPoint no crea Payment.
+
+El public_token prepara identificación futura del punto.
+
+El public_token no implementa QR público real por sí mismo.
+
+El public_token no autoriza consumo por sí mismo.
+
+Frontera vigente:
+
+punto de consumo = configuración interna de tienda.
+
+QR público operativo = corte futuro.
+
+attempt vinculado a punto = corte futuro.
+
+hardware real = corte futuro.
+
+<<END SECTION>>
+
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
 SECTION_VERSION: 00010
 

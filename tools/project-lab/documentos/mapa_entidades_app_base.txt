@@ -1774,6 +1774,91 @@ La lectura contextual no crea ownership funcional.
 
 <<END SECTION>>
 
+<<SECTION: RELACIÓN CONCEPTUAL — PUNTOS DE CONSUMO DE TIENDA>>
+SECTION_VERSION: 00001
+
+RELACIÓN CONCEPTUAL — PUNTOS DE CONSUMO DE TIENDA
+
+Relación conceptual vigente:
+
+Tenant
+↓
+Shop
+↓
+ShopConsumptionPoint
+
+Lectura:
+
+ShopConsumptionPoint representa un punto lógico-operativo de consumo configurado internamente dentro de una tienda.
+
+Es entidad hija o configuración interna de Shop.
+
+No es módulo ordinario.
+
+No posee plano público propio en el corte vigente.
+
+No reemplaza Shop.
+
+No reemplaza ShopItem.
+
+No reemplaza Product.
+
+No reemplaza SelfServiceTokenPocket.
+
+No reemplaza SelfServiceTokenConsumptionAttempt.
+
+No reemplaza SelfServiceTokenPocketMovement.
+
+Reglas:
+
+ShopConsumptionPoint no pertenece a pocket.
+
+ShopConsumptionPoint no pertenece a customer externo.
+
+ShopConsumptionPoint no pertenece a Product.
+
+ShopConsumptionPoint no representa hardware real por sí mismo.
+
+ShopConsumptionPoint no consume fichas.
+
+ShopConsumptionPoint no registra movimiento.
+
+ShopConsumptionPoint no descuenta saldo.
+
+ShopConsumptionPoint no mueve stock.
+
+ShopConsumptionPoint no crea operación comercial.
+
+Campo conceptual relevante:
+
+public_token
+
+Lectura:
+
+public_token identifica de forma estable el punto para un QR público futuro.
+
+public_token no autoriza por sí mismo operación crítica.
+
+public_token no reemplaza backend autorizado.
+
+public_token no reemplaza validación futura de tenant, shop, punto activo, customer externo, pocket, saldo ni consumo.
+
+Relación futura prevista:
+
+Shop
+↓
+ShopConsumptionPoint
+↓
+QR público futuro
+↓
+SelfServiceTokenConsumptionAttempt futuro vinculado a punto
+
+Regla:
+
+la existencia de ShopConsumptionPoint no implica que los attempts actuales ya estén vinculados a un punto.
+
+<<END SECTION>>
+
 <<SECTION: CONTRATO MATERIAL ENTRE ORDERS E INVENTORY>>
 SECTION_VERSION: 00003
 

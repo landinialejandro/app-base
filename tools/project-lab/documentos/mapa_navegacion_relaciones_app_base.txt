@@ -1161,6 +1161,99 @@ las acciones futuras sobre fichas no quedan habilitadas por la existencia de est
 
 <<END SECTION>>
 
+<<SECTION: RECORRIDO FUNCIONAL — PUNTOS DE CONSUMO DE TIENDA>>
+SECTION_VERSION: 00001
+
+RECORRIDO FUNCIONAL — PUNTOS DE CONSUMO DE TIENDA
+
+Recorrido funcional interno vigente:
+
+/shops/{shop}
+↓
+Shop Profile
+↓
+tab Puntos de consumo
+↓
+crear o actualizar ShopConsumptionPoint
+↓
+ver puntos internos de consumo
+
+Rutas internas vigentes:
+
+shops.consumption_points.store
+
+shops.consumption_points.update
+
+Middleware vigente:
+
+web
+auth
+tenant
+
+Lectura:
+
+este recorrido pertenece al plano interno autorizado.
+
+No pertenece al plano externo customer.
+
+No usa sesión externa self_service_sales.
+
+No crea ruta pública QR.
+
+No crea consumo externo.
+
+No crea navegación pública nueva.
+
+No crea hardware real.
+
+No crea gateway real.
+
+Reglas:
+
+tab Puntos de consumo no equivale a QR real.
+
+public_token visible internamente no equivale a autorización de consumo.
+
+crear Box 1 no consume fichas.
+
+crear Box 1 no crea attempt.
+
+crear Box 1 no crea movement.
+
+crear Box 1 no descuenta pocket.
+
+crear Box 1 no habilita hardware.
+
+crear Box 1 no abre tienda pública.
+
+Recorrido futuro pendiente:
+
+/shops/{shop}
+↓
+Puntos de consumo
+↓
+QR público futuro del punto
+↓
+/shop/{tenant:slug} o ruta pública futura de consumo
+↓
+resolución backend del punto activo
+↓
+customer externo habilitado
+↓
+attempt vinculado al punto
+↓
+confirmación
+↓
+movement consumption
+↓
+descuento de pocket
+
+Regla:
+
+el recorrido futuro de QR real no queda implementado por la existencia de la tab Puntos de consumo.
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE LECTURA>>
 SECTION_VERSION: 00002
 

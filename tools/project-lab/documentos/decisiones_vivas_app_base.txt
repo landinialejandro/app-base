@@ -1564,6 +1564,56 @@ definir integración real con gateway/controlador externo.
 
 definir QR real de box o punto de consumo.
 
+Decisión vigente adicional:
+
+Shop Profile puede mostrar lectura interna agrupada de consumos por punto dentro de la tab Fichas.
+
+Motivo:
+
+permitir auditoría operativa del owner/usuario interno autorizado sobre qué punto originó attempts y consumos, sin abrir acciones administrativas ni hardware.
+
+Criterio de lectura:
+
+ShopConsumptionPoint organiza el resumen.
+
+SelfServiceTokenConsumptionAttempt aporta pending/confirmed por source_type/source_id.
+
+SelfServiceTokenPocketMovement aporta consumo efectivo por meta.consumption_point_id.
+
+Reglas:
+
+la lectura agrupada por punto es read-only.
+
+no administra consumos.
+
+no administra saldo.
+
+no confirma attempts.
+
+no descuenta pocket.
+
+no crea movements.
+
+no expone public_token.
+
+no muestra QR.
+
+no reemplaza self_service_sales.
+
+Caso validado:
+
+Box 1:
+
+2 attempts pendientes.
+
+1 attempt confirmado.
+
+1 ficha consumida.
+
+300 segundos consumidos.
+
+5 minutos consumidos.
+
 <<END SECTION>>
 
 <<SECTION: DECISIÓN VIGENTE — PUNTOS DE CONSUMO DE TIENDA>>

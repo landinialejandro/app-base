@@ -1159,6 +1159,52 @@ Regla:
 
 las acciones futuras sobre fichas no quedan habilitadas por la existencia de esta tab.
 
+LECTURA INTERNA — CONSUMOS POR PUNTO
+
+Recorrido interno vigente:
+
+/shops/{shop}
+↓
+Shop Profile
+↓
+tab Fichas
+↓
+Consumos por punto
+↓
+lectura agrupada por ShopConsumptionPoint
+
+Lectura:
+
+este recorrido pertenece al plano interno autorizado.
+
+No pertenece al plano externo customer.
+
+No usa ruta pública QR.
+
+No usa tienda pública.
+
+No abre administración de consumos.
+
+No crea navegación propia de attempts.
+
+No crea navegación propia de movements.
+
+No crea acciones sobre pockets.
+
+Reglas:
+
+ver Box 1 en tab Fichas no equivale a operar el box.
+
+ver attempts por punto no equivale a confirmarlos.
+
+ver movements por punto no equivale a poder revertirlos.
+
+ver consumos por punto no equivale a administrar saldo.
+
+la lectura interna agrupada no habilita hardware.
+
+la lectura interna agrupada no llama gateway.
+
 <<END SECTION>>
 
 <<SECTION: RECORRIDO FUNCIONAL — PUNTOS DE CONSUMO DE TIENDA>>

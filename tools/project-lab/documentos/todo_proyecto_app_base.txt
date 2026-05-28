@@ -1119,6 +1119,80 @@ Document posterior.
 
 InventoryMovement posterior.
 
+Cierre menor consolidado:
+
+lectura interna read-only de consumos por punto en tab Fichas de Shop Profile.
+
+Archivos modificados:
+
+app/Support/Shops/ShopTokenConsumptionSummaryService.php
+
+resources/views/shops/tabs/tokens.blade.php
+
+Resultado:
+
+ShopTokenConsumptionSummaryService devuelve consumption_points.
+
+Tab Fichas muestra sección Consumos por punto.
+
+Métricas nuevas:
+
+consumption_points_count.
+
+points_with_pending_attempts_count.
+
+points_with_confirmed_attempts_count.
+
+Runtime validado:
+
+Box 1 / BOX-1.
+
+pending_attempts_count = 2.
+
+confirmed_attempts_count = 1.
+
+consumed_quantity = 1.
+
+consumed_seconds = 300.
+
+consumed_minutes = 5.
+
+last_confirmed_at = 2026-05-28 17:47:36.
+
+last_movement_at = 2026-05-28 17:47:36.
+
+Validaciones:
+
+php -l sobre service y Blade.
+
+php artisan optimize:clear.
+
+Tinker de service.
+
+Tinker de no efectos.
+
+Browser validado por usuario.
+
+No efectos:
+
+no se crearon attempts.
+
+no se confirmaron attempts.
+
+no se crearon movements.
+
+no se descontó pocket.
+
+no se expuso public_token.
+
+no se agregó QR.
+
+no se tocó tienda pública.
+
+no se implementó hardware real.
+
+no se implementó gateway real.
+
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — PUNTOS DE CONSUMO DE TIENDA>>

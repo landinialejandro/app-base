@@ -1544,6 +1544,78 @@ lectura interna de fichas = contexto operativo para owner/usuario interno autori
 
 administración de saldo, reversa, ajuste o integración física = cortes futuros separados.
 
+LECTURA INTERNA VIGENTE — CONSUMOS POR PUNTO
+
+Shop Profile incorpora en tab Fichas una lectura interna read-only agrupada por ShopConsumptionPoint.
+
+Lectura vigente:
+
+/shops/{shop}
+↓
+tab Fichas
+↓
+Consumos por punto
+↓
+ShopConsumptionPoint
+↓
+attempts asociados por source_type/source_id
+↓
+movements consumption asociados por meta.consumption_point_id
+↓
+resumen interno por punto
+
+Caso validado:
+
+Box 1 / BOX-1
+
+pending_attempts_count = 2
+
+confirmed_attempts_count = 1
+
+consumed_quantity = 1
+
+consumed_seconds = 300
+
+consumed_minutes = 5
+
+last_confirmed_at = 2026-05-28 17:47:36
+
+last_movement_at = 2026-05-28 17:47:36
+
+Métricas generales nuevas:
+
+consumption_points_count
+
+points_with_pending_attempts_count
+
+points_with_confirmed_attempts_count
+
+Reglas:
+
+la lectura es interna y read-only.
+
+no crea attempts.
+
+no confirma attempts.
+
+no crea movements.
+
+no descuenta pocket.
+
+no expone public_token.
+
+no muestra QR.
+
+no toca tienda pública.
+
+no implementa hardware real.
+
+no implementa gateway real.
+
+No representa administración de consumo.
+
+Representa auditoría interna por punto.
+
 <<END SECTION>>
 
 <<SECTION: CORTE OPERATIVO VIGENTE — PUNTOS DE CONSUMO DE TIENDA>>

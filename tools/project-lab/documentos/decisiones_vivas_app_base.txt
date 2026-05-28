@@ -286,6 +286,42 @@ Document posterior queda bajo política documental, fiscal o comercial explícit
 
 InventoryMovement posterior queda bajo contrato propio de Inventory.
 
+Decisión vigente implementada y validada:
+
+Apertura simulada/controlada de Shopping Autoservicio validada por Tinker backend y navegador real.
+
+Lectura:
+
+checkout fresco actual con provider externo simulado aprobado cierra SelfServiceCart, registra SelfServiceCart.meta.formalization.order_id, crea Order group = sale con record_metadata.origin = self_service_sales y conserva record_metadata.self_service_sales.shop_id.
+
+/shops/{shop} muestra la venta en Ventas / Órdenes.
+
+/orders/{order} muestra origen Shopping Autoservicio.
+
+checkout_enabled = false bloquea antes del provider sin payment_request, payment_response, checked_out ni Order.
+
+el bridge de formalización es idempotente y reejecutarlo no duplica Order ni OrderItems.
+
+Decisión doctrinal vigente:
+
+Pago real futuro se implementará como aduana de integración externa.
+
+Reglas:
+
+app-base valida negocio interno.
+
+app-base arma objeto económico backend seguro.
+
+gateway traduce y normaliza.
+
+provider externo procesa.
+
+app-base decide efectos internos solo con evidencia confiable.
+
+provider externo no absorbe ownership ni autoridad de negocio.
+
+El provider externo procesa pagos; app-base conserva la autoridad de negocio.
+
 Decisión vigente implementada:
 
 /shops/{shop} puede mostrar ventas originadas desde Shopping Autoservicio mediante lectura contextual basada en Order.record_metadata.self_service_sales.shop_id.

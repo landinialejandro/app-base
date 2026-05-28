@@ -1,0 +1,705 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Codex operativo
+DOC_SLUG: codex_operativo_app_base
+DOC_VERSION: 00001
+TIPO: operativo-técnico
+ESTADO: activo
+GESTIÓN: Documento especializado para definir el uso operativo de Codex como agente técnico de análisis, ejecución acotada y aplicación de código dentro del proyecto app-base.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO>>
+SECTION_VERSION: 00001
+
+OBJETIVO
+
+Este documento define el uso operativo de Codex dentro del proyecto app-base.
+
+Su función es establecer:
+
+qué rol cumple Codex
+qué puede hacer
+qué no puede decidir
+cómo se le deben formular tareas
+cuándo puede modificar código
+cuándo debe detenerse
+cómo se relaciona con ChatGPT
+cómo se relaciona con Project Lab
+qué tipo de salida debe devolver
+qué validaciones deben realizarse después de su intervención
+
+Este documento no define:
+
+doctrina arquitectónica general
+doctrina de seguridad y autorización
+reglas funcionales completas de módulos
+contratos específicos de cada frente
+roadmap operativo
+implementación interna de Codex
+configuración técnica del proveedor
+detalle de modelos disponibles
+pricing o límites de uso externo
+
+Regla:
+
+este documento define el criterio operativo de uso de Codex.
+
+No reemplaza documentos rectores, documentos especializados de módulo, Project Lab ni evidencia runtime.
+<<END SECTION>>
+
+<<SECTION: PRINCIPIO RECTOR>>
+SECTION_VERSION: 00001
+
+PRINCIPIO RECTOR
+
+Regla máxima permanente:
+
+NO SE ASUME.
+
+NO SE SUPONE.
+
+Codex debe trabajar sobre código real, evidencia real y objetivos concretos.
+
+Codex no debe completar por memoria, conveniencia, analogía o inferencia frágil.
+
+Si falta estructura, ruta, clase, método, tabla, permiso, contrato, componente, schema, runtime o documentación mínima para avanzar, debe detenerse e indicar exactamente qué dato falta.
+
+Regla:
+
+Codex puede analizar y ejecutar.
+
+Codex no puede inventar.
+
+Codex puede dar parecer técnico.
+
+Codex no puede convertir su parecer en doctrina del proyecto.
+
+Codex puede aplicar código.
+
+Codex no puede declarar cierre final del frente.
+
+El cierre queda sujeto a validación, evidencia real, revisión de coherencia y decisión del usuario.
+<<END SECTION>>
+
+<<SECTION: ROLES OPERATIVOS>>
+SECTION_VERSION: 00001
+
+ROLES OPERATIVOS
+
+El flujo operativo vigente distingue tres roles:
+
+CHATGPT
+
+Responsabilidad:
+
+analizar doctrina
+interpretar documentación
+ordenar criterio arquitectónico
+ordenar criterio documental
+definir alcance
+formular prompts para Codex
+interpretar salidas de Codex
+auditar conceptualmente coherencia
+validar contra doctrina
+preparar documentación
+controlar cierre de sentido
+
+ChatGPT no reemplaza la ejecución técnica local cuando Codex puede operar sobre código real.
+
+CODEX
+
+Responsabilidad:
+
+analizar código real
+leer workspace
+ejecutar tareas técnicas acotadas
+modificar archivos dentro del alcance indicado
+aplicar correcciones
+realizar refactors mecánicos
+detectar contradicciones técnicas o contractuales
+informar riesgos
+devolver diff, archivos tocados y validaciones recomendadas
+
+Codex no decide doctrina.
+
+Codex no declara cierre final.
+
+Codex no amplía alcance sin justificar.
+
+Codex debe detenerse si necesita cruzar una frontera sensible no autorizada.
+
+PROJECT LAB
+
+Responsabilidad:
+
+recopilar evidencia puntual
+ejecutar auditorías
+ejecutar Tinker
+ejecutar comandos Artisan controlados
+guardar salidas de consola
+verificar runtime puntual
+aportar evidencia para validación
+apoyar continuidad técnica con auditorías registradas
+
+Project Lab no se considera, en este criterio, el aplicador principal obligatorio de código cuando Codex tiene acceso real al repositorio.
+
+Project Lab queda principalmente como estación local de evidencia, auditoría y validación operativa.
+<<END SECTION>>
+
+<<SECTION: LECTURA OPERATIVA DE CODEX>>
+SECTION_VERSION: 00001
+
+LECTURA OPERATIVA DE CODEX
+
+Codex debe leerse como agente técnico de programación con capacidad de análisis y ejecución acotada sobre código real.
+
+No debe leerse como:
+
+autoridad doctrinal
+reemplazo de seguridad
+reemplazo de documentación rectora
+reemplazo de validación runtime
+herramienta para abrir cambios amplios sin frontera
+generador de parches legacy
+ejecutor libre sobre todo el proyecto
+responsable del cierre final
+
+Debe leerse como:
+
+agente técnico ejecutor
+asistente de análisis profundo del workspace
+corrector de bugs acotados
+aplicador de cambios mínimos
+refactorizador mecánico controlado
+detector de inconsistencias técnicas
+preparador de evidencia de cambio
+colaborador técnico subordinado al criterio del proyecto
+
+Regla:
+
+Codex debe tener más vuelo que una auditoría pasiva.
+
+Puede ejecutar.
+
+Pero toda ejecución debe estar delimitada por objetivo, alcance, contexto y salida esperada.
+<<END SECTION>>
+
+<<SECTION: USOS PERMITIDOS>>
+SECTION_VERSION: 00001
+
+USOS PERMITIDOS
+
+Codex puede utilizarse para:
+
+analizar código real
+ubicar lógica existente
+identificar archivos responsables
+corregir bugs puntuales
+modificar métodos específicos
+aplicar cambios de código dentro del alcance indicado
+realizar refactors mecánicos
+limpiar residuos legacy claramente identificados
+revisar diffs
+detectar impactos colaterales
+analizar errores de consola o auditoría
+proponer validaciones posteriores
+preparar evidencia técnica del cambio
+comparar código real con una decisión operativa
+indicar contradicciones doctrinales, contractuales o técnicas
+interrumpir el proceso cuando falte decisión
+
+Codex puede modificar archivos si la tarea lo habilita explícitamente o si el objetivo formulado implica ejecución técnica sobre el alcance autorizado.
+
+Regla:
+
+si el alcance permite modificar un frente, Codex puede aplicar el cambio mínimo necesario dentro de ese frente.
+
+No debe limitarse a proponer patches para Project Lab salvo que se le pida expresamente ese formato.
+<<END SECTION>>
+
+<<SECTION: LÍMITES Y FRONTERAS>>
+SECTION_VERSION: 00001
+
+LÍMITES Y FRONTERAS
+
+Codex no decide doctrina.
+
+Codex no decide arquitectura general.
+
+Codex no decide seguridad.
+
+Codex no redefine ownership modular.
+
+Codex no convierte una inferencia técnica en regla del proyecto.
+
+Codex no declara cierre final.
+
+Codex no amplía alcance sin justificarlo.
+
+Codex no introduce compatibilidad legacy innecesaria.
+
+Codex no crea abstracciones nuevas fuera del objetivo.
+
+Codex no reescribe frentes completos si el objetivo admite cambio mínimo.
+
+Codex no debe modificar documentación, migraciones, seguridad, permisos, contratos públicos o módulos externos al alcance sin detenerse primero e informarlo.
+
+Regla de frontera sensible:
+
+si para cumplir el objetivo Codex considera necesario tocar:
+
+migraciones
+documentación
+seguridad
+permisos
+policies
+gates
+contratos públicos
+rutas públicas
+módulos fuera del alcance
+estructura de datos
+acciones críticas
+checkout
+pagos
+stock
+inventario
+documentos
+tenant activo
+autorización
+
+debe detenerse, explicar por qué y pedir decisión antes de continuar.
+
+Regla:
+
+no se trata de prohibir esas intervenciones.
+
+Se trata de no cruzarlas sin decisión explícita.
+<<END SECTION>>
+
+<<SECTION: REGLA DE INTERRUPCIÓN>>
+SECTION_VERSION: 00001
+
+REGLA DE INTERRUPCIÓN
+
+Codex debe interrumpir el proceso cuando detecte:
+
+falta de evidencia mínima
+contradicción doctrinal
+contradicción entre código y documentación
+ambigüedad de contrato
+alcance insuficiente
+necesidad de migración no prevista
+impacto en seguridad no previsto
+impacto en permisos no previsto
+impacto en contrato público no previsto
+impacto en otro módulo no previsto
+riesgo de introducir legacy
+riesgo de romper ownership
+riesgo de modificar comportamiento fuera del objetivo
+
+Salida esperada ante interrupción:
+
+hallazgo
+evidencia
+por qué bloquea
+alternativas posibles
+recomendación técnica
+dato o decisión requerida para continuar
+
+Regla:
+
+interrumpir correctamente es una conducta esperada.
+
+No se considera falla de Codex.
+
+Se considera preservación del control del proyecto.
+<<END SECTION>>
+
+<<SECTION: FORMULACIÓN DE TAREAS>>
+SECTION_VERSION: 00001
+
+FORMULACIÓN DE TAREAS
+
+Toda tarea enviada a Codex debe ser concreta.
+
+Debe incluir, cuando corresponda:
+
+frente
+objetivo
+alcance
+contexto mínimo
+regla central
+límites
+salida esperada
+
+No debe enviarse a Codex una consigna amplia del tipo:
+
+revisá todo
+mejorá el módulo
+arreglá lo que encuentres
+ordená el proyecto
+implementá todo lo necesario
+cerrá el frente
+
+Regla:
+
+Codex trabaja mejor con tareas cerradas, verificables y recuperables.
+
+Una tarea puede ser pequeña o mediana.
+
+Un frente amplio debe dividirse en varias tareas concretas.
+<<END SECTION>>
+
+<<SECTION: PLANTILLA BASE PARA CODEX>>
+SECTION_VERSION: 00001
+
+PLANTILLA BASE PARA CODEX
+
+MODO APP-BASE / CODEX
+
+FRENTE:
+[Indicar módulo, capacidad o problema exacto]
+
+OBJETIVO:
+[Indicar acción concreta y verificable]
+
+ALCANCE:
+[Indicar archivos, carpetas, clases, rutas o frente permitido]
+
+CONTEXTO MÍNIMO:
+[Resumen breve del estado actual, evidencia disponible o decisión previa]
+
+REGLA CENTRAL:
+NO SE ASUME.
+NO SE SUPONE.
+
+INDICACIONES:
+Trabajá sobre código real.
+Podés modificar archivos dentro del alcance indicado.
+Ejecutá el cambio mínimo suficiente para cumplir el objetivo.
+No refactorices fuera del objetivo.
+No introduzcas compatibilidad legacy ni parches de conveniencia.
+No inventes rutas, clases, métodos, tablas, permisos, contratos ni componentes.
+Si falta evidencia para avanzar, detenete e indicá exactamente qué dato falta.
+Si necesitás tocar migraciones, documentación, seguridad, permisos, contratos públicos o módulos fuera del alcance, detenete e informalo antes de hacerlo.
+Si encontrás una contradicción doctrinal, contractual o arquitectónica, detenete, explicá el problema y proponé alternativas.
+No declares cierre final.
+
+SALIDA ESPERADA:
+
+1. Resumen breve del trabajo realizado.
+2. Archivos revisados.
+3. Archivos modificados.
+4. Diff relevante o explicación precisa del cambio.
+5. Comandos ejecutados, si ejecutaste alguno.
+6. Validaciones recomendadas.
+7. Riesgos, dudas o decisiones pendientes, si existen.
+
+CRITERIO DE CIERRE:
+El cambio no queda cerrado solo por haber sido aplicado.
+Debe quedar pendiente de validación con evidencia real cuando corresponda.
+<<END SECTION>>
+
+<<SECTION: PLANTILLA CORTA PARA CODEX>>
+SECTION_VERSION: 00001
+
+PLANTILLA CORTA PARA CODEX
+
+MODO APP-BASE / CODEX
+
+OBJETIVO:
+[...]
+
+ALCANCE:
+[...]
+
+CONTEXTO:
+[...]
+
+Regla central:
+
+NO SE ASUME.
+
+NO SE SUPONE.
+
+Ejecutá el cambio mínimo sobre código real.
+
+Podés modificar archivos dentro del alcance.
+
+No refactorices fuera del objetivo.
+
+No introduzcas legacy.
+
+Si necesitás tocar migraciones, documentación, seguridad, permisos, contratos públicos o módulos externos, detenete e informalo.
+
+Si falta evidencia o aparece contradicción doctrinal, detenete y explicá.
+
+No declares cierre final.
+
+Devolvé:
+
+archivos revisados
+archivos modificados
+diff relevante
+comandos ejecutados
+validaciones recomendadas
+riesgos o decisiones pendientes
+<<END SECTION>>
+
+<<SECTION: TIPOS DE TRABAJO RECOMENDADOS>>
+SECTION_VERSION: 00001
+
+TIPOS DE TRABAJO RECOMENDADOS
+
+Codex puede recibir tareas de distinto tipo.
+
+DIAGNÓSTICO TÉCNICO
+
+Objetivo:
+
+identificar causa probable, archivos responsables y evidencia mínima faltante.
+
+Uso:
+
+errores de runtime
+fallos de consola
+errores Tinker
+rutas no encontradas
+métodos inexistentes
+contratos rotos
+
+EJECUCIÓN ACOTADA
+
+Objetivo:
+
+corregir un bug o comportamiento específico dentro de un alcance definido.
+
+Uso:
+
+método puntual
+controller puntual
+service puntual
+vista puntual
+componente puntual
+flujo concreto
+
+REFACTOR MECÁNICO
+
+Objetivo:
+
+reemplazar un patrón por otro sin cambiar comportamiento.
+
+Uso:
+
+residuos legacy
+imports muertos
+nombres antiguos
+helpers reemplazados
+flags visuales obsoletos
+
+REVISIÓN DE COHERENCIA
+
+Objetivo:
+
+revisar si un cambio rompe ownership, seguridad, contratos, tenant activo o reglas vigentes.
+
+Uso:
+
+antes o después de aplicar un cambio sensible.
+
+ANÁLISIS PROFUNDO DE FRENTE
+
+Objetivo:
+
+mapear cómo está implementado un frente concreto y qué evidencia falta antes de intervenir.
+
+Uso:
+
+nuevas capacidades
+reconversiones
+integraciones con Inventory, Orders, Products, Documents, Shops o self_service_sales
+
+Regla:
+
+el análisis profundo debe tener pregunta concreta.
+
+No debe convertirse en exploración abierta de todo el proyecto.
+<<END SECTION>>
+
+<<SECTION: USO EFICIENTE DE CONTEXTO>>
+SECTION_VERSION: 00001
+
+USO EFICIENTE DE CONTEXTO
+
+Codex debe recibir solo el contexto necesario para ejecutar la tarea.
+
+No debe recibir toda la historia del proyecto en cada ejecución.
+
+Contexto mínimo recomendado:
+
+regla central
+frente activo
+objetivo
+alcance
+decisión previa relevante
+evidencia disponible
+salida esperada
+
+Regla:
+
+ChatGPT conserva el análisis doctrinal extenso.
+
+Codex recibe recorte operativo.
+
+Esto permite ahorrar tokens, reducir ruido y mejorar precisión.
+
+Si Codex necesita más contexto, debe pedirlo de forma específica.
+<<END SECTION>>
+
+<<SECTION: VALIDACIÓN POSTERIOR>>
+SECTION_VERSION: 00001
+
+VALIDACIÓN POSTERIOR
+
+Toda intervención de Codex debe dejar indicadas validaciones posteriores.
+
+Según el caso, pueden incluir:
+
+php -l
+composer test
+php artisan test
+php artisan optimize:clear
+php artisan route:list
+php artisan migrate:fresh --seed
+Tinker
+auditoría Project Lab
+runtime web
+navegador
+consola JS
+Network
+validación documental
+git diff
+git status
+
+Regla:
+
+la validación debe ser proporcional al riesgo del cambio.
+
+No todo cambio requiere todas las validaciones.
+
+Pero ningún cambio sensible debe declararse cerrado sin evidencia suficiente.
+<<END SECTION>>
+
+<<SECTION: RELACIÓN CON DOCUMENTACIÓN>>
+SECTION_VERSION: 00001
+
+RELACIÓN CON DOCUMENTACIÓN
+
+Codex puede detectar impacto documental.
+
+Codex puede sugerir documentos afectados.
+
+Codex puede informar contradicciones entre código y documentación.
+
+Codex puede proponer insumos para actualización documental.
+
+Codex no actualiza doctrina por decisión propia.
+
+Codex no decide si una regla cambia.
+
+Codex no declara que una decisión queda vigente.
+
+Regla:
+
+la documentación doctrinal se decide y redacta desde ChatGPT/usuario, salvo tarea explícita de edición documental acotada.
+
+Si Codex detecta que una ejecución técnica requiere cambiar documentación, debe informarlo antes de avanzar cuando la documentación esté fuera del alcance declarado.
+<<END SECTION>>
+
+<<SECTION: RELACIÓN CON PROJECT LAB>>
+SECTION_VERSION: 00001
+
+RELACIÓN CON PROJECT LAB
+
+Project Lab queda como herramienta local de evidencia, auditoría y validación.
+
+Usos principales de Project Lab en relación con Codex:
+
+ejecutar Tinker
+ejecutar auditorías
+guardar salidas
+validar rutas
+validar comandos Artisan
+verificar runtime puntual
+producir evidencia compartible
+confirmar estado real antes o después de una intervención
+
+Codex puede aplicar código directamente cuando tiene acceso al repositorio y la tarea lo habilita.
+
+Project Lab no es obligatorio como aplicador principal del cambio.
+
+Regla:
+
+Codex ejecuta.
+
+Project Lab verifica.
+
+ChatGPT interpreta, controla y documenta.
+<<END SECTION>>
+
+<<SECTION: CRITERIO DE CIERRE>>
+SECTION_VERSION: 00001
+
+CRITERIO DE CIERRE
+
+Una intervención de Codex no cierra por sí misma un frente.
+
+Puede cerrar una tarea técnica acotada si:
+
+cumplió el objetivo
+respetó el alcance
+devolvió archivos modificados
+devolvió diff o explicación precisa
+informó comandos ejecutados
+informó validaciones recomendadas
+no dejó decisiones pendientes críticas
+la validación posterior no detectó errores
+
+Un frente completo solo puede considerarse cerrado cuando exista:
+
+evidencia técnica suficiente
+validación runtime cuando corresponda
+coherencia con documentación vigente
+ausencia de contradicción doctrinal
+decisión explícita del usuario
+actualización documental si corresponde
+
+Regla:
+
+Codex puede cerrar una tarea.
+
+No declara cierre final de módulo, frente, fase o doctrina.
+<<END SECTION>>
+
+<<SECTION: FRASE OPERATIVA RESUMEN>>
+SECTION_VERSION: 00001
+
+FRASE OPERATIVA RESUMEN
+
+Codex ejecuta sobre código real.
+
+Project Lab recopila evidencia y valida.
+
+ChatGPT analiza doctrina, criterio documental, auditoría conceptual, validación de coherencia y cierre.
+
+Usuario decide.
+
+Regla final:
+
+más vuelo para Codex.
+
+Más precisión en la consigna.
+
+Mismo control del proyecto.
+<<END SECTION>>

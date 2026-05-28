@@ -837,6 +837,18 @@ idempotencia por SelfServiceCart.meta.formalization.order_id
 
 /shops/{shop} muestra tab Estado de apertura con diagnóstico interno de tienda activa, artículos configurados, artículos visibles, artículos con carrito habilitado, checkout habilitado, provider objetivo y customers externos operativos del tenant
 
+apertura simulada/controlada de tienda validada por Tinker backend y navegador real
+
+validación Tinker + navegador del flujo self_service_sales
+
+checkout fresco con bridge hacia Order
+
+bloqueo comercial por checkout_enabled = false sin creación de Order
+
+idempotencia de bridge de formalización sin duplicar Order ni OrderItems
+
+Order.record_metadata.self_service_sales.shop_id conserva la tienda de origen en venta originada por Shopping Autoservicio
+
 Pendientes posteriores:
 
 integración real con Mercado Pago
@@ -849,9 +861,17 @@ PaymentAttempt formal como entidad propia cuando se implemente provider real
 
 tabla de pagos si se decide
 
+webhook/retorno seguro
+
+confirmación backend confiable
+
 creación de Document posterior al pago
 
-reserva o movimiento de stock
+InventoryMovement posterior
+
+liberación de compromiso
+
+compra directa funcional
 
 renombre de route name self_service_sales.checkout.simulate a self_service_sales.checkout.process aplicado y validado
 

@@ -137,6 +137,7 @@ Documentos que definen herramientas, contratos de ejecución, auditoría o valid
 Documentos:
 
 guia_project_lab_proyecto_app_base
+codex_operativo_app_base
 
 [MAPAS ESTRUCTURALES]
 
@@ -346,6 +347,27 @@ se prepare auditoría, patch, actualización documental, validación runtime, Ti
 
 No debe usarse para:
 doctrina funcional general del sistema, seguridad completa del producto o reglas profundas de módulos.
+
+
+codex_operativo_app_base
+
+Título:
+Codex operativo
+
+Familia:
+operativo técnico
+
+Pregunta principal:
+¿Cómo se usa Codex como agente técnico de análisis y ejecución acotada dentro del proyecto?
+
+Función:
+referenciar el uso operativo de Codex, sus límites, relación con ChatGPT, relación con Project Lab y validaciones posteriores.
+
+Debe leerse cuando:
+se formule, ejecute o audite una tarea para Codex sobre el workspace del proyecto.
+
+No debe usarse para:
+doctrina arquitectónica general, seguridad completa, reglas funcionales profundas de módulos o detalle interno del proveedor de IA.
 
 
 mapa_entidades_app_base
@@ -701,8 +723,19 @@ plantilla_inicio_chats_proyecto_app_base
 Leer:
 
 guia_project_lab_proyecto_app_base
+codex_operativo_app_base si Codex interviene en la tarea
 convenciones_proyecto_app_base
 estandar_documental_app_base si afecta documentación
+
+[CODEX]
+
+Leer:
+
+codex_operativo_app_base
+indice_documental_app_base
+plantilla_inicio_chats_proyecto_app_base
+documento especializado del frente activo
+código real / runtime / Project Lab cuando corresponda
 
 [UI / VISTAS]
 
@@ -827,6 +860,9 @@ convenciones_proyecto_app_base
 
 uso de Project Lab:
 guia_project_lab_proyecto_app_base
+
+uso de Codex:
+codex_operativo_app_base
 
 documentación y estructura documental:
 estandar_documental_app_base

@@ -263,6 +263,14 @@ No debe confiar en datos económicos, estado visual, redirect, pantalla de éxit
 
 Debe operar mediante frontera explícita reemplazable cuando dependa de provider externo.
 
+Provider externo procesa pago; no gobierna negocio interno.
+
+La aduana/gateway traduce y normaliza respuesta externa.
+
+La autoridad interna permanece en app-base.
+
+La aduana no reemplaza autorización, validaciones backend, política comercial, Inventory, Orders, Documents ni Payments.
+
 Toda política comercial crítica del checkout externo debe revalidarse en backend inmediatamente antes de iniciar provider o producir efectos internos.
 
 max_quantity_per_checkout vigente no puede depender de la validación previa del carrito.

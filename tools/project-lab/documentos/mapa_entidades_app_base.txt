@@ -608,6 +608,8 @@ SelfServiceCart checked_out
 Order group = sale
 ↓
 record_metadata.origin = self_service_sales
+↓
+record_metadata.self_service_sales.shop_id
 
 Lectura:
 
@@ -638,6 +640,10 @@ Payment futuro no reemplaza SelfServiceCart.
 PaymentAttempt futuro no reemplaza Payment.
 
 PaymentAttempt futuro no reemplaza provider externo.
+
+Payment y PaymentAttempt siguen pendientes como entidades formales futuras para pago real.
+
+cart.meta conserva persistencia inicial del provider simulado en el corte vigente, pero no reemplaza Payment ni PaymentAttempt futuros.
 Reglas:
 
 checkout backend real interno con provider simulado no crea por sí mismo Order

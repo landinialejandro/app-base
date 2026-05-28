@@ -169,6 +169,10 @@ Documento operativo de Project Lab:
 
 <DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
+Documento operativo de Codex:
+
+<DOC_REF slug="codex_operativo_app_base">Codex operativo</DOC_REF>
+
 Documentos de control y continuidad:
 
 <DOC_REF slug="checklist_modulos_nuevos_app_base">Checklist oficial para crear módulos nuevos</DOC_REF>
@@ -274,6 +278,10 @@ Project Lab es la herramienta operativa local principal del proyecto.
 Antes de usarla o generar contenido para ella, consultar:
 
 <DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
+
+Si la tarea se delega a Codex o se formula un prompt para Codex, consultar:
+
+<DOC_REF slug="codex_operativo_app_base">Codex operativo</DOC_REF>
 
 Capacidades operativas vigentes de Project Lab:
 

@@ -313,6 +313,50 @@ provider simulado permite validar checkout real sin dependencia externa
 la persistencia del intento queda del lado del backend
 
 el provider real futuro debe reemplazar la implementación concreta, no el flujo del carrito
+
+Patrón validado adicional:
+
+ADUANA DE INTEGRACIÓN EXTERNA PARA PAGOS
+
+Forma:
+
+service de caso de uso
+↓
+factory backend de request
+↓
+gateway/interface
+↓
+provider concreto
+↓
+respuesta normalizada
+↓
+service decide efecto interno
+
+Aplicación futura:
+
+SelfServiceCheckoutService
+↓
+SelfServicePaymentRequestFactory
+↓
+SelfServicePaymentGateway / aduana de integración externa
+↓
+provider externo real
+↓
+respuesta normalizada
+↓
+app-base decide efectos internos según evidencia confiable
+
+Reglas:
+
+controller no llama provider directo.
+
+frontend no construye request económico.
+
+provider real reemplaza implementación concreta, no el flujo.
+
+la aduana no decide negocio interno.
+
+provider externo procesa pagos; app-base conserva la autoridad de negocio.
 AISLAMIENTO OPERATIVO RAZONABLE
 
 Patrón validado:

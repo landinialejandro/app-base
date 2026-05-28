@@ -448,6 +448,28 @@ el recorrido externo no abre panel interno.
 el recorrido externo no crea Document, Payment formal, InventoryMovement ni stock movido.
 
 la navegación no es autoridad de operación.
+
+Cierre de recorrido validado:
+
+/tienda
+→ /shop/{tenant:slug}
+→ carrito
+→ checkout simulado
+→ Order lógica
+→ /shops/{shop} Ventas / Órdenes
+→ /orders/{order}
+
+Lectura:
+
+este recorrido valida navegación y operación simulada/controlada.
+
+No valida pago real externo.
+
+No crea Document.
+
+No crea InventoryMovement.
+
+No compromete stock atómico.
 Recorrido interno vigente de administración de Shops:
 
 dashboard interno o sección interna autorizada

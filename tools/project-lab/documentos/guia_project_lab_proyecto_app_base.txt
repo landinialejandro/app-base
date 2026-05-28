@@ -2174,6 +2174,8 @@ Documentos especialmente relacionados:
 
 <DOC_REF slug="plantilla_inicio_chats_proyecto_app_base">Plantilla de inicio de chats del proyecto</DOC_REF>
 
+<DOC_REF slug="codex_operativo_app_base">Codex operativo</DOC_REF>
+
 Lectura vigente de la plantilla:
 
 la plantilla de inicio no reemplaza esta guía.
@@ -2181,6 +2183,12 @@ la plantilla de inicio no reemplaza esta guía.
 La plantilla ordena el inicio de nuevos chats técnicos.
 
 La guía de Project Lab documenta el uso operativo de la herramienta.
+
+Lectura vigente de Codex operativo:
+
+codex_operativo_app_base documenta el uso operativo de Codex como agente técnico.
+
+Esta guía no absorbe el contenido de codex_operativo_app_base.
 
 Reglas:
 

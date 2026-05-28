@@ -518,6 +518,122 @@ Order lógica interna creada desde SelfServiceCart checked_out no equivale a sto
 Order lógica interna creada desde SelfServiceCart checked_out no equivale a stock movido.
 
 Order lógica interna creada desde SelfServiceCart checked_out no equivale a operación comercial completa.
+
+Cierre funcional validado de apertura simulada/controlada:
+
+Shopping Autoservicio queda validado como tienda operable en modo simulado/controlado.
+
+Validación realizada:
+
+Tinker backend
+navegador real
+checkout fresco actual
+provider externo simulado aprobado
+SelfServiceCart pasa a checked_out
+SelfServiceCart.meta.formalization.order_id queda registrado
+Order group = sale se crea correctamente
+Order.record_metadata.origin = self_service_sales
+Order.record_metadata.self_service_sales.shop_id conserva la tienda de origen
+/shops/{shop} muestra la venta en Ventas / Órdenes
+/orders/{order} muestra origen Shopping Autoservicio
+
+Recorrido validado:
+
+/tienda
+→ acceso externo customer
+→ /shop/{tenant:slug}
+→ carrito externo
+→ checkout aprobado en entorno simulado
+→ SelfServiceCart checked_out
+→ Order group = sale
+→ lectura interna en /shops/{shop}
+→ lectura en /orders/{order}
+
+También quedó validado:
+
+checkout_enabled = false bloquea checkout antes del provider.
+
+checkout_enabled = false no arma payment_request.
+
+checkout_enabled = false no guarda payment_response.
+
+checkout_enabled = false no marca SelfServiceCart como checked_out.
+
+checkout_enabled = false no crea Order.
+
+el bridge de formalización es idempotente.
+
+reejecutar formalización no duplica Order ni OrderItems.
+
+Lectura doctrinal:
+
+checkout backend real.
+
+provider externo simulado.
+
+carrito externo persistente real.
+
+formalización lógica interna hacia Order real.
+
+lectura interna en Shop Profile.
+
+lectura interna en Orders.
+
+Este cierre deja pendiente el camino de pago real y los efectos posteriores asociados.
+
+Decisión doctrinal de pago real futuro:
+
+El pago real futuro debe implementarse como aduana de integración externa.
+
+app-base conserva la frontera segura y la autoridad de negocio.
+
+app-base valida negocio interno antes de entregar el paquete al provider.
+
+La aduana de integración externa traduce y normaliza intercambio con el provider externo.
+
+El provider externo procesa pagos; app-base conserva la autoridad de negocio.
+
+Lo que ocurre entre app-base y el provider se resuelve dentro de la aduana de integración externa.
+
+La aduana no delega seguridad: traduce, valida respuesta externa y normaliza evidencia.
+
+La aduana no reemplaza autorización, checkout, política comercial, Inventory, Orders, Documents ni Payments.
+
+La aduana no decide si el customer puede operar.
+
+La aduana no decide si el carrito es válido.
+
+La aduana no decide precio, cantidad, moneda ni disponibilidad.
+
+La aduana no decide crear Order.
+
+La aduana no decide crear Document.
+
+La aduana no decide mover stock.
+
+La aduana no decide comprometer Inventory.
+
+La aduana recibe un objeto interno seguro, lo transforma al contrato del provider y devuelve una respuesta normalizada.
+
+Modelo conceptual futuro:
+
+SelfServiceCheckoutService
+↓
+valida negocio interno
+↓
+SelfServicePaymentRequestFactory
+↓
+arma objeto económico backend seguro
+↓
+SelfServicePaymentGateway / aduana
+↓
+provider externo real
+↓
+respuesta externa
+↓
+aduana normaliza respuesta
+↓
+app-base decide efectos internos según evidencia confiable.
 Corte operativo pendiente de imágenes públicas de productos:
 
 la tienda pública no debe reutilizar attachments.preview para exponer imágenes.

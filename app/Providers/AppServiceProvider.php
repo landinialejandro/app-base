@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Providers/AppServiceProvider.php | V5
+// FILE: app/Providers/AppServiceProvider.php | V6
 
 namespace App\Providers;
 
@@ -9,6 +9,8 @@ use App\Support\Auth\RolePermissionResolver;
 use App\Support\Auth\Security;
 use App\Support\SelfServiceSales\Payments\SelfServicePaymentGateway;
 use App\Support\SelfServiceSales\Payments\SimulatedExternalPaymentGateway;
+use App\Support\SelfServiceSales\TokenConsumption\SelfServiceTokenConsumptionGateway;
+use App\Support\SelfServiceSales\TokenConsumption\SimulatedTokenConsumptionGateway;
 use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -36,6 +38,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             SelfServicePaymentGateway::class,
             SimulatedExternalPaymentGateway::class,
+        );
+
+        $this->app->bind(
+            SelfServiceTokenConsumptionGateway::class,
+            SimulatedTokenConsumptionGateway::class,
         );
     }
 

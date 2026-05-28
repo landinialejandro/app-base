@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php | V4
+// FILE: app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php | V5
 
 namespace App\Support\SelfServiceSales;
 
@@ -10,6 +10,8 @@ use App\Models\SelfServiceTokenPocketMovement;
 use App\Models\Shop;
 use App\Models\ShopConsumptionPoint;
 use App\Models\ShopItem;
+use App\Support\SelfServiceSales\TokenConsumption\SelfServiceTokenConsumptionGateway;
+use App\Support\SelfServiceSales\TokenConsumption\SelfServiceTokenConsumptionRequestFactory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -20,6 +22,12 @@ class SelfServiceTokenConsumptionAttemptService
     public const MESSAGE_NOT_AVAILABLE = 'No hay fichas disponibles para la cantidad solicitada.';
     public const MESSAGE_ATTEMPT_NOT_CONFIRMABLE = 'El intento de consumo no puede confirmarse.';
     public const MESSAGE_CONSUMPTION_POINT_NOT_AVAILABLE = 'El punto de consumo no está disponible.';
+
+    public function __construct(
+        protected SelfServiceTokenConsumptionRequestFactory $consumptionRequests,
+        protected SelfServiceTokenConsumptionGateway $consumptionGateway
+    ) {
+    }
 
     public function createPendingAttempt(
         string $tenantId,
@@ -163,6 +171,16 @@ class SelfServiceTokenConsumptionAttemptService
                 throw new HttpException(422, self::MESSAGE_NOT_AVAILABLE);
             }
 
+            $consumptionPoint = $this->consumptionPointForAttempt($attempt);
+            $consumptionRequest = $this->consumptionRequests->make($attempt, $pocket, $consumptionPoint);
+            $gatewayResponse = $this->consumptionGateway->process($consumptionRequest);
+
+            if (($gatewayResponse['status'] ?? null) !== 'approved') {
+                $this->markAttemptFailed($attempt, $gatewayResponse);
+
+                throw new HttpException(422, self::MESSAGE_ATTEMPT_NOT_CONFIRMABLE);
+            }
+
             $balanceAfter = (float) $pocket->quantity_available - $quantity;
 
             SelfServiceTokenPocketMovement::query()->create([
@@ -188,7 +206,9 @@ class SelfServiceTokenConsumptionAttemptService
                     'attempt_id' => $attempt->id,
                     'total_seconds' => $attempt->total_seconds,
                     'consumes_balance' => true,
-                    'calls_external_controller' => false,
+                    'calls_external_controller' => true,
+                    'controller_response_status' => $gatewayResponse['status'] ?? null,
+                    'external_consumption_id' => $gatewayResponse['external_consumption_id'] ?? null,
                     ...$this->consumptionPointPayloadForAttempt($attempt),
                 ],
             ]);
@@ -197,29 +217,54 @@ class SelfServiceTokenConsumptionAttemptService
                 'quantity_available' => $balanceAfter,
             ]);
 
-            $this->markAttemptConfirmed($attempt);
+            $this->markAttemptConfirmed($attempt, $gatewayResponse, $consumptionRequest);
 
             return $attempt->fresh();
         });
     }
 
-    private function markAttemptConfirmed(SelfServiceTokenConsumptionAttempt $attempt): void
+    private function markAttemptConfirmed(
+        SelfServiceTokenConsumptionAttempt $attempt,
+        ?array $gatewayResponse = null,
+        ?array $consumptionRequest = null
+    ): void
     {
         $meta = is_array($attempt->meta) ? $attempt->meta : [];
         $meta['stage'] = 'simulated_confirmed';
         $meta['consumes_balance'] = true;
-        $meta['calls_external_controller'] = false;
+        $meta['calls_external_controller'] = $gatewayResponse !== null;
+
+        if ($consumptionRequest !== null) {
+            $meta['controller_request'] = $consumptionRequest;
+        }
+
         $meta = array_merge($meta, $this->consumptionPointPayloadForAttempt($attempt));
 
         $attempt->update([
             'status' => SelfServiceTokenConsumptionAttempt::STATUS_CONFIRMED,
             'confirmed_at' => $attempt->confirmed_at ?: now(),
-            'response_payload' => [
+            'response_payload' => $gatewayResponse ?? $attempt->response_payload ?? [
                 'provider' => 'simulated',
                 'controller' => 'simulated',
                 'status' => 'confirmed',
                 'confirmed_at' => now()->toIso8601String(),
             ],
+            'meta' => $meta,
+        ]);
+    }
+
+    private function markAttemptFailed(SelfServiceTokenConsumptionAttempt $attempt, array $gatewayResponse): void
+    {
+        $meta = is_array($attempt->meta) ? $attempt->meta : [];
+        $meta['stage'] = 'simulated_failed';
+        $meta['consumes_balance'] = false;
+        $meta['calls_external_controller'] = true;
+        $meta = array_merge($meta, $this->consumptionPointPayloadForAttempt($attempt));
+
+        $attempt->update([
+            'status' => SelfServiceTokenConsumptionAttempt::STATUS_FAILED,
+            'failed_at' => now(),
+            'response_payload' => $gatewayResponse,
             'meta' => $meta,
         ]);
     }
@@ -261,6 +306,18 @@ class SelfServiceTokenConsumptionAttemptService
         }
 
         return $payload;
+    }
+
+    private function consumptionPointForAttempt(SelfServiceTokenConsumptionAttempt $attempt): ?ShopConsumptionPoint
+    {
+        if ($attempt->source_type !== ShopConsumptionPoint::class || ! $attempt->source_id) {
+            return null;
+        }
+
+        return ShopConsumptionPoint::query()
+            ->whereKey($attempt->source_id)
+            ->where('tenant_id', $attempt->tenant_id)
+            ->first();
     }
 
     private function availableConsumptionPointForPocket(

@@ -16,8 +16,9 @@ class SelfServiceTokenConsumptionRequestFactory
         ?ShopConsumptionPoint $point = null
     ): array {
         $quantity = (float) $attempt->quantity;
+        $requestPayload = is_array($attempt->request_payload) ? $attempt->request_payload : [];
 
-        return [
+        $consumptionRequest = [
             'provider' => 'simulated',
             'provider_target' => 'token_controller',
             'operation' => 'self_service_token_consumption',
@@ -46,6 +47,14 @@ class SelfServiceTokenConsumptionRequestFactory
                 'consumption_point_id' => $point?->id,
             ],
         ];
+
+        if (($requestPayload['simulated_gateway_status'] ?? null) === 'rejected') {
+            $consumptionRequest['simulation'] = [
+                'status' => 'rejected',
+            ];
+        }
+
+        return $consumptionRequest;
     }
 
     private function idempotencyKey(

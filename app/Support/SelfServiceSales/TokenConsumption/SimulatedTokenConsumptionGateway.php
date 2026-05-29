@@ -10,6 +10,26 @@ class SimulatedTokenConsumptionGateway implements SelfServiceTokenConsumptionGat
 {
     public function process(array $consumptionRequest): array
     {
+        if (($consumptionRequest['simulation']['status'] ?? 'approved') === 'rejected') {
+            return [
+                'provider' => 'simulated',
+                'provider_target' => 'token_controller',
+                'status' => 'rejected',
+                'status_label' => 'Rechazado',
+                'status_detail' => 'simulated_controller_rejected',
+                'external_consumption_id' => null,
+                'external_reference' => (string) ($consumptionRequest['external_reference'] ?? ''),
+                'attempt_id' => $consumptionRequest['attempt_id'] ?? null,
+                'consumption_point_id' => $consumptionRequest['consumption_point']['id'] ?? null,
+                'quantity' => $consumptionRequest['quantity'] ?? null,
+                'total_seconds' => $consumptionRequest['total_seconds'] ?? null,
+                'raw' => [
+                    'simulated' => true,
+                    'controller_shape' => 'token_controller',
+                ],
+            ];
+        }
+
         return [
             'provider' => 'simulated',
             'provider_target' => 'token_controller',

@@ -118,7 +118,7 @@ class SelfServiceTokenConsumptionAttemptService
         int $storeCustomerId,
         int $attemptId,
     ): SelfServiceTokenConsumptionAttempt {
-        return DB::transaction(function () use ($tenantId, $accountId, $storeCustomerId, $attemptId): SelfServiceTokenConsumptionAttempt {
+        $result = DB::transaction(function () use ($tenantId, $accountId, $storeCustomerId, $attemptId): SelfServiceTokenConsumptionAttempt {
             $attempt = SelfServiceTokenConsumptionAttempt::query()
                 ->whereKey($attemptId)
                 ->where('tenant_id', $tenantId)
@@ -178,7 +178,7 @@ class SelfServiceTokenConsumptionAttemptService
             if (($gatewayResponse['status'] ?? null) !== 'approved') {
                 $this->markAttemptFailed($attempt, $gatewayResponse);
 
-                throw new HttpException(422, self::MESSAGE_ATTEMPT_NOT_CONFIRMABLE);
+                return $attempt->fresh();
             }
 
             $balanceAfter = (float) $pocket->quantity_available - $quantity;
@@ -221,6 +221,12 @@ class SelfServiceTokenConsumptionAttemptService
 
             return $attempt->fresh();
         });
+
+        if ($result->status === SelfServiceTokenConsumptionAttempt::STATUS_FAILED) {
+            throw new HttpException(422, self::MESSAGE_ATTEMPT_NOT_CONFIRMABLE);
+        }
+
+        return $result;
     }
 
     private function markAttemptConfirmed(

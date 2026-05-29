@@ -366,6 +366,26 @@ pocket descontado por app-base.
 
 idempotencia preservada.
 
+Post-fix validado:
+
+la idempotencia de confirmación no debe degradar metadata aprobada existente.
+
+Reglas:
+
+reconfirmar un attempt confirmed no crea movement.
+
+reconfirmar un attempt confirmed no descuenta pocket.
+
+reconfirmar un attempt confirmed no pisa response approved existente.
+
+reconfirmar un attempt confirmed conserva calls_external_controller = true cuando existe evidencia previa de gateway/controlador simulado aprobado.
+
+calls_external_controller = true documenta paso por la aduana simulada.
+
+calls_external_controller = true no documenta hardware real.
+
+Movement consumption sigue siendo la fuente operativa del descuento lógico.
+
 Patrón validado adicional:
 
 ADUANA DE INTEGRACIÓN EXTERNA PARA PAGOS

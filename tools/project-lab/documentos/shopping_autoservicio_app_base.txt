@@ -2031,6 +2031,54 @@ reconfirmar attempt 7 no duplicó movement.
 
 reconfirmar attempt 7 no descontó saldo nuevamente.
 
+reconfirmar attempt 7 no degradó metadata aprobada existente.
+
+Metadata post-fix validada:
+
+attempt id = 7
+
+status = confirmed
+
+response_payload.status = approved
+
+response_payload.provider_target = token_controller
+
+meta.calls_external_controller = true
+
+meta.consumes_balance = true
+
+meta.consumption_point_id = 1
+
+meta.consumption_point_label = Box 1
+
+controller_request presente
+
+Movement post-fix validado:
+
+movement id = 6
+
+movement_type = consumption
+
+source_id = 7
+
+meta.calls_external_controller = true
+
+meta.controller_response_status = approved
+
+meta.external_consumption_id = SIM-TOKEN-KDWAXE0UKF
+
+meta.consumption_point_id = 1
+
+Regla:
+
+la reconfirmación idempotente de un attempt ya confirmed debe conservar calls_external_controller = true cuando existe evidencia previa de gateway/controlador simulado aprobado.
+
+No debe crear movement adicional.
+
+No debe descontar pocket nuevamente.
+
+No debe pisar response approved existente.
+
 No efectos:
 
 no se creó Document.
@@ -2056,6 +2104,8 @@ webhook de controlador.
 reversa de controlador.
 
 lectura de estado físico de máquina.
+
+revalidación de punto activo al confirmar attempts pendientes creados antes de desactivar Shop o ShopConsumptionPoint.
 
 <<END SECTION>>
 

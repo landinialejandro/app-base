@@ -1564,6 +1564,24 @@ Idempotencia validada:
 
 reconfirmar attempt 7 no duplicó movement ni descontó saldo nuevamente.
 
+Post-fix validado:
+
+reconfirmar attempt 7 no degrada metadata aprobada existente.
+
+attempt 7 conserva calls_external_controller = true.
+
+attempt 7 conserva controller_request presente.
+
+attempt 7 conserva response_payload.status = approved.
+
+attempt 7 conserva response_payload.provider_target = token_controller.
+
+movement 6 conserva meta.calls_external_controller = true.
+
+movement 6 conserva meta.controller_response_status = approved.
+
+movement 6 conserva meta.external_consumption_id = SIM-TOKEN-KDWAXE0UKF.
+
 No efectos:
 
 Document count permanece en 5.
@@ -1589,6 +1607,8 @@ rechazos reales.
 compensación/reversa.
 
 lectura de fallos por punto.
+
+definir si un attempt pending asociado a ShopConsumptionPoint debe bloquearse al confirmar cuando el punto o la Shop fueron desactivados después de la creación del attempt.
 
 <<END SECTION>>
 

@@ -1433,6 +1433,20 @@ la navegación pública representa intención y contexto.
 
 La confirmación efectiva sigue siendo backend.
 
+Post-fix vigente:
+
+la reconfirmación idempotente de un attempt confirmed conserva metadata de gateway simulado aprobado.
+
+calls_external_controller = true significa que la confirmación pasó por gateway/controlador simulado.
+
+calls_external_controller = true no equivale a hardware real.
+
+Movement consumption sigue representando el descuento lógico.
+
+Pendiente:
+
+definir si un attempt pending asociado a ShopConsumptionPoint debe bloquearse al confirmar cuando el punto o la Shop fueron desactivados después de la creación del attempt.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS DE LECTURA>>

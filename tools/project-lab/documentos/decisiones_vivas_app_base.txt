@@ -1880,6 +1880,26 @@ idempotencia validada.
 
 No se creó Document, InventoryMovement, Payment ni PaymentAttempt.
 
+Post-fix validado:
+
+la reconfirmación idempotente de un attempt already confirmed no debe degradar metadata aprobada existente.
+
+Reglas:
+
+si existe gatewayResponse nuevo, meta previo calls_external_controller = true, controller_request o response_payload provider_target = token_controller con status = approved, markAttemptConfirmed() debe conservar calls_external_controller = true.
+
+la metadata post-fix no reemplaza al movement consumption.
+
+la metadata post-fix no reemplaza al balance del pocket.
+
+la fuente operativa del descuento sigue siendo SelfServiceTokenPocketMovement movement_type = consumption.
+
+Caso validado:
+
+attempt 7 conserva calls_external_controller = true, consumes_balance = true, controller_request presente, response approved y punto Box 1.
+
+movement 6 conserva calls_external_controller = true, controller_response_status = approved y external_consumption_id = SIM-TOKEN-KDWAXE0UKF.
+
 Queda pendiente:
 
 controlador externo real.
@@ -1895,6 +1915,8 @@ manejo de timeout.
 reversa o compensación.
 
 lectura operativa de errores por punto.
+
+definir si un attempt pending asociado a ShopConsumptionPoint debe bloquearse al confirmar cuando el punto o la Shop fueron desactivados después de la creación del attempt.
 
 <<END SECTION>>
 

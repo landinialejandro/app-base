@@ -230,9 +230,17 @@ class SelfServiceTokenConsumptionAttemptService
     ): void
     {
         $meta = is_array($attempt->meta) ? $attempt->meta : [];
+        $responsePayload = $gatewayResponse ?? (is_array($attempt->response_payload) ? $attempt->response_payload : null);
+        $hasControllerRequest = $consumptionRequest !== null || array_key_exists('controller_request', $meta);
+        $hasApprovedControllerResponse = data_get($responsePayload, 'provider_target') === 'token_controller'
+            && data_get($responsePayload, 'status') === 'approved';
+
         $meta['stage'] = 'simulated_confirmed';
         $meta['consumes_balance'] = true;
-        $meta['calls_external_controller'] = $gatewayResponse !== null;
+        $meta['calls_external_controller'] = $gatewayResponse !== null
+            || ($meta['calls_external_controller'] ?? false) === true
+            || $hasControllerRequest
+            || $hasApprovedControllerResponse;
 
         if ($consumptionRequest !== null) {
             $meta['controller_request'] = $consumptionRequest;
@@ -243,7 +251,7 @@ class SelfServiceTokenConsumptionAttemptService
         $attempt->update([
             'status' => SelfServiceTokenConsumptionAttempt::STATUS_CONFIRMED,
             'confirmed_at' => $attempt->confirmed_at ?: now(),
-            'response_payload' => $gatewayResponse ?? $attempt->response_payload ?? [
+            'response_payload' => $responsePayload ?? [
                 'provider' => 'simulated',
                 'controller' => 'simulated',
                 'status' => 'confirmed',

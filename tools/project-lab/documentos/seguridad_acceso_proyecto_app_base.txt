@@ -142,7 +142,7 @@ Detalle técnico puede evolucionar sin alterar doctrina.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00046
+SECTION_VERSION: 00047
 
 [AUTORIDAD CENTRAL]
 Decisión final = backend / capa central de seguridad.
@@ -197,21 +197,15 @@ Configuración interna ≠ operación externa.
 * middleware externo pasivo
 * tienda pública
 * catálogo publicado
-* customer externo habilitado visualmente
-* saldo mostrado en Blade
-* acción visible en superficie embebida
 * carrito visible
 * checkout externo aprobado visualmente
 * respuesta visual de provider externo
 * redirect visual de pago
-
-
 * stock mostrado visualmente
 * disponibilidad calculada en frontend
 * botón de pagar visible
 * cantidad solicitada por customer
-* stock comprometible inferido fuera de Inventory
-* compromiso de stock no confirmado por backend
+
 [MÍNIMO ACOPLE]
 Consumidor no reinterpreta seguridad de otro módulo.
 
@@ -234,90 +228,25 @@ Un provider externo no reemplaza validación backend.
 
 Un provider externo no reemplaza autorización interna ni externa.
 
-[FRONTERA DE PAGO EXTERNO]
-Pago externo, provider de pago, pasarela, comprobante futuro o confirmación de pago deben pasar por frontera explícita.
+[FRONTERAS DE PAGO, CHECKOUT Y STOCK]
+Checkout externo, provider de pago, comprobante futuro, compromiso de stock y cualquier efecto interno derivado son acciones críticas.
 
-No deben implementarse como lógica directa de controller ni como lógica de frontend.
+Deben pasar por backend autorizado, frontera explícita, validación de tenant/recurso/relación/estado y recálculo backend cuando corresponda.
 
-No deben confiar en:
+No deben confiar en datos enviados o mostrados por frontend, estado visual, redirect, pantalla de éxito ni respuesta externa no validada.
 
-precio enviado por frontend
-total enviado por frontend
-moneda enviada sin validación backend
-nombre enviado por frontend
-estado visual del carrito
-redirect visual
-pantalla de éxito no verificada
-respuesta no autenticada
+Provider externo procesa pago.
 
-El backend debe recalcular y validar antes de iniciar o confirmar operación crítica.
+No gobierna negocio interno.
 
+Inventory conserva autoridad sobre stock, compromiso y movimiento físico.
 
-Regla vigente para checkout externo:
+shops y self_service_sales solo consumen fronteras oficiales.
 
-todo checkout externo es acción crítica del plano externo.
+No deciden stock, pagos, documentos ni movimientos por sí mismos.
 
-Debe validar backend antes de producir efectos.
+Detalle de gateways, clases, payloads, persistencia, umbrales y concurrencia pertenece a documentos especializados.
 
-No debe confiar en datos económicos, estado visual, redirect, pantalla de éxito ni respuesta no autenticada.
-
-Debe operar mediante frontera explícita reemplazable cuando dependa de provider externo.
-
-Provider externo procesa pago; no gobierna negocio interno.
-
-La aduana/gateway traduce y normaliza respuesta externa.
-
-La autoridad interna permanece en app-base.
-
-La aduana no reemplaza autorización, validaciones backend, política comercial, Inventory, Orders, Documents ni Payments.
-
-Toda política comercial crítica del checkout externo debe revalidarse en backend inmediatamente antes de iniciar provider o producir efectos internos.
-
-max_quantity_per_checkout vigente no puede depender de la validación previa del carrito.
-
-Cantidad visible o agregada previamente no autoriza checkout.
-
-El detalle de clases, servicios, bindings, payloads y persistencia pertenece a documentos especializados.
-
-Regla vigente adicional para checkout externo:
-
-todo checkout externo también es acción crítica cuando puede comprometer stock.
-
-Debe validar backend antes de comprometer stock, iniciar pago, cerrar carrito o producir efectos internos.
-
-No debe confiar en:
-
-stock calculado por frontend
-stock mostrado visualmente
-cantidad visible en pantalla
-disponibilidad no revalidada
-estado visual del botón de pago
-prioridad comercial del pedido
-monto mayor como criterio de preferencia
-
-El stock comprometible pertenece a Inventory.
-
-shops y self_service_sales pueden solicitar validación o compromiso mediante frontera explícita.
-
-No pueden decidir compromiso por sí mismos.
-
-Regla de concurrencia:
-
-first committed.
-
-Si dos operaciones compiten por stock, continúa la que primero obtiene compromiso atómico backend válido.
-
-No se reasigna stock por mayor cantidad, mayor importe ni conveniencia comercial.
-
-Regla de umbrales:
-
-stock objetivo = umbral deseado.
-
-stock protegido = límite absoluto.
-
-El stock protegido no puede atravesarse.
-
-El stock objetivo solo puede atravesarse si existe política explícita de margen de avance.
 [AUTONOMÍA MODULAR]
 Módulo autónomo ≠ acceso libre.
 
@@ -364,26 +293,18 @@ Carrito persistente externo ≠ compra formal.
 
 Checkout externo aprobado visualmente ≠ pago real.
 
-Checkout interno real con provider externo simulado ≠ pago real externo.
-
-Provider externo simulado ≠ checkout completamente simulado.
-
 SelfServiceCart checked_out ≠ formalización documental/fiscal completa.
 
 SelfServiceCart checked_out con bridge validado puede formalizar una Order lógica interna de venta.
 
-Esa Order lógica interna ≠ Document, Payment formal, PaymentAttempt formal ni InventoryMovement.
-
-
-SelfServiceCart checked_out ≠ stock comprometido si Inventory no confirmó compromiso backend.
-
-SelfServiceCart checked_out ≠ stock movido.
+Esa Order lógica interna ≠ Document, Payment formal, PaymentAttempt formal, InventoryMovement ni stock movido.
 
 Carrito cargado ≠ stock reservado.
 
 Agregar al carrito ≠ disponibilidad futura garantizada.
 
 Checkout visible ≠ operación garantizada.
+
 [RECURSOS INTERNOS CONSUMIDOS POR PLANO EXTERNO]
 Todo recurso interno consumido por un plano externo conserva autorización interna propia.
 
@@ -422,10 +343,10 @@ datos sensibles
 customers externos
 operación comercial externa
 publicación interna consumida externamente
-carrito externo persistente
 checkout externo
 pagos o comprobantes futuros
 provider externo de pago
+compromiso de stock
 entrega formal
 aplicación formal
 devolución formal
@@ -451,7 +372,7 @@ Todo pago o checkout externo debe validar backend antes de producir efectos inte
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
 [ACCESO PÚBLICO]
 Previo o externo a operación interna autenticada.
@@ -689,14 +610,7 @@ No administra Inventory.
 
 No administra Documents.
 
-Solo puede operar si existen:
-
-tenant público correcto
-customer externo correcto
-relación customer-tienda válida
-operation_enabled = true
-ShopItem publicado válido
-validación backend efectiva
+Solo puede operar con tenant público correcto, customer externo correcto, relación externa válida, operación habilitada, recurso publicado válido y validación backend efectiva.
 
 El carrito externo no habilita por sí mismo:
 
@@ -711,13 +625,7 @@ QR
 comprobante
 
 [DISPONIBILIDAD DE CARRITO]
-La disponibilidad debe revalidarse en backend.
-
-No alcanza con que el ítem haya sido válido al agregarse.
-
-No alcanza con que el frontend lo muestre disponible.
-
-No alcanza con que el botón de pago esté visible.
+La disponibilidad debe revalidarse en backend antes de checkout o efecto crítico.
 
 Si un ítem deja de estar disponible, el checkout debe bloquearse.
 
@@ -732,19 +640,7 @@ Checkout externo es acción crítica del plano externo.
 
 Debe validar backend antes de producir efectos.
 
-No debe confiar en:
-
-precios del frontend
-totales del frontend
-moneda sin validación backend
-estado visual del carrito
-redirect visual
-respuesta de provider no validada
-pantalla de éxito
-
-Checkout interno real con provider externo simulado no equivale a pago real externo.
-
-Provider externo simulado no equivale a checkout completamente simulado.
+No debe confiar en datos económicos de frontend, estado visual, redirect, respuesta no validada de provider ni pantalla de éxito.
 
 SelfServiceCart checked_out no equivale a formalización documental/fiscal completa.
 
@@ -754,57 +650,16 @@ No debe crear Documents ni InventoryMovements sin contrato explícito.
 
 La tienda pública, el frontend, el provider visual o el redirect no autorizan por sí mismos la operación.
 
-
-El checkout externo con stock debe validar backend:
-
-tenant correcto
-customer externo correcto
-relación customer-tienda válida
-operation_enabled
-Shop activa
-ShopItem publicado y visible
-Product activo
-precio backend
-cantidad solicitada
-stock comprometible
-compromiso atómico cuando corresponda
-provider o pago según frontera explícita
-
-Reglas:
-
-frontend no calcula stock
-frontend no muestra stock interno
-frontend no decide disponibilidad
-frontend no compromete stock
-frontend no mueve stock
-frontend no crea Order
-frontend no crea Document
+Si afecta stock, debe consultar frontera Inventory antes de comprometer o mover.
 
 Comprometer stock no equivale a mover stock físico.
 
-Inventory valida y compromete.
-
 Inventory mueve stock físico solo cuando corresponda por entrega, retiro, despacho, consumo o cumplimiento real.
+
 [PAGO / PROVIDER EXTERNO]
 Provider externo de pago debe operar detrás de frontera explícita.
 
-
-Reglas:
-
-customer externo habilitado para operar no equivale a usuario interno
-
-checkout externo aprobado no equivale a autorización interna
-
-provider externo aprobado no equivale a formalización documental/fiscal completa
-provider externo no autoriza acceso interno
-
-provider externo no decide operación comercial interna por sí mismo
-
-provider externo no reemplaza validación backend
-
-provider externo no reemplaza tenant, customer, relación externa ni operation_enabled
-
-provider externo no acredita saldo ni genera efectos por redirect visual
+Provider externo no autoriza acceso interno, no formaliza documentación/fiscalidad, no decide operación comercial y no produce efectos internos por redirect visual.
 
 El detalle de providers concretos, gateways, servicios, bindings, payloads y persistencia pertenece a documentos especializados.
 
@@ -1114,7 +969,7 @@ Backend autoriza o bloquea.
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00034
+SECTION_VERSION: 00035
 
 [OBLIGATORIO]
 No autorizar desde Blade/frontend.
@@ -1205,16 +1060,7 @@ Flujo externo debe declarar:
 No reutilizar contratos internos si el plano de seguridad es distinto.
 
 [CARRITO EXTERNO]
-Carrito externo debe validar backend:
-
-* tenant público correcto
-* customer externo correcto
-* relación customer-tienda válida
-* operation_enabled
-* ShopItem operativo
-* publicación efectiva
-* cantidades
-* alcance de la acción
+Carrito externo debe validar backend: tenant, customer, relación externa, operación habilitada, recurso publicado, cantidades y alcance de acción.
 
 No confiar en estado frontend.
 
@@ -1225,30 +1071,9 @@ No operar para customers externos no habilitados.
 No operar directamente sobre Product como unidad comercial primaria si el contrato vigente exige ShopItem.
 
 [CHECKOUT EXTERNO]
-Checkout externo debe validar backend:
+Checkout externo debe validar backend: carrito vigente, disponibilidad efectiva, cantidades, datos económicos recalculados, tenant, customer, relación externa y estado operativo de recursos afectados.
 
-* carrito vigente
-* disponibilidad efectiva
-* cantidades
-* precios recalculados
-* moneda
-* tenant
-* customer
-* relación customer-tienda
-* operation_enabled
-* estado de Shop
-* estado de ShopItem
-* estado de Product
-
-No confiar en:
-
-* total frontend
-* precio frontend
-* moneda frontend sin validación
-* nombre frontend
-* estado visual del botón
-* redirect visual
-* respuesta no validada de provider
+No confiar en frontend, estado visual, redirect ni respuesta no validada de provider.
 
 Si existe ítem no disponible, debe bloquear.
 
@@ -1267,9 +1092,7 @@ No generar Order, Document ni InventoryMovement sin contrato interno específico
 
 La respuesta del provider debe validarse antes de cualquier efecto interno.
 
-La idempotencia backend debe incorporarse cuando corresponda.
-
-Request y response deben persistirse cuando corresponda al contrato operativo.
+Idempotencia, persistencia de request/response y detalle de gateway pertenecen al contrato especializado.
 
 <<END SECTION>>
 
@@ -1459,7 +1282,7 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza operaci�
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00041
+SECTION_VERSION: 00042
 
 [USO]
 Solo restricciones de seguridad de alto impacto.
@@ -1633,61 +1456,17 @@ Party con membership activa protege kind/employee/email según contrato.
 [SHOPPING AUTOSERVICIO]
 self_service_sales = plano comercial externo.
 
-Entrada pública ≠ panel interno.
+Plano externo ≠ plano interno.
 
-Selector externo ≠ selector interno.
-
-Salida externa ≠ logout interno.
-
-Customer externo ≠ User.
-
-Customer externo ≠ Membership.
-
-Customer externo ≠ roles internos.
-
-Party customer externa ≠ identidad interna.
-
-Cuenta externa ≠ User.
-
-Relación customer-tienda ≠ Membership.
-
-Token externo ≠ sesión interna.
-
-Sesión externa ≠ sesión interna.
-
-Sesión externa ≠ guard definitivo.
-
-Sesión externa ≠ operación comercial habilitada.
-
-Middleware externo pasivo ≠ autorización obligatoria.
-
-Middleware externo pasivo ≠ guard definitivo.
-
-Middleware externo pasivo ≠ ruta privada.
-
-Registro externo ≠ invitation.
-
-Credencial externa propia ≠ Fortify interno.
-
-Confirmación token requiere validación backend suficiente.
-
-Validación de credencial externa no habilita operación comercial completa.
-
-Selección de tienda no habilita operación comercial completa.
-
-Sesión externa mínima no habilita operación comercial completa.
-
-Contexto externo pasivo no habilita operación comercial completa.
-
-Redirección a tienda pública no habilita operación comercial completa.
-
-Catálogo publicado no habilita operación comercial completa.
+Customer externo, cuenta externa, token externo, sesión externa, selector externo, registro externo, relación customer-tienda, credencial externa, entrada pública, salida externa, middleware externo pasivo y catálogo publicado no equivalen a User, Membership, roles internos, invitation, Fortify interno, tenant activo interno, panel interno ni operación comercial completa.
 
 operation_enabled = false bloquea operación comercial.
 
 Duplicados relevantes bloquean alta.
 
 Customer externo no administra recursos internos.
+
+Confirmación token y operación comercial requieren validación backend suficiente.
 
 Fallos del flujo externo deben usar error genérico cuando corresponda.
 

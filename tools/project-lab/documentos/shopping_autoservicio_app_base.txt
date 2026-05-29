@@ -1910,7 +1910,7 @@ No se descontó pocket adicionalmente.
 <<END SECTION>>
 
 <<SECTION: CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS
 
@@ -1972,6 +1972,12 @@ app-base conserva autoridad sobre efectos internos.
 response approved habilita confirmación interna.
 
 response approved no reemplaza validación backend.
+
+response rejected normalizada habilita rechazo operativo interno.
+
+response rejected no descuenta pocket.
+
+response rejected no crea movement.
 
 calls_external_controller = true significa llamada a gateway/controlador simulado.
 
@@ -2069,6 +2075,66 @@ meta.external_consumption_id = SIM-TOKEN-KDWAXE0UKF
 
 meta.consumption_point_id = 1
 
+Validación rejected controlada:
+
+attempt.request_payload.simulated_gateway_status = rejected
+↓
+factory agrega simulation.status = rejected
+↓
+gateway simulado devuelve response rejected normalizada
+↓
+app-base marca attempt failed
+↓
+response_payload rejected persistido
+↓
+meta.stage = simulated_failed
+↓
+meta.calls_external_controller = true
+↓
+meta.consumes_balance = false
+↓
+failed_at no null
+↓
+confirmed_at null
+↓
+no crea movement
+↓
+no descuenta pocket
+↓
+confirmSimulated devuelve HttpException 422 después de persistir failed
+
+Caso rejected validado:
+
+attempt id = 12
+
+status = failed
+
+response_payload.status = rejected
+
+provider = simulated
+
+provider_target = token_controller
+
+external_consumption_id = null
+
+meta.stage = simulated_failed
+
+meta.calls_external_controller = true
+
+meta.consumes_balance = false
+
+failed_at = 2026-05-29 11:31:05
+
+confirmed_at = null
+
+pocket balance_before = 2.00
+
+pocket balance_after = 2.00
+
+movement_count_before = 10
+
+movement_count_after = 10
+
 Regla:
 
 la reconfirmación idempotente de un attempt ya confirmed debe conservar calls_external_controller = true cuando existe evidencia previa de gateway/controlador simulado aprobado.
@@ -2089,6 +2155,12 @@ no existe Payment model.
 
 no existe PaymentAttempt model.
 
+Regla de persistencia failed:
+
+el rechazo simulado debe persistir attempt failed y response_payload antes de devolver 422 operativo.
+
+La excepción no debe lanzarse dentro de la transacción antes del commit si eso revierte la evidencia del rechazo.
+
 No implementa todavía:
 
 hardware real.
@@ -2102,6 +2174,8 @@ activación física de box.
 webhook de controlador.
 
 reversa de controlador.
+
+timeout/retry.
 
 lectura de estado físico de máquina.
 

@@ -991,7 +991,7 @@ consumo físico sin respuesta confiable de controlador.
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LÍNEA ACTIVA — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
 
@@ -1095,7 +1095,7 @@ definir reversa o ajuste administrativo si corresponde.
 
 definir QR real de box o punto de consumo.
 
-definir gateway/controlador externo real o simulado por interface reemplazable.
+definir gateway/controlador externo real.
 
 No implementar todavía:
 
@@ -1196,7 +1196,7 @@ no se implementó gateway real.
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — PUNTOS DE CONSUMO DE TIENDA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LÍNEA ACTIVA — PUNTOS DE CONSUMO DE TIENDA
 
@@ -1306,7 +1306,7 @@ validar punto activo antes de crear attempt futuro.
 
 definir payload futuro para controlador externo.
 
-definir gateway/controlador externo real o simulado por interface reemplazable.
+definir gateway/controlador externo real.
 
 evaluar lectura interna futura de consumos agrupados por punto.
 
@@ -1335,7 +1335,7 @@ InventoryMovement posterior.
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — QR PÚBLICO POR PUNTO DE CONSUMO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LÍNEA ACTIVA — QR PÚBLICO POR PUNTO DE CONSUMO
 
@@ -1427,7 +1427,7 @@ cierre documental del corte.
 
 definir payload de controlador externo.
 
-definir gateway/controlador externo real o simulado por interface reemplazable.
+definir gateway/controlador externo real.
 
 definir confirmación confiable de uso por punto.
 
@@ -1498,7 +1498,7 @@ no se implementó gateway real.
 
 Cierre consolidado:
 
-gateway simulado reemplazable de consumo de fichas implementado y validado con camino approved.
+gateway simulado reemplazable de consumo de fichas implementado y validado con caminos approved y rejected controlado.
 
 Archivos creados:
 
@@ -1582,6 +1582,72 @@ movement 6 conserva meta.controller_response_status = approved.
 
 movement 6 conserva meta.external_consumption_id = SIM-TOKEN-KDWAXE0UKF.
 
+Cierre adicional consolidado:
+
+rechazo simulado controlado en consumo de fichas.
+
+Commit:
+
+625f4d4 Agrega rechazo simulado controlado para consumo de fichas
+
+Archivos modificados:
+
+app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php
+
+app/Support/SelfServiceSales/TokenConsumption/SelfServiceTokenConsumptionRequestFactory.php
+
+app/Support/SelfServiceSales/TokenConsumption/SimulatedTokenConsumptionGateway.php
+
+Validación rejected:
+
+attempt.request_payload.simulated_gateway_status = rejected
+↓
+factory agrega simulation.status = rejected
+↓
+gateway simulado devuelve response rejected normalizada
+↓
+app-base marca attempt failed
+↓
+response_payload rejected persistido
+↓
+meta.stage = simulated_failed
+↓
+meta.calls_external_controller = true
+↓
+meta.consumes_balance = false
+↓
+failed_at no null
+↓
+confirmed_at null
+↓
+no crea movement
+↓
+no descuenta pocket
+↓
+confirmSimulated devuelve 422 operativo después de persistir failed
+
+Resultado runtime:
+
+attempt id = 12.
+
+status = failed.
+
+response_payload.status = rejected.
+
+provider = simulated.
+
+provider_target = token_controller.
+
+external_consumption_id = null.
+
+pocket balance 2.00 → 2.00.
+
+movement_count 10 → 10.
+
+Regla:
+
+la persistencia de failed requiere no lanzar la excepción dentro de la transacción antes del commit.
+
 No efectos:
 
 Document count permanece en 5.
@@ -1602,7 +1668,7 @@ contrato físico definitivo.
 
 timeout/retry.
 
-rechazos reales.
+rechazos reales de hardware/controlador externo.
 
 compensación/reversa.
 

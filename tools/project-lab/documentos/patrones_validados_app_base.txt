@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00033
+SECTION_VERSION: 00034
 
 PATRONES VIGENTES
 
@@ -328,7 +328,7 @@ SelfServiceTokenConsumptionGateway
 ↓
 SimulatedTokenConsumptionGateway
 ↓
-respuesta normalizada approved
+respuesta normalizada approved/rejected
 ↓
 efectos internos app-base
 
@@ -344,7 +344,9 @@ la implementación simulada no representa hardware real.
 
 la respuesta externa normalizada no reemplaza validación backend.
 
-los efectos internos ocurren solo luego de validación app-base y response approved.
+los efectos internos de consumo ocurren solo luego de validación app-base y response approved.
+
+response rejected persiste failed y evidencia operativa sin consumir saldo.
 
 No enviar public_token al gateway.
 
@@ -366,6 +368,32 @@ pocket descontado por app-base.
 
 idempotencia preservada.
 
+Aplicación rejected validada:
+
+attempt 12 con simulated_gateway_status = rejected.
+
+gateway simulado devuelve response rejected.
+
+app-base persiste attempt failed.
+
+response_payload rejected queda guardado.
+
+meta.stage = simulated_failed.
+
+meta.calls_external_controller = true.
+
+meta.consumes_balance = false.
+
+failed_at no null.
+
+confirmed_at null.
+
+no se crea movement.
+
+no se descuenta pocket.
+
+confirmSimulated devuelve 422 operativo después de persistir failed.
+
 Post-fix validado:
 
 la idempotencia de confirmación no debe degradar metadata aprobada existente.
@@ -385,6 +413,12 @@ calls_external_controller = true documenta paso por la aduana simulada.
 calls_external_controller = true no documenta hardware real.
 
 Movement consumption sigue siendo la fuente operativa del descuento lógico.
+
+Regla transaccional:
+
+si el camino rejected debe devolver excepción operativa, la excepción debe emitirse después de persistir failed.
+
+No debe lanzarse dentro de la transacción antes del commit si eso revierte la evidencia del gateway simulado.
 
 Patrón validado adicional:
 

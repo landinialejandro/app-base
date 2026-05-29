@@ -194,6 +194,9 @@ class ShopTokenConsumptionSummaryService
 
     private function presentAttempt(SelfServiceTokenConsumptionAttempt $attempt): array
     {
+        $meta = is_array($attempt->meta) ? $attempt->meta : [];
+        $responsePayload = is_array($attempt->response_payload) ? $attempt->response_payload : [];
+
         return [
             'id' => $attempt->id,
             'customer_label' => $this->customerLabel($attempt),
@@ -206,11 +209,21 @@ class ShopTokenConsumptionSummaryService
             'status' => $attempt->status,
             'confirmed_at' => $attempt->confirmed_at,
             'failed_at' => $attempt->failed_at,
+            'response_status' => data_get($responsePayload, 'status'),
+            'provider' => data_get($responsePayload, 'provider'),
+            'provider_target' => data_get($responsePayload, 'provider_target'),
+            'external_consumption_id' => data_get($responsePayload, 'external_consumption_id'),
+            'calls_external_controller' => data_get($meta, 'calls_external_controller') === true,
+            'controller_request_present' => array_key_exists('controller_request', $meta),
+            'consumption_point_id' => data_get($meta, 'consumption_point_id'),
+            'consumption_point_label' => data_get($meta, 'consumption_point_label'),
         ];
     }
 
     private function presentMovement(SelfServiceTokenPocketMovement $movement): array
     {
+        $meta = is_array($movement->meta) ? $movement->meta : [];
+
         return [
             'id' => $movement->id,
             'customer_label' => $movement->pocket ? $this->customerLabel($movement->pocket) : '—',
@@ -221,6 +234,12 @@ class ShopTokenConsumptionSummaryService
             'source_type' => $movement->source_type,
             'source_id' => $movement->source_id,
             'created_at' => $movement->created_at,
+            'calls_external_controller' => data_get($meta, 'calls_external_controller') === true,
+            'controller_response_status' => data_get($meta, 'controller_response_status'),
+            'external_consumption_id' => data_get($meta, 'external_consumption_id'),
+            'consumption_point_id' => data_get($meta, 'consumption_point_id'),
+            'consumption_point_label' => data_get($meta, 'consumption_point_label'),
+            'consumes_balance' => data_get($meta, 'consumes_balance') === true,
         ];
     }
 

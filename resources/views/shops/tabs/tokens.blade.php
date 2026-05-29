@@ -163,6 +163,9 @@
 
         <div class="dashboard-section-header">
             <h3 class="dashboard-section-title">Attempts recientes</h3>
+            <p class="dashboard-section-text">
+                Gateway simulado indica llamada a controlador simulado. No representa hardware real.
+            </p>
         </div>
 
         @if ($attempts->isEmpty())
@@ -179,6 +182,10 @@
                             <th>Segundos</th>
                             <th>Minutos</th>
                             <th>Estado</th>
+                            <th>Gateway simulado</th>
+                            <th>Response</th>
+                            <th>External ID</th>
+                            <th>Punto</th>
                             <th>Confirmado</th>
                             <th>Fallido</th>
                         </tr>
@@ -193,6 +200,20 @@
                                 <td>{{ $attempt['total_seconds'] ?? '—' }}</td>
                                 <td>{{ $attempt['total_minutes'] !== null ? $formatNumber($attempt['total_minutes']) : '—' }}</td>
                                 <td>{{ $attempt['status'] ?: '—' }}</td>
+                                <td>
+                                    {{ $attempt['calls_external_controller'] ? 'Sí' : 'No' }}
+                                    @if ($attempt['controller_request_present'])
+                                        <div class="table-cell-help">Request registrado</div>
+                                    @endif
+                                </td>
+                                <td>
+                                    {{ $attempt['provider_target'] ?: '—' }}
+                                    @if ($attempt['response_status'])
+                                        <div class="table-cell-help">{{ $attempt['response_status'] }}</div>
+                                    @endif
+                                </td>
+                                <td>{{ $attempt['external_consumption_id'] ?: '—' }}</td>
+                                <td>{{ $attempt['consumption_point_label'] ?: '—' }}</td>
                                 <td>{{ $attempt['confirmed_at']?->format('d/m/Y H:i') ?: '—' }}</td>
                                 <td>{{ $attempt['failed_at']?->format('d/m/Y H:i') ?: '—' }}</td>
                             </tr>
@@ -204,6 +225,9 @@
 
         <div class="dashboard-section-header">
             <h3 class="dashboard-section-title">Movements recientes</h3>
+            <p class="dashboard-section-text">
+                El movement consumption es descuento lógico del pocket; la referencia de gateway es evidencia simulada.
+            </p>
         </div>
 
         @if ($movements->isEmpty())
@@ -220,6 +244,10 @@
                             <th>Cantidad</th>
                             <th>Saldo posterior</th>
                             <th>Origen</th>
+                            <th>Gateway simulado</th>
+                            <th>Response</th>
+                            <th>External ID</th>
+                            <th>Punto</th>
                             <th>Fecha</th>
                         </tr>
                     </thead>
@@ -238,6 +266,15 @@
                                         #{{ $movement['source_id'] }}
                                     @endif
                                 </td>
+                                <td>
+                                    {{ $movement['calls_external_controller'] ? 'Sí' : 'No' }}
+                                    @if ($movement['consumes_balance'])
+                                        <div class="table-cell-help">Descuento lógico</div>
+                                    @endif
+                                </td>
+                                <td>{{ $movement['controller_response_status'] ?: '—' }}</td>
+                                <td>{{ $movement['external_consumption_id'] ?: '—' }}</td>
+                                <td>{{ $movement['consumption_point_label'] ?: '—' }}</td>
                                 <td>{{ $movement['created_at']?->format('d/m/Y H:i') ?: '—' }}</td>
                             </tr>
                         @endforeach

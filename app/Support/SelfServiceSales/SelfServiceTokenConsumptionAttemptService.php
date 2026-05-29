@@ -328,10 +328,23 @@ class SelfServiceTokenConsumptionAttemptService
             return null;
         }
 
-        return ShopConsumptionPoint::query()
+        $point = ShopConsumptionPoint::query()
             ->whereKey($attempt->source_id)
             ->where('tenant_id', $attempt->tenant_id)
+            ->with('shop')
             ->first();
+
+        if (
+            ! $point instanceof ShopConsumptionPoint
+            || ! $point->isActive()
+            || ! $point->shop instanceof Shop
+            || (string) $point->shop->tenant_id !== (string) $attempt->tenant_id
+            || ! $point->shop->isActive()
+        ) {
+            throw new HttpException(422, self::MESSAGE_CONSUMPTION_POINT_NOT_AVAILABLE);
+        }
+
+        return $point;
     }
 
     private function availableConsumptionPointForPocket(

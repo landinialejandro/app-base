@@ -1860,7 +1860,7 @@ la existencia de ShopConsumptionPoint no implica que los attempts actuales ya es
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CONCEPTUAL — QR PÚBLICO POR PUNTO DE CONSUMO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RELACIÓN CONCEPTUAL — QR PÚBLICO POR PUNTO DE CONSUMO
 
@@ -1904,6 +1904,10 @@ self_service_sales consume el punto como contexto externo.
 
 SelfServiceTokenConsumptionAttempt conserva intención de uso.
 
+SelfServiceTokenConsumptionAttempt pending asociado al punto conserva contexto histórico.
+
+No autoriza consumo por sí mismo.
+
 SelfServiceTokenPocket conserva saldo disponible.
 
 SelfServiceTokenPocketMovement conserva movimientos del pocket.
@@ -1920,6 +1924,10 @@ public_token no reemplaza confirmación.
 
 public_token no reemplaza hardware.
 
+Punto activo no reemplaza confirmación.
+
+Shop activa no reemplaza confirmación.
+
 Momentos separados:
 
 punto configurado internamente
@@ -1927,6 +1935,8 @@ punto configurado internamente
 QR público resuelto
 
 attempt pending asociado al punto
+
+revalidación de punto y Shop activos al confirmar
 
 consumo confirmado simulado o futuro
 
@@ -1937,6 +1947,12 @@ gateway/controlador real futuro
 Regla:
 
 asociar attempt a ShopConsumptionPoint no equivale a consumir ficha.
+
+La confirmación es el momento operativo crítico.
+
+Si punto o Shop no están disponibles al confirmar, app-base bloquea antes del gateway.
+
+Ese bloqueo no equivale a rejected, failed, movement ni descuento de pocket.
 
 <<END SECTION>>
 

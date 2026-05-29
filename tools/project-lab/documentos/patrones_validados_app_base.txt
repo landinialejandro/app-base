@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00034
+SECTION_VERSION: 00035
 
 PATRONES VIGENTES
 
@@ -348,6 +348,8 @@ los efectos internos de consumo ocurren solo luego de validación app-base y res
 
 response rejected persiste failed y evidencia operativa sin consumir saldo.
 
+bloqueo pre-gateway por punto o Shop no disponible no es rejected.
+
 No enviar public_token al gateway.
 
 No permitir que gateway descuente pocket.
@@ -393,6 +395,34 @@ no se crea movement.
 no se descuenta pocket.
 
 confirmSimulated devuelve 422 operativo después de persistir failed.
+
+Patrón validado de bloqueo pre-gateway:
+
+attempt pending asociado a ShopConsumptionPoint fija contexto histórico.
+
+La confirmación revalida punto y Shop activos antes del gateway.
+
+Si punto o Shop no están disponibles, app-base devuelve 422 antes de llamar gateway.
+
+No persiste failed.
+
+No muta response_payload.
+
+No muta meta como rejected.
+
+No crea movement.
+
+No descuenta pocket.
+
+Conserva attempt pending.
+
+Aplicación pre-gateway validada:
+
+attempt 13 con punto inactivo: 422, calls_external_controller = false, consumes_balance = false, response_payload = null, meta.stage = pending_attempt, movement_count 10 → 10.
+
+attempt 11 con Shop inactiva: 422, status pending, response_status null, calls_external_controller = false, consumes_balance = false, movement_count = 10.
+
+attempt 14 sin ShopConsumptionPoint: no aplica bloqueo por punto, confirma approved, calls_external_controller = true, consumes_balance = true, movement_count 10 → 11.
 
 Post-fix validado:
 

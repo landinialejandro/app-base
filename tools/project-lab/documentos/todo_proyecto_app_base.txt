@@ -1335,7 +1335,7 @@ InventoryMovement posterior.
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — QR PÚBLICO POR PUNTO DE CONSUMO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 LÍNEA ACTIVA — QR PÚBLICO POR PUNTO DE CONSUMO
 
@@ -1648,6 +1648,116 @@ Regla:
 
 la persistencia de failed requiere no lanzar la excepción dentro de la transacción antes del commit.
 
+Cierre adicional consolidado:
+
+revalidación de punto activo y Shop activa al confirmar attempt asociado a ShopConsumptionPoint.
+
+Archivo modificado:
+
+app/Support/SelfServiceSales/SelfServiceTokenConsumptionAttemptService.php
+
+Método intervenido:
+
+consumptionPointForAttempt()
+
+Regla:
+
+attempt pending asociado a ShopConsumptionPoint conserva contexto histórico.
+
+La confirmación es la operación crítica.
+
+Antes de llamar gateway simulado, app-base revalida punto y Shop activos.
+
+Si punto o Shop no están disponibles:
+
+lanza HttpException 422 con MESSAGE_CONSUMPTION_POINT_NOT_AVAILABLE.
+
+no llama gateway simulado.
+
+no marca attempt failed.
+
+no crea movement.
+
+no descuenta pocket.
+
+no muta response_payload.
+
+no muta meta como rejected.
+
+conserva attempt pending.
+
+Validaciones:
+
+punto inactivo dentro de transacción.
+
+Shop inactiva dentro de transacción.
+
+attempt sin ShopConsumptionPoint.
+
+Resultado punto inactivo:
+
+attempt id = 13.
+
+exception.status_code = 422.
+
+exception.message = El punto de consumo no está disponible.
+
+attempt.status = pending.
+
+calls_external_controller = false.
+
+consumes_balance = false.
+
+response_payload = null.
+
+meta_stage = pending_attempt.
+
+movement_count 10 → 10.
+
+rollback final ejecutado.
+
+Resultado Shop inactiva:
+
+attempt id = 11.
+
+exception.status_code = 422.
+
+exception.message = El punto de consumo no está disponible.
+
+attempt.status = pending.
+
+response_status = null.
+
+meta_stage = pending_attempt.
+
+calls_external_controller = false.
+
+consumes_balance = false.
+
+movement_count = 10.
+
+rollback final ejecutado.
+
+Resultado attempt sin ShopConsumptionPoint:
+
+attempt id = 14.
+
+source_type = self_service_sales.token_consumption.
+
+source_is_point = false.
+
+status = confirmed.
+
+response_status = approved.
+
+calls_external_controller = true.
+
+consumes_balance = true.
+
+movement_count 10 → 11.
+
+rollback final ejecutado.
+
 No efectos:
 
 Document count permanece en 5.
@@ -1674,7 +1784,7 @@ compensación/reversa.
 
 lectura de fallos por punto.
 
-definir si un attempt pending asociado a ShopConsumptionPoint debe bloquearse al confirmar cuando el punto o la Shop fueron desactivados después de la creación del attempt.
+tratamiento de punto inactivo frente a hardware/controlador real futuro.
 
 <<END SECTION>>
 

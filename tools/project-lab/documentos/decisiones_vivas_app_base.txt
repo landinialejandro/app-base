@@ -1708,7 +1708,7 @@ definir lectura interna futura de consumos por punto.
 <<END SECTION>>
 
 <<SECTION: DECISIÓN VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 DECISIÓN VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO
 
@@ -1752,6 +1752,14 @@ attempt asociado a punto queda pending.
 
 confirmación simulada sigue siendo paso separado.
 
+attempt pending asociado a punto conserva contexto histórico.
+
+No autoriza consumo por sí mismo.
+
+La confirmación es el momento operativo crítico.
+
+Antes de llamar gateway simulado, app-base revalida que el punto y la Shop sigan activos.
+
 Caso validado:
 
 URL pública de punto generada.
@@ -1776,6 +1784,32 @@ Validación visual browser:
 
 la URL pública del punto abrió correctamente, mostró contexto del punto, permitió registrar attempt y no descontó saldo.
 
+Decisión vigente adicional:
+
+si el punto o la Shop ya no están disponibles al confirmar, app-base bloquea antes del gateway con 422.
+
+Ese bloqueo no es rejected.
+
+No marca attempt failed.
+
+No crea movement.
+
+No descuenta pocket.
+
+No muta response_payload.
+
+No muta meta como rejected.
+
+Conserva attempt pending.
+
+Caso validado:
+
+attempt 13 con punto inactivo bloqueó con 422, no llamó gateway, permaneció pending y mantuvo movement_count 10 → 10.
+
+attempt 11 con Shop inactiva bloqueó con 422, no llamó gateway, permaneció pending y mantuvo movement_count = 10.
+
+attempt 14 sin ShopConsumptionPoint confirmó normalmente contra gateway simulado approved y creó un movement adicional.
+
 Queda pendiente:
 
 usar punto en confirmación contra gateway/controlador real.
@@ -1788,7 +1822,7 @@ definir agrupación interna de consumos por punto.
 
 definir lectura interna de attempts y movements por punto.
 
-definir tratamiento de punto inactivo con attempts pendientes.
+tratamiento de punto inactivo frente a hardware/controlador real futuro.
 
 Decisión vigente adicional:
 
@@ -1938,7 +1972,7 @@ reversa o compensación.
 
 lectura operativa de errores por punto.
 
-definir si un attempt pending asociado a ShopConsumptionPoint debe bloquearse al confirmar cuando el punto o la Shop fueron desactivados después de la creación del attempt.
+definir tratamiento de punto no disponible frente a hardware/controlador real futuro.
 
 <<END SECTION>>
 

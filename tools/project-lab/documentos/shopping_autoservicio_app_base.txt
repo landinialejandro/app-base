@@ -1728,7 +1728,7 @@ hardware real = corte futuro.
 <<END SECTION>>
 
 <<SECTION: CORTE OPERATIVO VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CORTE OPERATIVO VIGENTE — QR PÚBLICO POR PUNTO DE CONSUMO
 
@@ -1828,7 +1828,13 @@ registrar attempt desde QR no llama gateway/controlador externo.
 
 attempt asociado a punto sigue siendo pending.
 
-confirmación simulada sigue siendo paso separado.
+confirmación simulada sigue siendo paso separado y operación crítica.
+
+El attempt pending conserva contexto histórico.
+
+No autoriza consumo por sí mismo.
+
+Antes de confirmar un attempt asociado a ShopConsumptionPoint, app-base revalida punto y Shop activos.
 
 hardware real sigue pendiente.
 
@@ -1843,6 +1849,10 @@ QR público por punto no equivale a consumo confirmado.
 QR público por punto no equivale a hardware habilitado.
 
 QR público por punto no equivale a descuento de fichas.
+
+Punto activo no garantiza consumo.
+
+Shop activa no garantiza consumo.
 
 NORMALIZACIÓN SEMÁNTICA VIGENTE
 
@@ -1910,7 +1920,7 @@ No se descontó pocket adicionalmente.
 <<END SECTION>>
 
 <<SECTION: CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS
 
@@ -1968,6 +1978,32 @@ app-base arma el request seguro.
 app-base no envía public_token al gateway.
 
 app-base conserva autoridad sobre efectos internos.
+
+Si attempt pending está asociado a ShopConsumptionPoint, app-base revalida antes del gateway:
+
+que el punto exista.
+
+que el punto pertenezca al tenant.
+
+que el punto esté activo.
+
+que tenga Shop.
+
+que la Shop pertenezca al tenant.
+
+que la Shop esté activa.
+
+Si esa validación falla, bloquea con 422 antes del gateway.
+
+Ese bloqueo no es rejected.
+
+No marca failed.
+
+No muta response_payload.
+
+No muta meta como rejected.
+
+Conserva attempt pending.
 
 response approved habilita confirmación interna.
 
@@ -2135,6 +2171,62 @@ movement_count_before = 10
 
 movement_count_after = 10
 
+Validación pre-gateway por punto/shop no disponible:
+
+punto inactivo con attempt id = 13
+↓
+HttpException 422
+↓
+mensaje = El punto de consumo no está disponible.
+↓
+attempt status = pending
+↓
+calls_external_controller = false
+↓
+consumes_balance = false
+↓
+response_payload = null
+↓
+meta.stage = pending_attempt
+↓
+movement_count 10 → 10
+
+Shop inactiva con attempt id = 11
+↓
+HttpException 422
+↓
+mensaje = El punto de consumo no está disponible.
+↓
+attempt status = pending
+↓
+response_status = null
+↓
+meta.stage = pending_attempt
+↓
+calls_external_controller = false
+↓
+consumes_balance = false
+↓
+movement_count = 10
+
+Attempt sin ShopConsumptionPoint:
+
+attempt id = 14
+
+source_type = self_service_sales.token_consumption
+
+source_is_point = false
+
+status = confirmed
+
+response_status = approved
+
+calls_external_controller = true
+
+consumes_balance = true
+
+movement_count 10 → 11
+
 Regla:
 
 la reconfirmación idempotente de un attempt ya confirmed debe conservar calls_external_controller = true cuando existe evidencia previa de gateway/controlador simulado aprobado.
@@ -2154,6 +2246,20 @@ no se creó InventoryMovement.
 no existe Payment model.
 
 no existe PaymentAttempt model.
+
+Regla de bloqueo pre-gateway:
+
+punto inactivo o Shop inactiva bloquea antes de llamar gateway simulado.
+
+No representa rejected.
+
+No persiste failed.
+
+No consume saldo.
+
+No crea movement.
+
+No llama controlador/gateway simulado.
 
 Regla de persistencia failed:
 
@@ -2179,7 +2285,7 @@ timeout/retry.
 
 lectura de estado físico de máquina.
 
-revalidación de punto activo al confirmar attempts pendientes creados antes de desactivar Shop o ShopConsumptionPoint.
+revalidación de punto activo ya está implementada para confirmación de attempts asociados a ShopConsumptionPoint.
 
 <<END SECTION>>
 

@@ -1301,7 +1301,7 @@ el recorrido futuro de QR real no queda implementado por la existencia de la tab
 <<END SECTION>>
 
 <<SECTION: RECORRIDO FUNCIONAL — QR PÚBLICO POR PUNTO DE CONSUMO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RECORRIDO FUNCIONAL — QR PÚBLICO POR PUNTO DE CONSUMO
 
@@ -1357,6 +1357,14 @@ attempt pending asociado al punto no equivale a movement consumption.
 
 Ruta pública de punto no equivale a autorización interna.
 
+attempt pending asociado al punto conserva contexto histórico.
+
+La confirmación es operación crítica.
+
+Punto activo no garantiza consumo.
+
+Shop activa no garantiza consumo.
+
 Recorrido futuro pendiente:
 
 /shop/{tenant:slug}/consume/{publicToken}
@@ -1395,7 +1403,7 @@ attempt pending asociado a ShopConsumptionPoint
 ↓
 confirmación desde panel público
 ↓
-validación app-base
+revalidación app-base de punto y Shop activos
 ↓
 gateway simulado de consumo
 ↓
@@ -1418,6 +1426,18 @@ El gateway simulado no habilita hardware real.
 El gateway simulado no reemplaza validaciones.
 
 La respuesta approved habilita a app-base a confirmar internamente.
+
+Si punto o Shop ya no están disponibles, app-base bloquea con 422 antes del gateway.
+
+Ese bloqueo no es rejected.
+
+No marca failed.
+
+No crea movement.
+
+No descuenta pocket.
+
+Conserva attempt pending.
 
 No se crea Document.
 
@@ -1443,9 +1463,11 @@ calls_external_controller = true no equivale a hardware real.
 
 Movement consumption sigue representando el descuento lógico.
 
-Pendiente:
+Validado:
 
-definir si un attempt pending asociado a ShopConsumptionPoint debe bloquearse al confirmar cuando el punto o la Shop fueron desactivados después de la creación del attempt.
+punto inactivo y Shop inactiva bloquean confirmación antes del gateway.
+
+attempt sin ShopConsumptionPoint no aplica ese bloqueo y puede confirmar por camino approved.
 
 <<END SECTION>>
 

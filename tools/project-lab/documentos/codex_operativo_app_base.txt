@@ -648,6 +648,55 @@ Project Lab verifica.
 ChatGPT interpreta, controla y documenta.
 <<END SECTION>>
 
+<<SECTION: ESQUEMA LOCAL DE SESIONES CODEX>>
+SECTION_VERSION: 00001
+
+ESQUEMA LOCAL DE SESIONES CODEX
+
+El uso local puede separar dos sesiones Codex complementarias.
+
+[SESIÓN CÓDIGO / VS CODE]
+Orientada a intervención técnica sobre código real.
+
+Uso:
+
+leer archivos
+modificar código dentro del alcance
+ejecutar comandos técnicos
+revisar diffs
+validar comportamiento con evidencia
+
+Debe respetar alcance, seguridad, ownership, migraciones, rutas, vistas y contratos públicos según tarea explícita.
+
+[SESIÓN DOCUMENTAL / CONSOLA]
+Orientada a lectura, auditoría y edición documental acotada.
+
+Uso:
+
+leer documentos
+comparar doctrina
+detectar contradicciones
+actualizar documentación autorizada
+revisar diff documental
+preparar salida para validación humana
+
+No debe tocar código, rutas, vistas, migraciones ni comportamiento runtime salvo autorización explícita.
+
+[REGLAS]
+Ambas sesiones obedecen:
+
+NO SE ASUME.
+NO SE SUPONE.
+
+La separación de sesiones no cambia doctrina, seguridad ni autoridad de cierre.
+
+La sesión documental no reemplaza validación runtime.
+
+La sesión de código no decide doctrina.
+
+Si una sesión detecta necesidad de cruzar su frontera, debe detenerse e informar la decisión requerida.
+<<END SECTION>>
+
 <<SECTION: CRITERIO DE CIERRE>>
 SECTION_VERSION: 00001
 

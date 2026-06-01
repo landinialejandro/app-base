@@ -199,7 +199,11 @@
                                 <td>{{ $formatNumber($attempt['quantity']) }}</td>
                                 <td>{{ $attempt['total_seconds'] ?? '—' }}</td>
                                 <td>{{ $attempt['total_minutes'] !== null ? $formatNumber($attempt['total_minutes']) : '—' }}</td>
-                                <td>{{ $attempt['status'] ?: '—' }}</td>
+                                <td>
+                                    <span class="status-badge {{ $attempt['status_badge_class'] ?? 'status-badge--neutral' }}">
+                                        {{ $attempt['status_label'] ?? '—' }}
+                                    </span>
+                                </td>
                                 <td>
                                     {{ $attempt['calls_external_controller'] ? 'Sí' : 'No' }}
                                     @if ($attempt['controller_request_present'])

@@ -10,6 +10,7 @@ use App\Models\SelfServiceTokenPocketMovement;
 use App\Models\Shop;
 use App\Models\ShopConsumptionPoint;
 use App\Models\ShopItem;
+use App\Support\Catalogs\SelfServiceTokenConsumptionAttemptCatalog;
 use Illuminate\Support\Collection;
 
 class ShopTokenConsumptionSummaryService
@@ -196,6 +197,7 @@ class ShopTokenConsumptionSummaryService
     {
         $meta = is_array($attempt->meta) ? $attempt->meta : [];
         $responsePayload = is_array($attempt->response_payload) ? $attempt->response_payload : [];
+        $statusPresentation = SelfServiceTokenConsumptionAttemptCatalog::statusPresentation($attempt->status);
 
         return [
             'id' => $attempt->id,
@@ -207,6 +209,8 @@ class ShopTokenConsumptionSummaryService
                 ? $this->normalizeNumber((float) $attempt->total_seconds / 60)
                 : null,
             'status' => $attempt->status,
+            'status_label' => $statusPresentation['label'],
+            'status_badge_class' => $statusPresentation['badgeClass'],
             'confirmed_at' => $attempt->confirmed_at,
             'failed_at' => $attempt->failed_at,
             'response_status' => data_get($responsePayload, 'status'),

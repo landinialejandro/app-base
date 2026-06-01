@@ -68,4 +68,19 @@ class SelfServiceTokenConsumptionAttempt extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isConfirmed(): bool
+    {
+        return $this->status === self::STATUS_CONFIRMED;
+    }
+
+    public function isFailed(): bool
+    {
+        return $this->status === self::STATUS_FAILED;
+    }
 }

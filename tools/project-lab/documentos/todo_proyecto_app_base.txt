@@ -991,7 +991,7 @@ consumo físico sin respuesta confiable de controlador.
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 LÍNEA ACTIVA — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
 
@@ -1192,6 +1192,106 @@ no se tocó tienda pública.
 no se implementó hardware real.
 
 no se implementó gateway real.
+
+Cierre menor consolidado:
+
+lifecycle visual de attempts de fichas ordenado desde backend.
+
+Commit:
+
+7266fda Ordena lifecycle visual de attempts de fichas
+
+Archivos modificados:
+
+app/Models/SelfServiceTokenConsumptionAttempt.php
+
+app/Support/Catalogs/SelfServiceTokenConsumptionAttemptCatalog.php
+
+app/Support/Shops/ShopTokenConsumptionSummaryService.php
+
+resources/views/shops/tabs/tokens.blade.php
+
+Resultado:
+
+SelfServiceTokenConsumptionAttempt incorpora helpers isPending(), isConfirmed() e isFailed().
+
+SelfServiceTokenConsumptionAttemptCatalog prepara presentación visual propia.
+
+ShopTokenConsumptionSummaryService entrega status_label y status_badge_class.
+
+tokens.blade.php representa payload preparado y deja de mostrar status crudo.
+
+Lectura correcta:
+
+SelfServiceTokenConsumptionAttempt::STATUS_* conserva lifecycle real.
+
+SelfServiceTokenConsumptionAttemptCatalog resuelve presentación propia.
+
+StatusVocabulary aporta intención visual común.
+
+Blade representa sin interpretar estados crudos.
+
+Estados visuales validados:
+
+failed → Rechazado → status-badge--rejected.
+
+pending → Pendiente → status-badge--pending.
+
+confirmed → Confirmado → status-badge--done.
+
+Datos de gateway conservados:
+
+response_status.
+
+calls_external_controller.
+
+No cambia:
+
+createPendingAttempt().
+
+confirmSimulated().
+
+markAttemptConfirmed().
+
+markAttemptFailed().
+
+gateway simulado approved/rejected.
+
+revalidación de punto activo.
+
+rutas.
+
+controllers.
+
+migraciones.
+
+tienda pública.
+
+QR.
+
+checkout.
+
+Reglas:
+
+cancelled existe como constante presentable, pero no queda abierto como flujo operativo activo.
+
+expired no fue agregado al lifecycle visual porque no pertenece al modelo, schema ni flujo vigente.
+
+No efectos adicionales:
+
+no se implementó cancelación.
+
+no se implementó expiración.
+
+no se implementó scheduler.
+
+no se implementó timeout/retry.
+
+no se implementó hardware real.
+
+no se implementó gateway real.
+
+no se tocó Payment, PaymentAttempt, Document ni InventoryMovement.
 
 <<END SECTION>>
 

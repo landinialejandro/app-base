@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00035
+SECTION_VERSION: 00036
 
 PATRONES VIGENTES
 
@@ -173,6 +173,36 @@ StatusVocabulary::expirationPresentation() en vistas de invitaciones
 Caso válido de payload preparado:
 
 Inventory puede entregar display_status_badge, line_status_badge y consistency_badge como payload preparado por backend.
+
+Caso validado en self_service_sales:
+
+SelfServiceTokenConsumptionAttempt conserva lifecycle real en SelfServiceTokenConsumptionAttempt::STATUS_*.
+
+SelfServiceTokenConsumptionAttemptCatalog mapea esos estados reales hacia labels e intención visual.
+
+StatusVocabulary aporta intención visual común y clase base.
+
+ShopTokenConsumptionSummaryService prepara status_label y status_badge_class.
+
+tokens.blade.php representa payload preparado.
+
+Reglas:
+
+StatusVocabulary no define lifecycle real del attempt.
+
+Blade no interpreta status crudo.
+
+cancelled puede representarse visualmente si aparece, pero no queda implementado como flujo operativo nuevo.
+
+expired no se agrega si no existe en modelo, schema ni flujo vigente.
+
+Estados visuales validados:
+
+pending → Pendiente → status-badge--pending.
+
+confirmed → Confirmado → status-badge--done.
+
+failed → Rechazado → status-badge--rejected.
 
 Regla:
 

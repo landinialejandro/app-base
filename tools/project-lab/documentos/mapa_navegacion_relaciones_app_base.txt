@@ -1069,7 +1069,7 @@ el recorrido futuro de integración física no queda implementado por la confirm
 <<END SECTION>>
 
 <<SECTION: RECORRIDO FUNCIONAL — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RECORRIDO FUNCIONAL — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
 
@@ -1082,6 +1082,8 @@ Shop Profile
 tab Fichas
 ↓
 lectura contextual de pockets, attempts y movements
+↓
+ShopTokenConsumptionSummaryService prepara status_label/status_badge_class
 ↓
 métricas y tablas read-only
 
@@ -1114,6 +1116,10 @@ No crea navegación propia de movements.
 No crea módulo CRUD ordinario.
 
 La navegación muestra contexto interno de fichas dentro del perfil de tienda.
+
+Para attempts, la vista representa status_label y status_badge_class preparados por backend.
+
+No interpreta status crudo.
 
 Reglas:
 
@@ -1204,6 +1210,12 @@ ver consumos por punto no equivale a administrar saldo.
 la lectura interna agrupada no habilita hardware.
 
 la lectura interna agrupada no llama gateway.
+
+la lectura interna no define lifecycle funcional de attempts.
+
+StatusVocabulary no define estados reales del attempt.
+
+SelfServiceTokenConsumptionAttemptCatalog prepara la presentación visual propia.
 
 <<END SECTION>>
 

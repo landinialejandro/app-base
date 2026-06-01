@@ -1702,7 +1702,7 @@ consumo lógico interno, confirmación externa real y habilitación física no d
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CONCEPTUAL — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RELACIÓN CONCEPTUAL — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
 
@@ -1738,6 +1738,18 @@ SelfServiceTokenConsumptionAttempt no tiene shop_id.
 
 SelfServiceTokenPocketMovement no tiene shop_id.
 
+Presentación visual de attempts:
+
+SelfServiceTokenConsumptionAttempt::STATUS_*
+↓
+SelfServiceTokenConsumptionAttemptCatalog
+↓
+StatusVocabulary
+↓
+ShopTokenConsumptionSummaryService
+↓
+tokens.blade.php
+
 Regla:
 
 no agregar shop_id a pockets, attempts ni movements para resolver lectura interna de Shop Profile.
@@ -1771,6 +1783,14 @@ Attempt no reemplaza Movement.
 Movement no reemplaza InventoryMovement.
 
 La lectura contextual no crea ownership funcional.
+
+StatusVocabulary no define lifecycle real de SelfServiceTokenConsumptionAttempt.
+
+El lifecycle real queda en el modelo/dominio.
+
+El catálogo propietario prepara label y badge class.
+
+Blade representa payload preparado.
 
 <<END SECTION>>
 

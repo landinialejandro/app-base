@@ -1448,7 +1448,7 @@ el consumo confirmado simulado cierra el ciclo lógico interno de fichas dentro 
 <<END SECTION>>
 
 <<SECTION: CORTE OPERATIVO VIGENTE — LECTURA INTERNA DE FICHAS EN SHOP PROFILE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CORTE OPERATIVO VIGENTE — LECTURA INTERNA DE FICHAS EN SHOP PROFILE
 
@@ -1479,6 +1479,10 @@ Shop → ShopItem → Product → Pocket/Attempt/Movement por product_id.
 Entidad de lectura creada:
 
 ShopTokenConsumptionSummaryService
+
+Catálogo visual vigente:
+
+SelfServiceTokenConsumptionAttemptCatalog
 
 Vista creada:
 
@@ -1590,6 +1594,72 @@ points_with_pending_attempts_count
 
 points_with_confirmed_attempts_count
 
+LIFECYCLE VISUAL DE ATTEMPTS
+
+ShopTokenConsumptionSummaryService prepara para attempts:
+
+status_label
+
+status_badge_class
+
+tokens.blade.php representa payload preparado.
+
+No interpreta status crudo.
+
+Lectura correcta:
+
+estado real del modelo
+↓
+SelfServiceTokenConsumptionAttemptCatalog
+↓
+StatusVocabulary como vocabulario visual común
+↓
+ShopTokenConsumptionSummaryService prepara payload
+↓
+Blade representa
+
+Reglas:
+
+el lifecycle real pertenece a SelfServiceTokenConsumptionAttempt::STATUS_*.
+
+StatusVocabulary no define lifecycle real del attempt.
+
+StatusVocabulary solo aporta intención visual común y clase base.
+
+SelfServiceTokenConsumptionAttemptCatalog mapea estado real a label e intención visual.
+
+Blade no decide labels ni clases de estado.
+
+Estados reales contemplados visualmente:
+
+pending → Pendiente → status-badge--pending
+
+confirmed → Confirmado → status-badge--done
+
+failed → Rechazado → status-badge--rejected
+
+cancelled → Cancelado → status-badge--cancelled
+
+cancelled queda solo presentable si aparece.
+
+No queda abierto como flujo operativo nuevo.
+
+expired no fue agregado porque no pertenece al lifecycle real auditado del modelo, schema ni flujo vigente.
+
+Runtime validado:
+
+failed → Rechazado → status-badge--rejected
+
+pending → Pendiente → status-badge--pending
+
+confirmed → Confirmado → status-badge--done
+
+La lectura conserva:
+
+response_status
+
+calls_external_controller
+
 Reglas:
 
 la lectura es interna y read-only.
@@ -1615,6 +1685,12 @@ no implementa gateway real.
 No representa administración de consumo.
 
 Representa auditoría interna por punto.
+
+No implementa cancelación.
+
+No implementa expiración.
+
+No implementa scheduler.
 
 <<END SECTION>>
 

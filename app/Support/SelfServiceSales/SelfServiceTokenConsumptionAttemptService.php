@@ -131,13 +131,13 @@ class SelfServiceTokenConsumptionAttemptService
                 throw new HttpException(404, self::MESSAGE_ATTEMPT_NOT_CONFIRMABLE);
             }
 
-            if ($attempt->status === SelfServiceTokenConsumptionAttempt::STATUS_CONFIRMED) {
+            if ($attempt->isConfirmed()) {
                 $this->markAttemptConfirmed($attempt);
 
                 return $attempt->fresh();
             }
 
-            if ($attempt->status !== SelfServiceTokenConsumptionAttempt::STATUS_PENDING) {
+            if (! $attempt->isPending()) {
                 throw new HttpException(422, self::MESSAGE_ATTEMPT_NOT_CONFIRMABLE);
             }
 
@@ -222,7 +222,7 @@ class SelfServiceTokenConsumptionAttemptService
             return $attempt->fresh();
         });
 
-        if ($result->status === SelfServiceTokenConsumptionAttempt::STATUS_FAILED) {
+        if ($result->isFailed()) {
             throw new HttpException(422, self::MESSAGE_ATTEMPT_NOT_CONFIRMABLE);
         }
 

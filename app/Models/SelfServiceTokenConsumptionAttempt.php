@@ -83,4 +83,16 @@ class SelfServiceTokenConsumptionAttempt extends Model
     {
         return $this->status === self::STATUS_FAILED;
     }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    public function isTerminal(): bool
+    {
+        return $this->isConfirmed()
+            || $this->isFailed()
+            || $this->isCancelled();
+    }
 }

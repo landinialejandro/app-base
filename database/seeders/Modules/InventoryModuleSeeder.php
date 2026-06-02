@@ -10,7 +10,6 @@ use App\Models\InventoryOperation;
 use App\Models\Order;
 use App\Models\Product;
 use App\Support\Catalogs\DocumentCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
 use App\Support\Inventory\InventoryOperationCatalog;
 use App\Support\Inventory\InventoryOperationProfileResolver;
@@ -77,7 +76,7 @@ private function seedTenantInventory(
     ): Collection {
         $physicalProducts = $products
             ->filter(fn ($product) => $product instanceof Product)
-            ->filter(fn (Product $product) => $product->kind === ProductCatalog::KIND_PRODUCT)
+            ->filter(fn (Product $product) => $product->isStockable())
             ->values();
 
         if ($physicalProducts->isEmpty()) {
@@ -134,7 +133,7 @@ private function seedTenantInventory(
 
             $physicalItems = $order->items
                 ->filter(fn ($item) => $item->product instanceof Product)
-                ->filter(fn ($item) => $item->product->kind === ProductCatalog::KIND_PRODUCT)
+                ->filter(fn ($item) => $item->product->isStockable())
                 ->values();
 
             if ($physicalItems->isEmpty()) {
@@ -206,7 +205,7 @@ private function seedTenantInventory(
 
             $physicalItems = $documentModel->items
                 ->filter(fn ($item) => $item->product instanceof Product)
-                ->filter(fn ($item) => $item->product->kind === ProductCatalog::KIND_PRODUCT)
+                ->filter(fn ($item) => $item->product->isStockable())
                 ->values();
 
             if ($physicalItems->isEmpty()) {

@@ -10,7 +10,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -299,8 +298,8 @@ class InventoryMaterialFlowService
             throw new InvalidArgumentException('El producto pertenece a otro tenant.');
         }
 
-        if ($product->kind !== ProductCatalog::KIND_PRODUCT) {
-            throw new InvalidArgumentException('El flujo material solo admite productos físicos stockeables.');
+        if (! $product->isStockable()) {
+            throw new InvalidArgumentException('El flujo material solo admite productos stockeables.');
         }
 
         if ((int) $item->product_id === (int) $product->id) {
@@ -320,11 +319,11 @@ class InventoryMaterialFlowService
         $isPhysicalComponent = $components->contains(function ($component) use ($order, $product) {
             return (string) $component->tenant_id === (string) $order->tenant_id
                 && (int) $component->component_product_id === (int) $product->id
-                && $component->componentProduct?->kind === ProductCatalog::KIND_PRODUCT;
+                && $component->componentProduct?->isStockable();
         }) === true;
 
         if (! $isPhysicalComponent) {
-            throw new InvalidArgumentException('El material formal no corresponde a un componente físico de la línea de producción.');
+            throw new InvalidArgumentException('El material formal no corresponde a un componente stockeable de la línea de producción.');
         }
     }
 

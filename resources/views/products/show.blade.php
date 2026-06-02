@@ -113,6 +113,10 @@
                     </span>
                 </x-show-summary-item-detail-block>
 
+                <x-show-summary-item-detail-block label="Stockeable">
+                    {{ $product->isStockable() ? 'Sí' : 'No' }}
+                </x-show-summary-item-detail-block>
+
                 <x-show-summary-item-detail-block label="SKU">
                     {{ $product->sku ?? '—' }}
                 </x-show-summary-item-detail-block>

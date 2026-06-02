@@ -21,6 +21,7 @@
                     <th>Precio</th>
                     <th>Unidad</th>
                     <th>Tipo</th>
+                    <th>Stockeable</th>
                     <th>Activo</th>
                 </tr>
             </thead>
@@ -66,6 +67,7 @@
                         </td>
                         <td>{{ $product->unit_label ?? '—' }}</td>
                         <td>{{ ProductCatalog::label($product->kind) }}</td>
+                        <td>{{ $product->isStockable() ? 'Sí' : 'No' }}</td>
                         <td>
                             <span class="status-badge {{ ProductCatalog::activeBadgeClass((bool) $product->is_active) }}">
                                 {{ ProductCatalog::activeLabel((bool) $product->is_active) }}

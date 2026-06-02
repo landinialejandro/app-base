@@ -10,7 +10,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
 
@@ -123,7 +122,7 @@ class InventoryMaterialBalanceService
     {
         $product = $item->product;
 
-        if (! $product || $product->kind !== ProductCatalog::KIND_PRODUCT) {
+        if (! $product || ! $product->isStockable()) {
             return collect();
         }
 
@@ -341,7 +340,7 @@ class InventoryMaterialBalanceService
 
         return $product->components
             ->filter(fn ($component) => $component->componentProduct !== null)
-            ->filter(fn ($component) => $component->componentProduct->kind === ProductCatalog::KIND_PRODUCT)
+            ->filter(fn ($component) => $component->componentProduct->isStockable())
             ->values();
     }
 

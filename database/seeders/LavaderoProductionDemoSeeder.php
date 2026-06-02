@@ -83,6 +83,7 @@ class LavaderoProductionDemoSeeder extends Seeder
         $product->update([
             'name' => 'Ficha lavado 5 minutos',
             'kind' => ProductCatalog::KIND_INTANGIBLE,
+            'is_stockable' => true,
             'unit_label' => 'ficha',
             'price' => 1500,
             'description' => 'Unidad stockeable de derecho de uso para activar un ciclo de lavado autoservicio de 5 minutos.',

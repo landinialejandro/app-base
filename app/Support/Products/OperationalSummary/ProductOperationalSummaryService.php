@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\User;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Route;
@@ -81,7 +80,7 @@ class ProductOperationalSummaryService
 
     protected function inventorySummary(Product $product, User $user, array $trailQuery): array
     {
-        if ($product->kind !== ProductCatalog::KIND_PRODUCT) {
+        if (! $product->isStockable()) {
             return [
                 'can_view' => true,
                 'applies' => false,

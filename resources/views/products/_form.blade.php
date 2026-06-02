@@ -72,3 +72,14 @@
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
+
+<div class="form-group">
+    <label class="form-label" for="is_stockable">
+        <input class="form-checkbox" type="checkbox" id="is_stockable" name="is_stockable" value="1"
+            @checked(old('is_stockable', $product->is_stockable ?? true))>
+        Gestiona stock
+    </label>
+    @error('is_stockable')
+        <div class="form-help is-error">{{ $message }}</div>
+    @enderror
+</div>

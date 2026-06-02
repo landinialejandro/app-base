@@ -6,7 +6,6 @@ namespace App\Support\Inventory;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Catalogs\OrderItemCatalog;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -108,7 +107,7 @@ class InventoryOrderItemHooks
     /**
      * Regla funcional de cierre de orden.
      *
-     * Inventory informa si existen líneas físicas pendientes o parciales que impiden cerrar.
+     * Inventory informa si existen líneas stockeables pendientes o parciales que impiden cerrar.
      */
 public function hasCloseBlockers(Order $order): bool
 {
@@ -117,7 +116,7 @@ public function hasCloseBlockers(Order $order): bool
     $hasLineBlockers = $order->items->contains(function ($item) {
         $product = $item->product;
 
-        if (! $product || $product->kind !== ProductCatalog::KIND_PRODUCT) {
+        if (! $product || ! $product->isStockable()) {
             return false;
         }
 

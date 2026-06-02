@@ -59,6 +59,7 @@ class ProductCatalog extends BaseCatalog
             'sku',
             'price',
             'kind',
+            'is_stockable',
             'unit_label',
             'is_active',
         ];

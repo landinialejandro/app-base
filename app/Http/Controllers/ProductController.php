@@ -64,6 +64,7 @@ class ProductController extends Controller
 
         $data = $request->all();
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_stockable'] = $request->boolean('is_stockable');
 
         $validated = validator($data, $this->rules())->validate();
 
@@ -112,6 +113,7 @@ class ProductController extends Controller
 
         $data = $request->all();
         $data['is_active'] = $request->boolean('is_active');
+        $data['is_stockable'] = $request->boolean('is_stockable');
 
         $validated = validator($data, $this->rules())->validate();
 
@@ -158,6 +160,7 @@ class ProductController extends Controller
                 Rule::in(ProductCatalog::kinds()),
             ],
             'unit_label' => ['required', 'string', 'max:50'],
+            'is_stockable' => ['nullable', 'boolean'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

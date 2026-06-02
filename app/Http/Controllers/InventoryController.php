@@ -11,7 +11,6 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMaterialFlowService;
 use App\Support\Inventory\InventoryMovementService;
 use App\Support\Inventory\InventoryOriginCatalog;
@@ -37,7 +36,7 @@ class InventoryController extends Controller
 
         $productsQuery = app(Security::class)
             ->scope(auth()->user(), 'products.viewAny', Product::query())
-            ->where('kind', ProductCatalog::KIND_PRODUCT);
+            ->where('is_stockable', true);
 
         if ($query !== '') {
             $productsQuery->where(function ($builder) use ($query) {
@@ -111,7 +110,7 @@ public function show(Request $request, Product $product): View
     $this->authorize('view', $product);
 
     abort_if(
-        $product->kind !== ProductCatalog::KIND_PRODUCT,
+        ! $product->isStockable(),
         404
     );
 
@@ -220,7 +219,7 @@ public function show(Request $request, Product $product): View
         $this->authorize('update', $product);
 
         abort_if(
-            $product->kind !== ProductCatalog::KIND_PRODUCT,
+            ! $product->isStockable(),
             404
         );
 
@@ -265,7 +264,7 @@ public function storeMovement(Request $request): RedirectResponse
     $product = $this->resolveProduct((int) $data['product_id']);
 
     abort_if(
-        $product->kind !== ProductCatalog::KIND_PRODUCT,
+        ! $product->isStockable(),
         404
     );
 
@@ -339,9 +338,9 @@ public function returnOrderItemQuantity(Request $request, Order $order, OrderIte
     $item->loadMissing(['product']);
 
     abort_if(
-        ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
+        ! $item->product || ! $item->product->isStockable(),
         422,
-        'La línea no corresponde a un producto físico stockeable.'
+        'La línea no corresponde a un producto stockeable.'
     );
 
     $result = app(OrderInventoryOperationService::class)->returnLineQuantity(
@@ -649,7 +648,7 @@ protected function storeManualMovement(
     {
         return app(Security::class)
             ->scope(auth()->user(), 'products.viewAny', Product::query())
-            ->where('kind', ProductCatalog::KIND_PRODUCT)
+            ->where('is_stockable', true)
             ->whereKey($productId)
             ->firstOrFail();
     }
@@ -722,11 +721,11 @@ protected function storeManualMovement(
         $order->loadMissing('items.product');
 
         $product = $order->items
-            ->filter(fn ($item) => $item->product && $item->product->kind === ProductCatalog::KIND_PRODUCT)
+            ->filter(fn ($item) => $item->product && $item->product->isStockable())
             ->map(fn ($item) => $item->product)
             ->first(fn ($product) => (int) $product->id === (int) $productId);
 
-        abort_if(! $product, 422, 'El producto seleccionado no pertenece a los ítems físicos de esta orden.');
+        abort_if(! $product, 422, 'El producto seleccionado no pertenece a los ítems stockeables de esta orden.');
 
         app(Security::class)
             ->scope(auth()->user(), 'products.viewAny', Product::query())
@@ -743,7 +742,7 @@ protected function storeManualMovement(
         return app(Security::class)
             ->scope(auth()->user(), 'products.viewAny', Product::query())
             ->where('tenant_id', $order->tenant_id)
-            ->where('kind', ProductCatalog::KIND_PRODUCT)
+            ->where('is_stockable', true)
             ->whereNull('deleted_at')
             ->whereKey($productId)
             ->firstOrFail();
@@ -875,9 +874,9 @@ public function showMovement(Request $request, InventoryMovement $movement): Vie
         $item->loadMissing('product');
 
         abort_if(
-            ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
+            ! $item->product || ! $item->product->isStockable(),
             422,
-            'La línea no corresponde a un producto físico stockeable.'
+            'La línea no corresponde a un producto stockeable.'
         );
 
         $result = app(\App\Support\Inventory\DocumentInventoryOperationService::class)->executeLine(
@@ -931,9 +930,9 @@ public function showMovement(Request $request, InventoryMovement $movement): Vie
         $item->loadMissing('product');
 
         abort_if(
-            ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
+            ! $item->product || ! $item->product->isStockable(),
             422,
-            'La línea no corresponde a un producto físico stockeable.'
+            'La línea no corresponde a un producto stockeable.'
         );
 
         $result = app(\App\Support\Inventory\DocumentInventoryOperationService::class)->returnLineQuantity(

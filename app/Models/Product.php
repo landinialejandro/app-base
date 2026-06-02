@@ -26,14 +26,21 @@ class Product extends Model
         'description',
         'price',
         'kind',
+        'is_stockable',
         'unit_label',
         'is_active',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'is_stockable' => 'boolean',
         'is_active' => 'boolean',
     ];
+
+    public function isStockable(): bool
+    {
+        return $this->is_stockable === true;
+    }
 
     public function components(): HasMany
     {

@@ -119,6 +119,7 @@ public function run(): void
                     'name' => 'Ficha lavado 5 minutos',
                     'sku' => 'LAV-FICHA',
                     'kind' => ProductCatalog::KIND_INTANGIBLE,
+                    'is_stockable' => true,
                     'unit_label' => 'ficha',
                     'price' => 1500,
                     'description' => 'Unidad stockeable de derecho de uso para activar un ciclo de lavado autoservicio de 5 minutos.',
@@ -216,6 +217,7 @@ public function run(): void
                     'description' => $data['description'],
                     'price' => $data['price'],
                     'kind' => $data['kind'],
+                    'is_stockable' => $data['is_stockable'] ?? ($data['kind'] !== ProductCatalog::KIND_SERVICE),
                     'unit_label' => $data['unit_label'],
                     'is_active' => true,
                 ]

@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -216,8 +215,8 @@ public function returnLineQuantity(
             throw new InvalidArgumentException('La línea no tiene producto asociado.');
         }
 
-        if ($product->kind !== ProductCatalog::KIND_PRODUCT) {
-            throw new InvalidArgumentException('La línea no corresponde a un producto físico stockeable.');
+        if (! $product->isStockable()) {
+            throw new InvalidArgumentException('La línea no corresponde a un producto stockeable.');
         }
 
         return $product;

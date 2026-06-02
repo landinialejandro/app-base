@@ -15,7 +15,6 @@ use App\Models\Product;
 use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\OrderItemCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Support\Collection;
@@ -682,7 +681,7 @@ private function resolveOrderItemRowActions(array $hostPack): array
 
     private function supportsInventoryForProduct(Product $product): bool
     {
-        return $product->kind === ProductCatalog::KIND_PRODUCT;
+        return $product->isStockable();
     }
 
     private function lastMovementForProduct(Product $product): ?InventoryMovement
@@ -826,7 +825,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
     $record->loadMissing('product');
 
     $documentAffectsStock = DocumentCatalog::affectsStock($document->group, $document->kind);
-    $isPhysicalProduct = $record->product && $record->product->kind === ProductCatalog::KIND_PRODUCT;
+    $isPhysicalProduct = $record->product && $record->product->isStockable();
     $canUpdateDocument = auth()->user()?->can('update', $document) === true;
 
     $statusService = app(DocumentItemStatusService::class);

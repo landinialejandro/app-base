@@ -8,7 +8,6 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\OrderItemCatalog;
-use App\Support\Catalogs\ProductCatalog;
 
 class InventoryOrderContextResolver
 {
@@ -74,7 +73,7 @@ class InventoryOrderContextResolver
         $stockCalculator = app(ProductStockCalculator::class);
 
         $product = $item->product;
-        $isPhysicalProduct = $product && $product->kind === ProductCatalog::KIND_PRODUCT;
+        $isPhysicalProduct = $product && $product->isStockable();
 
         $orderedQuantity = $this->normalizeQuantity($item->quantity);
 

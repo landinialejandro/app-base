@@ -14,7 +14,6 @@ use App\Models\Product;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\System\OwnerAlertTaskService;
 use Illuminate\Support\Facades\DB;
@@ -400,8 +399,8 @@ protected function validateOrderContext(
 
     protected function validatePhysicalProduct(Product $product): void
     {
-        if ($product->kind !== ProductCatalog::KIND_PRODUCT) {
-            throw new InvalidArgumentException('El movimiento solo puede registrarse sobre productos físicos stockeables.');
+        if (! $product->isStockable()) {
+            throw new InvalidArgumentException('El movimiento solo puede registrarse sobre productos stockeables.');
         }
     }
 

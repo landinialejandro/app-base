@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Catalogs\ProductCatalog;
+use App\Support\SelfServiceSales\SelfServiceTokenPocketService;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -96,6 +98,15 @@ public function executeLine(
 
         $item->refresh();
         $statusService->recalculate($item);
+
+        if ($product->kind === ProductCatalog::KIND_INTANGIBLE) {
+            app(SelfServiceTokenPocketService::class)->creditFromInventoryOrderItem(
+                order: $order,
+                item: $item,
+                quantity: $normalizedQuantity,
+                createdBy: $createdBy !== null ? (int) $createdBy : null,
+            );
+        }
 
         return $result;
     });

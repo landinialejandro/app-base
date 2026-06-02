@@ -67,7 +67,7 @@ class SelfServiceTokenPocketService
                 ->whereKey($cart->id)
                 ->with([
                     'items.product.components.componentProduct',
-                    'storeCustomer',
+                    'storeCustomer.party',
                     'account',
                 ])
                 ->lockForUpdate()
@@ -126,6 +126,10 @@ class SelfServiceTokenPocketService
         if (! $cart->self_service_customer_account_id || ! $cart->self_service_store_customer_id) {
             throw new InvalidArgumentException('El carrito debe tener customer externo para acreditar fichas.');
         }
+
+        if (! $cart->storeCustomer || ! $cart->storeCustomer->party_id) {
+            throw new InvalidArgumentException('El customer externo debe tener Party para acreditar fichas.');
+        }
     }
 
     private function creditCartItem(
@@ -146,11 +150,12 @@ class SelfServiceTokenPocketService
         $pocket = SelfServiceTokenPocket::query()->firstOrCreate(
             [
                 'tenant_id' => $cart->tenant_id,
-                'self_service_customer_account_id' => $cart->self_service_customer_account_id,
-                'self_service_store_customer_id' => $cart->self_service_store_customer_id,
+                'party_id' => $cart->storeCustomer->party_id,
                 'product_id' => $cartItem->product_id,
             ],
             [
+                'self_service_customer_account_id' => $cart->self_service_customer_account_id,
+                'self_service_store_customer_id' => $cart->self_service_store_customer_id,
                 'quantity_available' => 0,
                 'unit_label_snapshot' => $tokenDefinition['unit_label_snapshot'],
                 'unit_seconds_snapshot' => $tokenDefinition['unit_seconds_snapshot'],

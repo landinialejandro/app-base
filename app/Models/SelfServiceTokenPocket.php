@@ -19,6 +19,7 @@ class SelfServiceTokenPocket extends Model
 
     protected $fillable = [
         'tenant_id',
+        'party_id',
         'self_service_customer_account_id',
         'self_service_store_customer_id',
         'product_id',
@@ -38,6 +39,11 @@ class SelfServiceTokenPocket extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(SelfServiceCustomerAccount::class, 'self_service_customer_account_id');
+    }
+
+    public function party(): BelongsTo
+    {
+        return $this->belongsTo(Party::class);
     }
 
     public function storeCustomer(): BelongsTo

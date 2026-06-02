@@ -1128,13 +1128,13 @@ las operaciones futuras requieren contrato específico, autorización externa ef
 <<END SECTION>>
 
 <<SECTION: DECISIÓN VIGENTE — POCKET DE FICHAS POST-CHECKOUT>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 DECISIÓN VIGENTE — POCKET DE FICHAS POST-CHECKOUT
 
 Decisión vigente implementada y validada:
 
-el checkout aprobado de una ficha lógica acredita la cantidad comprada en un pocket del customer externo.
+el checkout aprobado de una ficha lógica acredita la cantidad comprada en un pocket asociado a la Party customer.
 
 Flujo vigente:
 
@@ -1152,13 +1152,17 @@ separar venta de consumo.
 
 La ficha comprada no se consume al comprarla.
 
-La ficha comprada queda disponible para uso posterior por el customer externo.
+La ficha comprada queda disponible para uso posterior por la Party customer dentro del tenant.
 
 El consumo por QR o controlador externo se resolverá en un corte futuro.
 
-Criterio vigente de ficha lógica en este corte:
+Criterio vigente de ficha lógica:
 
-Product.unit_label = ficha
+Product.kind = intangible.
+
+Product.is_stockable = true.
+
+Product.unit_label = ficha.
 
 y
 
@@ -1184,7 +1188,27 @@ repetir la acreditación para el mismo cart item y producto no duplica saldo ni 
 
 Reglas:
 
-SelfServiceTokenPocket pertenece al plano externo customer de self_service_sales.
+SelfServiceTokenPocket pertenece conceptualmente a Party.
+
+SelfServiceCustomerAccount y SelfServiceStoreCustomer son canal externo de acceso y tienda.
+
+No son la titularidad primaria del pocket.
+
+La tienda opera sobre Party mediante SelfServiceStoreCustomer.
+
+Order interna opera sobre Party mediante Order.party_id.
+
+Ambas vías convergen en el mismo pocket por tenant, Party y producto intangible.
+
+Product.kind describe naturaleza del producto.
+
+Product.is_stockable define si participa en Inventory.
+
+Inventory no debe decidir por Product.kind.
+
+Inventory debe decidir por Product.is_stockable.
+
+Un intangible puede pasar por Inventory si is_stockable = true.
 
 No pertenece al panel interno como módulo CRUD ordinario.
 
@@ -1213,6 +1237,46 @@ No crea Payment.
 No crea PaymentAttempt.
 
 No reemplaza la Order lógica interna.
+
+Decisión Inventory → Pocket:
+
+OrderItem → Product → is_stockable.
+
+Si is_stockable = true, Inventory puede operar la línea.
+
+Si is_stockable = false, Inventory no interviene.
+
+Para LAV-FICHA:
+
+OrderItem intangible + stockeable
+↓
+Inventory baja stock
+↓
+post-operación acredita pocket.
+
+Servicio vigente:
+
+SelfServiceTokenPocketService::creditFromInventoryOrderItem(...)
+
+Invocación vigente:
+
+OrderInventoryOperationService::executeLine()
+
+Regla:
+
+la baja de Inventory ocurre primero.
+
+Luego, si el producto ejecutado es intangible, se acredita el pocket de la Party de la Order.
+
+La acreditación Inventory → Pocket usa idempotencia por order_item_id + product_id.
+
+Además evita duplicar créditos si ya existe movement purchase_credit para el mismo order_item_id + product_id.
+
+Esto mantiene compatibilidad con tienda → carrito → checkout → Order → pocket.
+
+Pendiente técnico:
+
+si se habilitan ejecuciones parciales múltiples de una misma línea intangible, revisar idempotencia para asociarla a inventory_movement_id o unidad de ejecución equivalente.
 
 Queda pendiente:
 

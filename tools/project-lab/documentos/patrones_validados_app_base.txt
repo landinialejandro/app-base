@@ -1295,7 +1295,7 @@ conservar legibilidad del contenido principal
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PATRONES VIGENTES — CONTRATO MATERIAL INVENTORY
 
@@ -1323,6 +1323,14 @@ no usar InventoryMovement.kind como único contenedor de etapas materiales forma
 
 no usar metadata como reemplazo del ledger formal cuando se requiere saldo trazable.
 
+no decidir participación en Inventory por Product.kind.
+
+usar Product.is_stockable como criterio operativo de Inventory.
+
+Product.kind describe naturaleza.
+
+Product.is_stockable define si el producto participa en Inventory.
+
 no mover el contrato material a Orders.
 
 no calcular saldos materiales en Blade.
@@ -1334,6 +1342,74 @@ no aplicar más de lo entregado disponible.
 no devolver más de lo entregado disponible.
 
 no elegir kind desde la vista para acciones formales.
+
+PRODUCT KIND E INVENTORY STOCKABLE
+
+Patrón validado:
+
+Product.kind e is_stockable son dimensiones separadas.
+
+Matriz vigente:
+
+product + is_stockable=true = producto físico con stock.
+
+product + is_stockable=false = producto físico o comercial sin stock gestionado.
+
+service + is_stockable=false = servicio.
+
+intangible + is_stockable=true = ficha, crédito, bono o cupo vendible con stock controlado.
+
+intangible + is_stockable=false = intangible sin stock gestionado.
+
+Caso vigente:
+
+LAV-FICHA = kind intangible, is_stockable true, unit_label ficha.
+
+Regla:
+
+un intangible puede pasar por Inventory si is_stockable = true.
+
+No documentar intangible como ajeno a Inventory por definición.
+
+INVENTORY → POCKET COMO POST-OPERACIÓN
+
+Patrón validado:
+
+una ejecución de Inventory puede disparar una post-operación de dominio satélite si existe frontera explícita y la operación base ya ocurrió.
+
+Caso vigente:
+
+OrderInventoryOperationService::executeLine()
+↓
+Inventory baja stock
+↓
+si Product.kind = intangible
+↓
+SelfServiceTokenPocketService::creditFromInventoryOrderItem()
+↓
+purchase_credit en pocket de Order.party_id
+
+Reglas:
+
+Inventory conserva ownership de baja de stock.
+
+self_service_sales conserva ownership de pocket y movements lógicos.
+
+La UI no acredita pocket.
+
+La acreditación no aplica a cualquier producto.
+
+Solo aplica a línea ejecutada cuyo producto es kind intangible.
+
+Pocket pertenece conceptualmente a Party.
+
+SelfServiceStoreCustomer es canal externo de tienda.
+
+La compatibilidad con checkout se sostiene evitando duplicar purchase_credit por order_item_id + product_id.
+
+Pendiente:
+
+si existen ejecuciones parciales múltiples de la misma línea intangible, revisar idempotencia contra inventory_movement_id o unidad de ejecución equivalente.
 
 BACKEND PREPARA PAYLOAD MATERIAL, BLADE REPRESENTA
 

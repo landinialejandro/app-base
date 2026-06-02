@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — POCKET DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LÍNEA ACTIVA — POCKET DE FICHAS
 
@@ -513,7 +513,7 @@ primer corte mínimo implementado y validado.
 
 Cierre parcial consolidado:
 
-checkout aprobado de ficha lógica acredita cantidad comprada en pocket del customer externo.
+checkout aprobado de ficha lógica acredita cantidad comprada en pocket asociado a Party customer.
 
 Archivos creados:
 
@@ -530,6 +530,44 @@ app/Support/SelfServiceSales/SelfServiceTokenPocketService.php
 Archivo modificado:
 
 app/Support/SelfServiceSales/SelfServiceCheckoutService.php
+
+Cierre técnico posterior consolidado:
+
+Product kind = intangible.
+
+Product.is_stockable como criterio operativo de Inventory.
+
+SelfServiceTokenPocket asociado a party_id.
+
+Acreditación Inventory → Pocket al ejecutar línea de Order con producto intangible stockeable.
+
+Commits:
+
+600b68b Agrega tipo intangible a productos
+
+225ed12 Desacopla inventory de kind con productos stockeables
+
+d79d36d Asocia pockets a party
+
+11fbd5c Acredita pocket al ejecutar intangibles desde inventory
+
+Archivos relevantes:
+
+app/Models/Product.php
+
+app/Support/Catalogs/ProductCatalog.php
+
+app/Models/SelfServiceTokenPocket.php
+
+app/Support/SelfServiceSales/SelfServiceTokenPocketService.php
+
+app/Support/Inventory/OrderInventoryOperationService.php
+
+database/migrations/2026_06_02_180000_add_is_stockable_to_products_table.php
+
+database/migrations/2026_06_02_190000_add_party_id_to_self_service_token_pockets_table.php
+
+database/migrations/2026_06_02_210000_make_customer_columns_nullable_on_self_service_token_pockets_table.php
 
 Validaciones realizadas:
 
@@ -555,11 +593,53 @@ segunda ejecución idempotente sin duplicar saldo.
 
 Criterios vigentes:
 
+Product.kind y Product.is_stockable son dimensiones separadas.
+
+Product.kind describe naturaleza.
+
+Product.is_stockable define participación en Inventory.
+
+Inventory opera por is_stockable.
+
+Inventory no debe decidir por kind.
+
+Un intangible puede ser stockeable.
+
+LAV-FICHA queda kind = intangible, is_stockable = true, unit_label = ficha.
+
+Pocket pertenece conceptualmente a Party.
+
+SelfServiceStoreCustomer es canal externo de tienda.
+
+Order interna opera sobre Party mediante Order.party_id.
+
 la ficha comprada se acredita en pocket.
 
 la ficha comprada no se consume al comprarla.
 
 la ficha consumida será otro corte.
+
+Inventory → Pocket:
+
+Order
+↓
+OrderItem stockeable
+↓
+Inventory baja stock
+↓
+si Product.kind = intangible
+↓
+SelfServiceTokenPocketService::creditFromInventoryOrderItem()
+↓
+acredita pocket de Order.party_id
+
+Idempotencia vigente:
+
+checkout → pocket usa cart_item/product.
+
+Inventory → pocket usa order_item_id + product_id.
+
+Inventory → pocket evita duplicar créditos si ya existe purchase_credit para mismo order_item_id + product_id.
 
 el pocket no reemplaza Inventory.
 
@@ -591,6 +671,10 @@ evaluar lectura interna de pockets/movimientos desde Shop Profile.
 
 evaluar trazabilidad operativa si corresponde.
 
+revisar idempotencia Inventory → Pocket si se habilitan ejecuciones parciales múltiples de una misma línea intangible.
+
+definir si debe asociarse a inventory_movement_id o unidad de ejecución equivalente.
+
 No implementar todavía:
 
 QR funcional completo.
@@ -612,6 +696,8 @@ descuento de stock global por venta.
 reversa automática.
 
 consumo sin confirmación externa.
+
+resolución de ejecuciones parciales múltiples Inventory → Pocket.
 
 <<END SECTION>>
 

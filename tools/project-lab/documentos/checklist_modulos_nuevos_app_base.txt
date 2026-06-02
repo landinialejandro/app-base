@@ -82,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00031
+SECTION_VERSION: 00032
 
 REGLA GENERAL
 
@@ -635,6 +635,32 @@ si una operación implica stock comprometible, reserva o compromiso, debe pasar 
 
 comprometer stock no equivale a mover stock físico
 si una operación implica regularización material formal, debe pasar por InventoryMaterialFlow o frontera oficial de Inventory
+
+Product.kind no debe usarse como criterio único para decidir participación en Inventory.
+
+Product.is_stockable debe ser el criterio operativo de Inventory.
+
+Un producto intangible puede pasar por Inventory si is_stockable = true.
+
+Un servicio no debe tratarse como stockeable por defecto.
+
+Si Inventory dispara una post-operación hacia otro dominio, esa post-operación debe ocurrir desde backend y mediante frontera explícita.
+
+Caso vigente:
+
+Inventory ejecuta línea stockeable.
+
+Si Product.kind = intangible, self_service_sales puede acreditar pocket de Party mediante servicio propio.
+
+Regla:
+
+Inventory no administra pockets.
+
+self_service_sales no administra stock.
+
+La integración debe preservar ambos ownerships.
+
+Si la post-operación usa idempotencia por línea, revisar antes de habilitar ejecuciones parciales múltiples.
 
 no usar InventoryMovement.kind como sustituto del contrato formal por etapas cuando se requiere saldo trazable
 

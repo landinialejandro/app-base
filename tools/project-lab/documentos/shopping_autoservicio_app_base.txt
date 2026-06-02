@@ -982,7 +982,7 @@ Attachment is_image = true
 <<END SECTION>>
 
 <<SECTION: CORTE OPERATIVO VIGENTE — POCKET DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CORTE OPERATIVO VIGENTE — POCKET DE FICHAS
 
@@ -990,7 +990,7 @@ self_service_sales incorpora un primer corte mínimo de Pocket de fichas.
 
 Lectura vigente:
 
-cuando un checkout aprobado incluye un producto ficha lógica, la cantidad comprada se acredita en un pocket del customer externo.
+cuando un checkout aprobado incluye un producto ficha lógica, la cantidad comprada se acredita en un pocket asociado a la Party customer del tenant.
 
 Flujo validado:
 
@@ -1009,7 +1009,21 @@ SelfServiceTokenPocketMovement
 
 Responsabilidad de SelfServiceTokenPocket:
 
-custodiar la cantidad disponible de fichas compradas por un customer externo para un producto ficha determinado dentro del tenant y relación customer-tienda correspondiente.
+custodiar la cantidad disponible de fichas, créditos, cupos o derechos lógicos para una Party customer, un tenant y un producto intangible determinado.
+
+Regla de titularidad:
+
+Pocket pertenece conceptualmente a Party.
+
+SelfServiceCustomerAccount y SelfServiceStoreCustomer se conservan como canal externo de acceso y tienda.
+
+No son la titularidad primaria del pocket.
+
+La tienda opera sobre Party mediante SelfServiceStoreCustomer.
+
+Order interna opera sobre Party mediante Order.party_id.
+
+Ambas vías deben converger en el mismo pocket de Party para el mismo producto intangible.
 
 Responsabilidad de SelfServiceTokenPocketMovement:
 
@@ -1021,11 +1035,37 @@ purchase_credit
 
 Criterio técnico vigente de ficha lógica en este corte:
 
+Product.kind = intangible
+
+Product.is_stockable = true
+
 Product.unit_label = ficha
 
 y
 
 ProductComponent asociado a un componentProduct de tipo service con unit_label = segundo.
+
+Lectura de Product vigente:
+
+Product.kind describe la naturaleza del producto.
+
+Product.is_stockable define si el producto participa en Inventory.
+
+Inventory no debe decidir por Product.kind.
+
+Inventory debe decidir por Product.is_stockable.
+
+Matriz conceptual:
+
+product + is_stockable=true = producto físico con stock.
+
+product + is_stockable=false = producto físico o comercial sin stock gestionado.
+
+service + is_stockable=false = servicio.
+
+intangible + is_stockable=true = ficha, crédito, bono o cupo vendible con stock controlado.
+
+intangible + is_stockable=false = intangible sin stock gestionado.
 
 La duración de la ficha se conserva como snapshot:
 
@@ -1045,6 +1085,46 @@ idempotency_key vigente:
 
 self_service_token_pocket:purchase_credit:cart:{cart_id}:item:{cart_item_id}:product:{product_id}
 
+Post-operación Inventory → Pocket vigente:
+
+Order
+↓
+OrderItem con producto stockeable
+↓
+Inventory baja stock
+↓
+si Product.kind = intangible
+↓
+SelfServiceTokenPocketService::creditFromInventoryOrderItem()
+↓
+acredita pocket de Order.party_id
+
+Reglas de Inventory → Pocket:
+
+la baja de Inventory ocurre primero.
+
+Luego, si el producto ejecutado es intangible, se acredita el pocket de la Party de la Order.
+
+Inventory opera productos stockeables sin mirar kind.
+
+La acreditación Inventory → Pocket no aplica a cualquier producto.
+
+Solo aplica como post-operación de una línea ejecutada cuyo producto es kind = intangible.
+
+La acreditación ocurre en backend.
+
+No ocurre desde UI/frontend.
+
+Idempotencia Inventory → Pocket vigente:
+
+order_item_id + product_id.
+
+También evita duplicar créditos si ya existe movement purchase_credit para el mismo order_item_id + product_id.
+
+Esto mantiene compatibilidad con tienda → carrito → checkout → Order → pocket.
+
+Evita doble crédito cuando checkout ya acreditó el pocket.
+
 Validación runtime consolidada:
 
 primera ejecución sobre cart_id = 21 / order_id = 52 acreditó 3 fichas.
@@ -1056,6 +1136,8 @@ Reglas:
 la ficha comprada no se consume al comprarla.
 
 la ficha comprada se acredita en el pocket.
+
+el intangible puede pasar por Inventory si is_stockable = true.
 
 el pocket no es InventoryMovement.
 
@@ -1113,7 +1195,13 @@ Regla:
 
 el corte vigente cierra solo la acreditación post-checkout de fichas al pocket.
 
+También documenta la post-operación Inventory → Pocket para líneas intangibles stockeables.
+
 No cierra consumo de fichas.
+
+Pendiente técnico explícito:
+
+si en el futuro se habilitan ejecuciones parciales múltiples de una misma línea intangible, deberá revisarse la idempotencia Inventory → Pocket para asociarla a inventory_movement_id o a una unidad de ejecución equivalente.
 
 <<END SECTION>>
 

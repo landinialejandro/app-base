@@ -832,7 +832,7 @@ todo módulo estándar debe alinear permisos, matriz de roles y scopes compatibl
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES — CONTRATO MATERIAL INVENTORY>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 LECCIONES VIGENTES — CONTRATO MATERIAL INVENTORY
 
@@ -863,6 +863,40 @@ InventoryMaterialFlow no mueve stock por sí mismo.
 No usar InventoryMovement.kind como sustituto del contrato formal cuando hay etapas materiales distintas.
 
 No usar metadata como contrato formal suficiente si se requiere saldo trazable.
+
+NO INFERIR INVENTORY DESDE PRODUCT.KIND
+
+Product.kind describe naturaleza del producto.
+
+Product.is_stockable define participación en Inventory.
+
+Lección:
+
+si Inventory decide por kind, puede excluir intangibles stockeables o incluir servicios que no deben operar stock.
+
+Reglas:
+
+Inventory debe operar por is_stockable.
+
+Un intangible puede ser stockeable.
+
+No documentar ni implementar intangible como ajeno a Inventory por definición.
+
+IDEMPOTENCIA POR LÍNEA NO EQUIVALE A IDEMPOTENCIA POR EJECUCIÓN PARCIAL
+
+Caso vigente:
+
+Inventory → Pocket acredita con idempotencia por order_item_id + product_id.
+
+Lección:
+
+esa idempotencia evita doble crédito frente a checkout ya acreditado o reejecución del mismo cierre lógico.
+
+No resuelve por sí sola ejecuciones parciales múltiples de una misma línea intangible.
+
+Regla:
+
+antes de habilitar parciales múltiples Inventory → Pocket, revisar si la idempotencia debe asociarse a inventory_movement_id o a una unidad de ejecución equivalente.
 
 NO CONSUMIR DOS VECES COMPONENTES YA ENTREGADOS
 

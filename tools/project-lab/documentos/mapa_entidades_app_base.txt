@@ -1466,13 +1466,15 @@ sesión externa mínima no autoriza shops.*
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CONCEPTUAL — POCKET DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RELACIÓN CONCEPTUAL — POCKET DE FICHAS
 
 Relación conceptual vigente para fichas compradas por customer externo:
 
 Tenant
+↓
+Party
 ↓
 SelfServiceCustomerAccount
 ↓
@@ -1486,7 +1488,11 @@ Product
 
 Lectura:
 
-SelfServiceTokenPocket representa el pocket de fichas del customer externo para un producto ficha determinado.
+SelfServiceTokenPocket representa el pocket de fichas, créditos, cupos o derechos lógicos de una Party customer para un producto intangible determinado.
+
+SelfServiceCustomerAccount y SelfServiceStoreCustomer representan canal externo de acceso y tienda.
+
+No representan la titularidad primaria del pocket.
 
 SelfServiceTokenPocketMovement representa movimientos trazables del pocket.
 
@@ -1499,6 +1505,18 @@ Origen funcional vigente:
 SelfServiceCart checked_out
 ↓
 Order group = sale
+↓
+SelfServiceTokenPocketMovement purchase_credit
+
+Origen funcional adicional:
+
+Order
+↓
+OrderItem stockeable
+↓
+Inventory baja stock
+↓
+Product.kind = intangible
 ↓
 SelfServiceTokenPocketMovement purchase_credit
 
@@ -1530,13 +1548,31 @@ Relación con Product:
 
 Product conserva la definición del producto ficha.
 
+Product.kind describe la naturaleza del producto.
+
+Product.is_stockable define si participa en Inventory.
+
+Inventory opera por is_stockable.
+
+Inventory no debe decidir por kind.
+
+Un intangible puede ser stockeable.
+
 ShopItem conserva la publicación comercial concreta.
 
 SelfServiceCartItem conserva la línea de carrito externo.
 
 OrderItem conserva la línea formalizada de venta interna.
 
-SelfServiceTokenPocket conserva la disponibilidad lógica comprada por el customer externo.
+SelfServiceTokenPocket conserva la disponibilidad lógica comprada o acreditada por Party.
+
+Relación convergente:
+
+tienda opera sobre Party mediante SelfServiceStoreCustomer.
+
+Order interna opera sobre Party mediante Order.party_id.
+
+Ambas vías deben converger en tenant + party_id + product_id.
 
 Regla:
 
@@ -3547,7 +3583,7 @@ Deben leerse como surfaces compactas consumidas por el host appointment dentro d
 <<END SECTION>>
 
 <<SECTION: PRODUCTS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PRODUCTS
 
@@ -3556,6 +3592,38 @@ Tipo conceptual:
 módulo autónomo
 
 Representa catálogo operativo de bienes o servicios.
+
+Product.kind vigente:
+
+product
+service
+intangible
+
+Lectura:
+
+product = producto físico o comercial.
+
+service = prestación o servicio.
+
+intangible = derecho, saldo, crédito, ficha, cupo o unidad lógica transferible.
+
+Dimensión independiente:
+
+Product.is_stockable define si el producto participa en Inventory.
+
+Product.kind no debe usarse como criterio operativo único de Inventory.
+
+Matriz:
+
+product + is_stockable=true = producto físico con stock.
+
+product + is_stockable=false = producto físico o comercial sin stock gestionado.
+
+service + is_stockable=false = servicio.
+
+intangible + is_stockable=true = ficha, crédito, bono o cupo vendible con stock controlado.
+
+intangible + is_stockable=false = intangible sin stock gestionado.
 
 Relaciones consumidas:
 
@@ -3583,6 +3651,10 @@ no todo registro de products participa del mismo modo en inventory V1
 los productos físicos pueden sostener movimientos de stock
 
 los servicios forman parte válida del catálogo, pero no deben tratarse como stockeables por defecto
+
+los intangibles pueden participar en Inventory si is_stockable = true
+
+Inventory debe operar por is_stockable y no por Product.kind
 
 Aclaración estructural consolidada:
 

@@ -717,7 +717,7 @@ si una lectura contextual puede integrarse naturalmente al host mediante surface
 <<END SECTION>>
 
 <<SECTION: RECORRIDO FUNCIONAL — POCKET DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RECORRIDO FUNCIONAL — POCKET DE FICHAS
 
@@ -733,6 +733,8 @@ SelfServiceCart checked_out
 ↓
 Order group = sale
 ↓
+Party vía SelfServiceStoreCustomer.party_id
+↓
 SelfServiceTokenPocket
 ↓
 SelfServiceTokenPocketMovement purchase_credit
@@ -740,6 +742,12 @@ SelfServiceTokenPocketMovement purchase_credit
 Lectura:
 
 este recorrido pertenece al plano externo customer de self_service_sales.
+
+El pocket pertenece conceptualmente a Party.
+
+SelfServiceStoreCustomer actúa como canal externo de tienda.
+
+No es titular universal del pocket.
 
 No abre navegación interna tenant.
 
@@ -766,6 +774,38 @@ provider visual aprobado no equivale por sí mismo a acreditación.
 la acreditación ocurre solo después del checkout aprobado y la formalización de Order según backend.
 
 pocket acreditado no equivale a ficha consumida.
+
+Recorrido interno adicional vigente:
+
+Order interna con party_id
+↓
+OrderItem con Product.is_stockable = true
+↓
+Inventory ejecuta línea
+↓
+si Product.kind = intangible
+↓
+backend acredita pocket de Party
+
+Reglas Inventory → Pocket:
+
+Inventory opera por Product.is_stockable.
+
+Inventory no decide por Product.kind.
+
+Un intangible puede pasar por Inventory si is_stockable = true.
+
+La acreditación al pocket ocurre como post-operación backend de Inventory.
+
+No ocurre desde UI/frontend.
+
+No aplica a cualquier producto.
+
+Solo aplica a línea ejecutada con producto kind = intangible.
+
+La idempotencia vigente es order_item_id + product_id.
+
+Si se habilitan ejecuciones parciales múltiples de una misma línea intangible, deberá revisarse contra inventory_movement_id o unidad de ejecución equivalente.
 
 saldo visible futuro no deberá autorizar consumo por sí mismo.
 

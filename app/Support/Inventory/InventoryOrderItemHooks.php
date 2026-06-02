@@ -6,6 +6,7 @@ namespace App\Support\Inventory;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Support\Catalogs\ProductCatalog;
 use App\Support\Catalogs\OrderItemCatalog;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -116,7 +117,7 @@ public function hasCloseBlockers(Order $order): bool
     $hasLineBlockers = $order->items->contains(function ($item) {
         $product = $item->product;
 
-        if (! $product || $product->kind !== 'product') {
+        if (! $product || $product->kind !== ProductCatalog::KIND_PRODUCT) {
             return false;
         }
 

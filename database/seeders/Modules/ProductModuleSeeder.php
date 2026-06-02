@@ -6,6 +6,7 @@ namespace Database\Seeders\Modules;
 
 use App\Events\OperationalRecordCreated;
 use App\Models\Product;
+use App\Support\Catalogs\ProductCatalog;
 use Illuminate\Support\Collection;
 
 class ProductModuleSeeder extends BaseModuleSeeder
@@ -117,7 +118,7 @@ public function run(): void
                 [
                     'name' => 'Ficha lavado 5 minutos',
                     'sku' => 'LAV-FICHA',
-                    'kind' => 'product',
+                    'kind' => ProductCatalog::KIND_INTANGIBLE,
                     'unit_label' => 'ficha',
                     'price' => 1500,
                     'description' => 'Unidad stockeable de derecho de uso para activar un ciclo de lavado autoservicio de 5 minutos.',

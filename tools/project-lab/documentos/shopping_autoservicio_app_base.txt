@@ -1996,7 +1996,7 @@ No se descontó pocket adicionalmente.
 <<END SECTION>>
 
 <<SECTION: CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CORTE OPERATIVO VIGENTE — GATEWAY SIMULADO DE CONSUMO DE FICHAS
 
@@ -2362,6 +2362,174 @@ timeout/retry.
 lectura de estado físico de máquina.
 
 revalidación de punto activo ya está implementada para confirmación de attempts asociados a ShopConsumptionPoint.
+
+Contrato futuro orientativo para controlador externo real:
+
+app-base valida negocio interno
+↓
+factory arma request seguro y mínimo
+↓
+gateway/adaptador real traduce al protocolo físico
+↓
+controlador externo devuelve evidencia operativa
+↓
+gateway normaliza response
+↓
+app-base decide confirmed, failed, movement y pocket
+
+Reglas de frontera futura:
+
+controlador externo real = frontera técnica reemplazable.
+
+No será autoridad de negocio.
+
+No decide tenant.
+
+No decide customer.
+
+No decide saldo.
+
+No confirma attempts por sí mismo.
+
+No descuenta pocket.
+
+No crea movement.
+
+No recibe public_token.
+
+No recibe datos personales.
+
+No recibe sesión externa.
+
+No recibe permisos internos.
+
+No recibe Order, Document, Payment, PaymentAttempt, Inventory ni InventoryMovement.
+
+Solo devuelve evidencia operativa normalizada.
+
+app-base conserva autoridad interna sobre efectos persistentes.
+
+Request futuro orientativo:
+
+operation = self_service_token_consumption.
+
+provider_target = token_controller.
+
+external_reference.
+
+idempotency_key.
+
+quantity.
+
+unit_label.
+
+unit_seconds.
+
+total_seconds.
+
+consumption_point.code.
+
+consumption_point.name.
+
+security.mode = server_side.
+
+security.source = self_service_sales.
+
+Datos que deben seguir excluidos salvo decisión explícita:
+
+public_token.
+
+datos personales del customer.
+
+email, nombre, documento o teléfono.
+
+Party.
+
+self_service_customer_account_id.
+
+self_service_store_customer_id.
+
+saldo disponible o quantity_available.
+
+movimientos previos.
+
+metadata cruda completa.
+
+response previa.
+
+sesión externa.
+
+permisos internos.
+
+tokens internos.
+
+credenciales internas.
+
+Order, Document, Payment, PaymentAttempt, Inventory e InventoryMovement.
+
+Response futura orientativa:
+
+provider.
+
+provider_target = token_controller.
+
+status = approved o rejected.
+
+status_label.
+
+status_detail.
+
+external_consumption_id.
+
+external_reference.
+
+consumption_point_code.
+
+quantity.
+
+total_seconds.
+
+accepted_at o rejected_at.
+
+raw mínimo del controlador.
+
+Decisiones pendientes antes de gateway real:
+
+protocolo real.
+
+autenticación del controlador.
+
+controlador por tenant, Shop, punto o global.
+
+identificador técnico real del punto.
+
+si consumption_point.code alcanza o requiere controller_point_id, device_id, asset_id u otro contrato.
+
+shape de error técnico.
+
+timeout.
+
+retry.
+
+idempotencia del controlador físico.
+
+respuesta síncrona o callback/webhook.
+
+significado físico de accepted.
+
+auditoría cuando el controlador acepta y luego falla físicamente.
+
+política de reversa o compensación futura.
+
+Error técnico futuro:
+
+no está implementado.
+
+No es estado vigente.
+
+No debe confundirse automáticamente con rejected.
+
+Queda pendiente decidir si conserva pending, crea otro estado, marca failed o requiere lifecycle separado.
 
 <<END SECTION>>
 

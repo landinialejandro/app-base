@@ -870,7 +870,7 @@ movement consumption sin confirmación.
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — CONSUMO CONFIRMADO SIMULADO DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LÍNEA ACTIVA — CONSUMO CONFIRMADO SIMULADO DE FICHAS
 
@@ -1876,6 +1876,8 @@ gateway real.
 
 contrato físico definitivo.
 
+contrato futuro de controlador externo real documentado como orientación, no implementación.
+
 timeout/retry.
 
 rechazos reales de hardware/controlador externo.
@@ -1885,6 +1887,58 @@ compensación/reversa.
 lectura de fallos por punto.
 
 tratamiento de punto inactivo frente a hardware/controlador real futuro.
+
+Contrato futuro documentado:
+
+controlador externo real = frontera técnica reemplazable.
+
+app-base conserva autoridad interna.
+
+El controlador externo no decide negocio, tenant, customer, saldo ni permisos.
+
+El controlador externo no confirma attempt, no descuenta pocket y no crea movement.
+
+El controlador externo no recibe public_token, datos personales, sesión externa, permisos internos, tokens internos, credenciales internas, Order, Document, Payment, PaymentAttempt, Inventory ni InventoryMovement.
+
+Solo devuelve evidencia operativa normalizada.
+
+Flujo orientativo:
+
+app-base valida negocio interno
+↓
+factory arma request seguro
+↓
+gateway/adaptador real traduce protocolo físico
+↓
+controlador externo responde evidencia
+↓
+gateway normaliza response
+↓
+app-base decide efectos internos
+
+Pendientes específicos antes de implementar gateway real:
+
+protocolo real.
+
+autenticación del controlador.
+
+identificador técnico del punto.
+
+si consumption_point.code alcanza o requiere controller_point_id, device_id o asset_id.
+
+shape de error técnico.
+
+timeout.
+
+retry.
+
+idempotencia física.
+
+respuesta síncrona o callback/webhook.
+
+reversa o compensación.
+
+technical_error no está implementado y no es estado vigente.
 
 <<END SECTION>>
 

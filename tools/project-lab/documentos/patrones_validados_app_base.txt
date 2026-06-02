@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00036
+SECTION_VERSION: 00037
 
 PATRONES VIGENTES
 
@@ -479,6 +479,50 @@ Regla transaccional:
 si el camino rejected debe devolver excepción operativa, la excepción debe emitirse después de persistir failed.
 
 No debe lanzarse dentro de la transacción antes del commit si eso revierte la evidencia del gateway simulado.
+
+Patrón futuro documentado:
+
+CONTROLADOR EXTERNO REAL COMO FRONTERA TÉCNICA REEMPLAZABLE
+
+Forma orientativa:
+
+app-base valida negocio interno
+↓
+factory arma request seguro y mínimo
+↓
+gateway/adaptador real traduce protocolo físico
+↓
+controlador externo responde evidencia operativa
+↓
+gateway normaliza response
+↓
+app-base decide efectos internos
+
+Reglas:
+
+controlador externo real no decide negocio.
+
+controlador externo real no decide tenant, customer, saldo ni permisos.
+
+controlador externo real no confirma attempt por sí mismo.
+
+controlador externo real no descuenta pocket.
+
+controlador externo real no crea movement.
+
+controlador externo real no recibe public_token, datos personales, sesión externa, permisos internos, tokens internos ni credenciales internas.
+
+controlador externo real no recibe Order, Document, Payment, PaymentAttempt, Inventory ni InventoryMovement.
+
+response approved futura solo aporta evidencia operativa normalizada para que app-base decida confirmación interna si sus validaciones pasan.
+
+response rejected futura solo aporta evidencia operativa normalizada para que app-base pueda persistir failed sin consumir saldo.
+
+timeout, retry, reversa y error técnico no están implementados.
+
+technical_error no es estado vigente.
+
+technical_error futuro no debe confundirse automáticamente con rejected.
 
 Patrón validado adicional:
 

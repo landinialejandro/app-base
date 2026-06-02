@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
 DECISIONES VIGENTES
 
@@ -1955,6 +1955,64 @@ la persistencia de failed requiere no lanzar la excepción dentro de la transacc
 Caso validado:
 
 attempt 12 queda failed con provider simulated, provider_target token_controller, external_consumption_id null, pocket balance 2.00 → 2.00 y movement_count 10 → 10.
+
+Contrato futuro decidido como orientación, no implementación:
+
+el controlador externo real de consumo de fichas será frontera técnica reemplazable.
+
+app-base seguirá siendo autoridad interna.
+
+El controlador externo real no decide negocio, tenant, customer, saldo ni permisos.
+
+No confirma attempts por sí mismo.
+
+No descuenta pocket.
+
+No crea movement.
+
+No recibe public_token.
+
+No recibe datos personales, sesión externa, permisos internos, tokens internos ni credenciales internas.
+
+No recibe Order, Document, Payment, PaymentAttempt, Inventory ni InventoryMovement.
+
+Solo devuelve evidencia operativa normalizada.
+
+Lectura futura:
+
+app-base valida negocio interno.
+
+factory arma request seguro y mínimo.
+
+gateway/adaptador real traduce protocolo físico.
+
+controlador externo responde evidencia operativa.
+
+gateway normaliza response.
+
+app-base decide confirmed, failed, movement y pocket.
+
+Request futuro orientativo:
+
+operation, provider_target, external_reference, idempotency_key, quantity, unit_label, unit_seconds, total_seconds, consumption_point code/name y security server_side/source.
+
+Response futura orientativa:
+
+provider, provider_target, status approved/rejected, status_label, status_detail, external_consumption_id, external_reference, consumption_point_code, quantity, total_seconds y timestamp operativo.
+
+Decisión pendiente:
+
+definir si consumption_point.code alcanza para hardware real o si se requiere controller_point_id, device_id, asset_id u otro identificador técnico.
+
+Error técnico futuro:
+
+no está implementado.
+
+No es estado vigente.
+
+No equivale automáticamente a rejected.
+
+Queda pendiente definir si conserva pending, crea otro estado, marca failed o requiere lifecycle separado.
 
 Queda pendiente:
 

@@ -976,7 +976,7 @@ el recorrido futuro de consumo confirmado no queda implementado por la existenci
 <<END SECTION>>
 
 <<SECTION: RECORRIDO FUNCIONAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RECORRIDO FUNCIONAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS
 
@@ -1052,7 +1052,17 @@ QR real de box o punto de consumo
 ↓
 attempt pending
 ↓
-gateway/controlador externo
+app-base valida negocio interno
+↓
+factory arma request seguro
+↓
+gateway/adaptador real traduce protocolo físico
+↓
+controlador externo devuelve evidencia operativa
+↓
+gateway normaliza response
+↓
+app-base decide efecto interno
 ↓
 confirmación confiable externa
 ↓
@@ -1065,6 +1075,12 @@ respuesta operativa del controlador
 Regla:
 
 el recorrido futuro de integración física no queda implementado por la confirmación simulada.
+
+El controlador externo real no decide tenant, customer, saldo, permisos, attempt, movement ni pocket.
+
+El controlador externo real no recibe public_token, datos personales, sesión externa, permisos internos, Order, Document, Payment, PaymentAttempt, Inventory ni InventoryMovement.
+
+timeout, retry, reversa y technical_error siguen pendientes y no son recorrido vigente.
 
 <<END SECTION>>
 

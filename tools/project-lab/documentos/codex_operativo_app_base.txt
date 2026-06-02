@@ -147,6 +147,222 @@ Project Lab no se considera, en este criterio, el aplicador principal obligatori
 Project Lab queda principalmente como estación local de evidencia, auditoría y validación operativa.
 <<END SECTION>>
 
+<<SECTION: MESA DE TRABAJO ASISTIDA PARA DESARROLLADOR SENIOR SOLO>>
+SECTION_VERSION: 00001
+
+MESA DE TRABAJO ASISTIDA PARA DESARROLLADOR SENIOR SOLO
+
+Lectura operativa:
+
+El desarrollo de app-base puede ser sostenido por una persona con criterio senior siempre que el trabajo no dependa exclusivamente de memoria, intuición o esfuerzo individual continuo.
+
+Cuando no existe equipo humano de desarrollo, el proceso debe organizar una mesa de trabajo asistida donde cada herramienta cumpla un rol delimitado.
+
+La ausencia de equipo no habilita improvisación.
+
+Debe compensarse con:
+
+documentación vigente
+Git disciplinado
+auditorías
+validaciones runtime
+revisión diferida
+automatización
+Project Lab
+Codex
+ChatGPT
+criterio arquitectónico explícito
+
+Regla:
+
+un desarrollador senior solo no trabaja sin equipo.
+
+Trabaja con roles separados, procesos repetibles y herramientas que reducen puntos ciegos.
+
+Roles operativos internos:
+
+ARQUITECTO
+
+Responsabilidad:
+
+definir dirección
+delimitar alcance
+proteger ownership modular
+evitar acoplamientos indebidos
+decidir fronteras
+validar coherencia doctrinal
+
+PROGRAMADOR
+
+Responsabilidad:
+
+implementar cambios mínimos
+trabajar sobre código real
+respetar contratos vigentes
+evitar legacy
+mantener bajo acoplamiento
+cerrar unidades pequeñas de cambio
+
+REVISOR
+
+Responsabilidad:
+
+leer el diff como si fuera ajeno
+buscar riesgos
+detectar duplicación
+verificar nombres, rutas, permisos, contratos y efectos colaterales
+no confundir funcionamiento inicial con cierre arquitectónico
+
+TESTER / VALIDADOR
+
+Responsabilidad:
+
+validar runtime real
+ejecutar auditorías
+usar Tinker cuando corresponda
+verificar navegador, consola, Network o backend según el caso
+confirmar que el cambio opera en datos reales y contexto tenant correcto
+
+DOCUMENTADOR
+
+Responsabilidad:
+
+registrar decisiones que evitan errores futuros
+actualizar documentos afectados
+distinguir doctrina, evidencia, pendiente, patrón y lección
+evitar acumulación narrativa
+preservar continuidad entre sesiones
+
+OPERADOR
+
+Responsabilidad:
+
+controlar Git
+mantener working tree entendible
+hacer commits pequeños y claros
+verificar estado antes y después de cambios
+evitar mezclar documentación, código y pruebas sin frontera clara
+
+Lectura de herramientas:
+
+CHATGPT
+
+Rol:
+
+criterio conceptual, lectura doctrinal, formulación de prompts, revisión de coherencia, cierre de sentido y apoyo documental.
+
+No reemplaza código real.
+
+No reemplaza runtime.
+
+No debe asumir documentación no cargada en el contexto del chat.
+
+CODEX
+
+Rol:
+
+agente técnico sobre el workspace real.
+
+Puede analizar, modificar código, revisar archivos, ejecutar tareas acotadas y devolver evidencia técnica.
+
+No decide doctrina.
+
+No declara cierre final.
+
+No debe ampliar alcance sin justificar.
+
+PROJECT LAB
+
+Rol:
+
+estación local de evidencia, auditoría, Tinker, comandos controlados, validación runtime y registro de salidas.
+
+No reemplaza doctrina.
+
+No reemplaza criterio arquitectónico.
+
+No convierte asistencia IA en funcionalidad productiva del SaaS.
+
+GIT
+
+Rol:
+
+memoria técnica del proceso.
+
+Debe permitir reconstruir qué cambió, por qué cambió y en qué estado quedó el proyecto.
+
+Reglas:
+
+commits chicos
+mensajes claros
+git status antes y después
+git diff antes de cerrar
+no mezclar frentes sin necesidad
+no cerrar cambios con working tree confuso
+
+DOCUMENTACIÓN ACTIVA
+
+Rol:
+
+fuente de continuidad y prevención de deriva.
+
+Debe orientar decisiones futuras.
+
+No debe escribirse para acumular texto.
+
+Regla:
+
+si una frase no ayuda a evitar un error, tomar una decisión, continuar un frente o auditar un cambio, debe compactarse o eliminarse.
+
+Ciclo operativo recomendado:
+
+1. Definir objetivo mínimo.
+
+2. Leer documentación vigente según el frente activo.
+
+3. Obtener evidencia real cuando falte contexto.
+
+4. Formular una tarea acotada para Codex o Project Lab.
+
+5. Aplicar cambio mínimo si corresponde.
+
+6. Revisar diff.
+
+7. Validar runtime, Tinker, navegador o auditoría según el caso.
+
+8. Actualizar documentación afectada.
+
+9. Hacer commit claro.
+
+10. Subir al contexto de ChatGPT la documentación actualizada cuando se requiera revisión conceptual posterior.
+
+Reglas:
+
+no avanzar por intuición
+
+no usar memoria de sesiones anteriores como fuente única
+
+no cerrar por "parece funcionar"
+
+no documentar sin evidencia
+
+no pedir a Codex decisiones doctrinales
+
+no pedir a ChatGPT validación de documentación que no fue cargada al contexto
+
+no usar Project Lab como sustituto de criterio arquitectónico
+
+no usar Git como depósito de cambios mezclados
+
+Criterio final:
+
+el sistema de trabajo debe reducir dependencia de memoria, cansancio, inspiración o atención perfecta.
+
+El objetivo no es reemplazar un equipo humano de forma ingenua.
+
+El objetivo es construir una mesa de trabajo asistida donde cada herramienta tenga frontera clara y donde las decisiones importantes queden sostenidas por documentación, evidencia, validación y control de cambios.
+<<END SECTION>>
+
 <<SECTION: LECTURA OPERATIVA DE CODEX>>
 SECTION_VERSION: 00001
 

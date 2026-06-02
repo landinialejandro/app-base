@@ -1631,7 +1631,7 @@ intención de consumo, consumo confirmado y habilitación física no deben compr
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CONCEPTUAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RELACIÓN CONCEPTUAL — CONSUMO CONFIRMADO SIMULADO DE FICHAS
 
@@ -1694,6 +1694,46 @@ attempt pending registra intención de uso.
 confirmación simulada descuenta pocket dentro de app-base.
 
 gateway/controlador real futuro habilitará operación física si corresponde.
+
+Contrato futuro del controlador externo real:
+
+SelfServiceTokenConsumptionAttemptService
+↓
+SelfServiceTokenConsumptionRequestFactory
+↓
+SelfServiceTokenConsumptionGateway
+↓
+gateway/adaptador real futuro
+↓
+controlador externo real
+↓
+response normalizada
+↓
+SelfServiceTokenConsumptionAttemptService decide efectos internos
+
+Reglas:
+
+controlador externo real = frontera técnica reemplazable.
+
+No es entidad de negocio interna.
+
+No decide tenant, customer, saldo ni permisos.
+
+No crea SelfServiceTokenPocketMovement.
+
+No descuenta SelfServiceTokenPocket.
+
+No confirma SelfServiceTokenConsumptionAttempt por sí mismo.
+
+No recibe public_token ni datos personales.
+
+No recibe Order, Document, Payment, PaymentAttempt, Inventory ni InventoryMovement.
+
+Solo aporta evidencia operativa normalizada para decisión interna de app-base.
+
+Pendiente:
+
+definir identificador técnico real del punto si consumption_point.code no alcanza.
 
 Regla:
 

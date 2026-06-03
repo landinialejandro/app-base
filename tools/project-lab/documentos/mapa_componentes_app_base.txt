@@ -369,7 +369,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -470,6 +470,54 @@ resources/views/service/dashboard.blade.php y resources/views/production/dashboa
 resources/views/*/dashboard.blade.php no deben moverse automáticamente a resources/views/components por compartir estructura visual.
 
 un dashboard de área pertenece al universo o frente que representa, salvo extracción explícita de piezas genéricas reutilizables.
+
+PATRÓN VISUAL RELACIONADO CON DASHBOARD
+
+content-section-*:
+
+patrón reusable de encabezado de sección.
+
+No es exclusivo de dashboard.
+
+Puede usarse para separar grupos de contenido dentro de una card o superficie visual cuando exista un título y texto de alcance.
+
+dashboard-grid:
+
+organiza cards dentro de secciones dashboard.
+
+No define por sí mismo navegación ni permisos.
+
+dashboard-info-card:
+
+card informativa no clickeable.
+
+Debe renderizar lectura, estado, resumen o contexto operativo.
+
+No debe simular botón ni acceso directo.
+
+dashboard-link-card:
+
+card de acción clickeable.
+
+Debe representar acceso directo, navegación o recorrido operativo disponible.
+
+dashboard-module-card y dashboard-module-card--{module}:
+
+aportan base visual compartida y acento por módulo.
+
+dashboard-module-icon y dashboard-module-watermark:
+
+piezas visuales compartidas para ícono principal redondeado y watermark lateral.
+
+Reglas:
+
+las vistas dashboard no deben convertirse automáticamente en componentes globales por compartir patrón visual
+
+solo deben extraerse piezas genéricas cuando exista reutilización real y contrato claro
+
+una card informativa informa
+
+una card de acción navega
 
 CASO VIGENTE: ORDERS EN CONTEXTO /SERVICE
 

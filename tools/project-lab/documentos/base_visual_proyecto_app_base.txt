@@ -464,6 +464,126 @@ resources/views/landing
 
 <<END SECTION>>
 
+<<SECTION: PATRÓN VISUAL DE DASHBOARD OPERATIVO>>
+SECTION_VERSION: 00001
+
+PATRÓN VISUAL DE DASHBOARD OPERATIVO
+
+Un dashboard operativo puede usar una gramática visual específica para agrupar lectura, estado y accesos frecuentes sin convertir toda vista con cards en dashboard.
+
+Estructura base:
+
+x-page
+x-breadcrumb
+x-page-header
+secciones dentro de x-card
+
+Cada sección debe agrupar información y accesos relacionados.
+
+Estructura visual de sección:
+
+content-section-header
+content-section-title
+content-section-text
+dashboard-grid
+
+Reglas:
+
+content-section-title identifica el grupo operativo
+
+content-section-text explica el alcance del grupo
+
+dashboard-grid organiza cards dentro de la sección
+
+la sección no debe mezclar información y acción sin diferenciación funcional
+
+Cards informativas:
+
+dashboard-info-card
+dashboard-info-title
+dashboard-info-text
+dashboard-info-meta
+
+Responsabilidad:
+
+mostrar lectura, estado, resumen o contexto operativo
+
+Reglas:
+
+se renderizan como div
+
+no navegan
+
+no deben simular botón
+
+no deben tener cursor pointer ni hover fuerte de acción
+
+Cards de acción o acceso directo:
+
+dashboard-link-card
+dashboard-link-title
+dashboard-link-text
+dashboard-link-meta
+
+Responsabilidad:
+
+llevar a un módulo, acción o recorrido operativo
+
+Reglas:
+
+se renderizan como a
+
+pueden tener hover y focus fuerte
+
+deben representar una navegación o acción disponible ya resuelta por backend
+
+Gramática visual común de cards:
+
+dashboard-module-card
+dashboard-module-card--{module}
+dashboard-module-icon
+dashboard-module-watermark
+
+Elementos compartidos:
+
+ícono principal redondeado
+watermark lateral derecho con el mismo ícono
+color o acento visual por módulo
+título
+segunda línea descriptiva
+tercera línea meta o informativa
+
+Diferencia funcional obligatoria:
+
+dashboard-info-card informa y no navega.
+
+dashboard-link-card navega.
+
+Regla de payload:
+
+el dashboard no debe armar permisos ni lógica funcional en Blade.
+
+El controller debe entregar el payload ya preparado y filtrado.
+
+Cada card debe llegar al Blade con:
+
+module
+icon
+title
+text
+meta
+
+Las cards de acción además tienen:
+
+route
+
+Las cards informativas no tienen route.
+
+Regla final:
+
+Blade solo renderiza el payload recibido.
+<<END SECTION>>
+
 <<SECTION: COMPONENTES DISPONIBLES>>
 SECTION_VERSION: 00038
 

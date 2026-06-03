@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00040
+SECTION_VERSION: 00041
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -250,6 +250,18 @@ service.orders.* → rutas semánticas de acceso contextual a Orders
 
 group = service → clasificación funcional de Orders para órdenes de servicio
 
+Aclaración operativa de órdenes productivas:
+
+Las órdenes productivas pertenecen a Orders.
+
+El universo /production expresa contexto funcional y navegación especializada, pero no crea una entidad nueva.
+
+Lectura vigente:
+
+/production → Orders
+
+group = production → clasificación funcional de Orders para órdenes productivas
+
 Reglas:
 
 /service no reemplaza la entidad Orders
@@ -258,7 +270,19 @@ Reglas:
 
 /service no convierte órdenes de servicio en registros ajenos a Orders
 
+/production no reemplaza la entidad Orders
+
+/production no absorbe ownership de orders ni order_items
+
+/production no convierte órdenes productivas en registros ajenos a Orders
+
 la creación contextual desde /service debe producir Orders con group = service
+
+la clasificación funcional por group no crea entidad nueva
+
+la clasificación funcional por group no crea módulo nuevo
+
+Servicio y mantenimiento y Producción no reemplazan Orders
 
 la numeración de órdenes de servicio pertenece al contrato de numeración de Orders
 
@@ -3826,7 +3850,7 @@ y puede publicar relación compacta hacia appointments.show como offer linked de
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ORDERS
 
@@ -3857,6 +3881,28 @@ cancelled = terminal
 Orders mantiene centralidad doctrinal como patrón más maduro del ecosistema para cabeceras equivalentes.
 
 La entidad conserva espacio evolutivo para separar nivel macro y subtipo específico mediante una estructura futura group + kind compatible con contratos existentes.
+
+Orders puede operar en universos semánticos diferenciados sin perder ownership.
+
+Universos vigentes:
+
+/service corresponde a group = service
+
+/production corresponde a group = production
+
+Reglas:
+
+group clasifica funcionalmente la orden dentro de Orders
+
+group no crea entidad nueva
+
+group no crea módulo nuevo
+
+Servicio y mantenimiento no reemplaza Orders
+
+Producción no reemplaza Orders
+
+Orders conserva ownership de la orden, líneas, lifecycle, numeración, acciones principales y políticas propias.
 
 <<END SECTION>>
 

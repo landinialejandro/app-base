@@ -2270,7 +2270,7 @@ permisos materiales específicos solo si se crean capacidades diferenciadas.
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES — CAPAS SATÉLITE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 DECISIONES VIGENTES — CAPAS SATÉLITE
 
@@ -2398,6 +2398,63 @@ CMMS completo
 Regla:
 
 no abrir estados técnicos satélite, piezas nuevas ni rutas duplicadas sin auditar primero si la necesidad se resuelve mediante Orders, trails, surfaces o lectura contextual.
+
+PRODUCCIÓN COMO CAPA SATÉLITE PRODUCTIVA
+
+Decisión vigente:
+
+Producción queda alineada doctrinalmente con el criterio aplicado a Servicio y mantenimiento.
+
+Producción se considera capa satélite productiva sobre Orders.
+
+No se implementa como CRUD ordinario aislado.
+
+No reemplaza Orders.
+
+No absorbe ownership de Orders ni order_items.
+
+No crea lifecycle separado.
+
+Lectura vigente:
+
+Orders conserva ownership de las órdenes productivas.
+
+Producción puede tener entrada visual propia, dashboard, rutas semánticas, filtros y contexto funcional sin convertirse en módulo dueño de las órdenes.
+
+Universo semántico vigente:
+
+/production
+
+Base operativa doctrinal:
+
+Orders opera órdenes productivas mediante:
+
+group = production
+
+Reglas:
+
+/production no es CRUD nuevo
+
+/production no reemplaza Orders
+
+/production no absorbe ownership de Orders
+
+/production no convierte órdenes productivas en entidad ajena a Orders
+
+las acciones reales sobre órdenes productivas continúan bajo autorización efectiva de Orders
+
+Producción y Servicio y mantenimiento no deben evolucionar como módulos independientes salvo decisión futura explícita y documentada.
+
+Toda ampliación futura debe evaluar primero si corresponde:
+
+extender Orders
+agregar surface
+usar hooks
+usar filtros
+usar catálogos
+sostener navegación semántica
+
+antes de crear módulo nuevo.
 
 SHOPPING AUTOSERVICIO COMO CAPA SATÉLITE COMERCIAL AUTOGESTIVA
 

@@ -369,7 +369,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -438,6 +438,38 @@ mensaje si el área está disponible pero no hay permisos operativos sobre Order
 Regla:
 
 un dashboard de área pertenece al universo o frente que representa, no a la familia de componentes globales, salvo que se extraigan piezas genéricas reutilizables.
+
+CASO VIGENTE: PRODUCTION DASHBOARD
+
+Vista vigente:
+
+resources/views/production/dashboard.blade.php
+
+Lectura:
+
+production.dashboard es vista del universo Producción.
+
+Es vista de universo semántico y capa satélite productiva sobre Orders.
+
+No es componente Blade global.
+
+No debe ubicarse dentro de resources/views/components.
+
+No reemplaza Orders.
+
+No convierte Producción en CRUD ordinario.
+
+No contiene autorización propia.
+
+Debe representar accesos y datos ya preparados por la capa correspondiente.
+
+Regla:
+
+resources/views/service/dashboard.blade.php y resources/views/production/dashboard.blade.php son vistas de universos semánticos o capas satélite, no componentes Blade globales.
+
+resources/views/*/dashboard.blade.php no deben moverse automáticamente a resources/views/components por compartir estructura visual.
+
+un dashboard de área pertenece al universo o frente que representa, salvo extracción explícita de piezas genéricas reutilizables.
 
 CASO VIGENTE: ORDERS EN CONTEXTO /SERVICE
 

@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00037
+SECTION_VERSION: 00038
 
 REGLA GENERAL
 
@@ -197,25 +197,39 @@ Caso doctrinal vigente:
 
 Servicios y Mantenimiento puede requerir dashboard operativo, orden electrónica liviana o paquete de trabajo como frentes especializados.
 
+Producción puede requerir dashboard operativo, vista de cola, tablero de ejecución o acceso semántico a órdenes productivas como frente especializado.
+
 Estos frentes no deben crear navegación por simetría ni duplicar módulos existentes.
 
 Deben orquestar recorridos reales entre Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties y OperationalActivity respetando ownership funcional.
 
-Caso operativo vigente:
+Casos operativos vigentes:
 
 Servicio y mantenimiento cuenta con un universo semántico propio:
 
 /service
 
+Producción cuenta con un universo semántico propio:
+
+/production
+
 Lectura:
 
 /service representa el frente Servicio y mantenimiento
 
+/production representa el frente Producción
+
 /service no es CRUD ordinario
+
+/production no es CRUD ordinario
 
 /service no es módulo dueño de Orders
 
+/production no es módulo dueño de Orders
+
 /service expresa contexto funcional, navegación especializada y acceso operativo al frente satélite
+
+/production expresa contexto funcional, navegación especializada y acceso operativo al frente satélite
 
 Orders conserva ownership de las órdenes
 
@@ -228,6 +242,8 @@ la autorización debe seguir perteneciendo al módulo dueño o a la capacidad ce
 la existencia de entrada visual no convierte a la capa satélite en CRUD ordinaria
 
 una entrada de Servicio y mantenimiento no debe duplicar la navegación estructural de Orders si solo está filtrando o contextualizando órdenes de servicio
+
+una entrada de Producción no debe duplicar la navegación estructural de Orders si solo está filtrando o contextualizando órdenes productivas
 
 un universo semántico debe conservar coherencia de trail, breadcrumbs y redirecciones físicas cuando el usuario entra por ese universo
 
@@ -1606,7 +1622,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -1773,6 +1789,36 @@ Servicios y Mantenimiento no debe agregarse como módulo funcional ordinario ni 
 
 Sí puede tener entrada principal como frente operativo especializado cuando exista necesidad funcional y autorización vigente.
 
+Aclaración vigente para dashboards internos:
+
+Existen varios dashboards o entradas tipo dashboard con alcance distinto:
+
+/dashboard
+
+dashboard interno principal del tenant
+
+/admin
+
+dashboard superadmin global
+
+/service
+
+dashboard mínimo del universo semántico Servicio y mantenimiento
+
+/production
+
+dashboard del universo semántico Producción
+
+Reglas:
+
+la existencia de dashboard propio no convierte un frente en módulo independiente
+
+la entrada visual no equivale a autorización
+
+la navegación semántica no equivale a ownership
+
+/service y /production deben leerse como capas satélite productivas sobre Orders cuando operan órdenes contextualizadas
+
 Estado operativo vigente:
 
 Servicio y mantenimiento posee universo semántico propio:
@@ -1822,6 +1868,34 @@ ver estados de ejecución cuando se implemente
 organizar recursos cuando se implemente
 
 acceder a órdenes electrónicas livianas o paquetes de trabajo cuando se implemente
+
+Aclaración vigente para Producción:
+
+Producción no debe agregarse como módulo funcional ordinario ni CRUD independiente por existir como capa satélite productiva.
+
+Sí puede tener entrada principal como frente operativo especializado cuando exista necesidad funcional y autorización vigente.
+
+Estado operativo vigente:
+
+Producción posee universo semántico propio:
+
+/production
+
+Lectura:
+
+/production actúa como dashboard del universo Producción.
+
+/production es frente operativo especializado de una capa satélite.
+
+/production no reemplaza Orders.
+
+/production no duplica CRUD de Orders.
+
+/production no absorbe ownership de las órdenes.
+
+Orders sostiene la operación real de órdenes productivas.
+
+La entrada visual responde al frente especializado, no a un CRUD independiente.
 
 Aclaración vigente para Shopping Autoservicio:
 
@@ -1932,7 +2006,7 @@ self_service_sales.shops.*
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -1963,6 +2037,8 @@ assets y parties mantienen sus relaciones propias dentro del ecosistema general
 tenant/profile actúa como frente de gobierno interno del tenant para usuarios, memberships, roles y permisos
 
 service puede actuar como universo semántico de acceso contextual a órdenes de servicio sin absorber ownership de Orders
+
+production puede actuar como universo semántico de acceso contextual a órdenes productivas sin absorber ownership de Orders
 
 Regla de frontera:
 
@@ -2235,6 +2311,48 @@ service.orders.show = ruta física contextual del universo /service
 Regla:
 
 la ruta física contextual no cambia el host funcional ni el ownership de Orders.
+
+Aclaración vigente para Producción:
+
+Producción funciona como frente especializado de acceso a órdenes productivas sin absorber la navegación propia de Orders.
+
+Universo vigente:
+
+/production
+
+Nodo raíz:
+
+/production
+
+Label visible:
+
+Producción
+
+Dashboard vigente:
+
+/production
+
+Lectura:
+
+/production opera Orders en contexto production.
+
+Orders conserva ownership funcional.
+
+El universo /production conserva contexto navegacional propio.
+
+Reglas:
+
+el contexto visual de producción no cambia el ownership de Orders
+
+el filtro o contexto group = production no convierte Orders en módulo secundario
+
+la navegación hacia la orden debe seguir usando rutas y contratos de Orders o del universo contextual según corresponda
+
+las acciones reales sobre la orden deben seguir autorizándose por Orders
+
+el frente Producción no debe inventar navegación paralela si puede usar contexto, rutas semánticas, trail, filtros o surfaces oficiales
+
+los breadcrumbs, trail y retornos físicos deben conservar coherencia con /production cuando el flujo nace en Producción.
 
 Aclaración vigente para Shopping Autoservicio:
 

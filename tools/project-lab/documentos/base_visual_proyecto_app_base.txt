@@ -1194,7 +1194,7 @@ el modal debe recibir payload autorizado y preparado por backend
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 JERARQUÍA VISUAL MODULAR
 
@@ -1277,6 +1277,28 @@ una capa satélite puede tener frente operativo especializado sin alterar la jer
 Caso doctrinal vigente:
 
 Servicios y Mantenimiento puede requerir dashboard operativo, paquete de trabajo, orden electrónica liviana, historial técnico, línea de tiempo operativa o cierres escalonados.
+
+Producción puede requerir dashboard operativo, vista de cola, tablero de ejecución o entrada semántica propia.
+
+Lectura vigente de dashboards:
+
+/dashboard es dashboard interno principal del tenant.
+
+/admin es dashboard superadmin global.
+
+/service es entrada o dashboard mínimo del universo semántico Servicio y mantenimiento.
+
+/production es dashboard del universo semántico Producción.
+
+Reglas:
+
+dashboard puede ser patrón visual, entrada principal, entrada global, entrada de universo semántico o dashboard de capa satélite
+
+usar clases dashboard-* no convierte una vista en dashboard funcional
+
+tener dashboard propio no convierte un frente en módulo independiente
+
+/service y /production pueden tener dashboard propio como entrada de universo semántico sin absorber ownership de Orders
 
 Estos frentes deben expresar visualmente:
 

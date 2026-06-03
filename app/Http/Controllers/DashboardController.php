@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V13
+// FILE: app/Http/Controllers/DashboardController.php | V14
 
 namespace App\Http\Controllers;
 
@@ -17,6 +17,7 @@ use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
+use App\Support\Dashboard\TenantDashboardSectionBuilder;
 use App\Support\Projects\ProjectVisibility;
 use App\Support\Tasks\TaskVisibility;
 
@@ -338,70 +339,42 @@ class DashboardController extends Controller
             ],
         ]);
 
+        $projectOverview = [
+            'visible_projects_count' => $visibleProjectsCount,
+            'active_projects_count' => $activeProjectsCount,
+            'closed_projects_count' => $closedProjectsCount,
+            'projects_with_open_tasks_count' => $projectsWithOpenTasksCount,
+            'projects_with_overdue_tasks_count' => $projectsWithOverdueTasksCount,
+            'projects_average_progress' => $projectsAverageProgress,
+        ];
+
+        $taskOverview = [
+            'visible_tasks_count' => $visibleTasksCount,
+            'my_tasks_count' => $myTasksCount,
+            'pending_tasks_count' => $pendingTasksCount,
+            'in_progress_tasks_count' => $inProgressTasksCount,
+            'done_tasks_count' => $doneTasksCount,
+            'cancelled_tasks_count' => $cancelledTasksCount,
+            'my_overdue_tasks_count' => $myOverdueTasksCount,
+        ];
+
+        $dashboardSections = TenantDashboardSectionBuilder::make([
+            'dailyInfoCards' => $dailyInfoCards,
+            'dailyCards' => $dailyCards,
+            'serviceMaintenanceInfoCards' => $serviceMaintenanceInfoCards,
+            'serviceMaintenanceCards' => $serviceMaintenanceCards,
+            'productionInfoCards' => $productionInfoCards,
+            'productionCards' => $productionCards,
+            'managementInfoCards' => $managementInfoCards,
+            'managementCards' => $managementCards,
+            'canSeeAnalytics' => $canSeeAnalytics,
+            'projectOverview' => $projectOverview,
+            'taskOverview' => $taskOverview,
+        ]);
+
         return view('dashboard', [
             'tenant' => $tenant,
-
-            'canSeeAnalytics' => $canSeeAnalytics,
-
-            'canAccessAppointments' => $canAccessAppointments,
-            'canAccessParties' => $canAccessParties,
-            'canAccessAssets' => $canAccessAssets,
-            'canAccessOrders' => $canAccessOrders,
-            'canAccessTasks' => $canAccessTasks,
-            'canAccessProjects' => $canAccessProjects,
-            'canAccessProducts' => $canAccessProducts,
-            'canAccessShops' => $canAccessShops,
-            'canAccessDocuments' => $canAccessDocuments,
-            'canAccessInventory' => $canAccessInventory,
-
-            'canAccessServiceMaintenance' => $canAccessServiceMaintenance,
-            'canViewServiceOrders' => $canViewServiceOrders,
-            'canCreateServiceOrders' => $canCreateServiceOrders,
-            'serviceOrdersCount' => $serviceOrdersCount,
-
-            'canViewProductionOrders' => $canViewProductionOrders,
-            'canCreateProductionOrders' => $canCreateProductionOrders,
-            'productionOrdersCount' => $productionOrdersCount,
-
-            'dailyCards' => $dailyCards,
-            'serviceMaintenanceCards' => $serviceMaintenanceCards,
-            'productionCards' => $productionCards,
-            'managementCards' => $managementCards,
-            'dailyInfoCards' => $dailyInfoCards,
-            'serviceMaintenanceInfoCards' => $serviceMaintenanceInfoCards,
-            'productionInfoCards' => $productionInfoCards,
-            'managementInfoCards' => $managementInfoCards,
-
-            'projectOverview' => [
-                'visible_projects_count' => $visibleProjectsCount,
-                'active_projects_count' => $activeProjectsCount,
-                'closed_projects_count' => $closedProjectsCount,
-                'projects_with_open_tasks_count' => $projectsWithOpenTasksCount,
-                'projects_with_overdue_tasks_count' => $projectsWithOverdueTasksCount,
-                'projects_average_progress' => $projectsAverageProgress,
-            ],
-
-            'taskOverview' => [
-                'visible_tasks_count' => $visibleTasksCount,
-                'my_tasks_count' => $myTasksCount,
-                'pending_tasks_count' => $pendingTasksCount,
-                'in_progress_tasks_count' => $inProgressTasksCount,
-                'done_tasks_count' => $doneTasksCount,
-                'cancelled_tasks_count' => $cancelledTasksCount,
-                'my_overdue_tasks_count' => $myOverdueTasksCount,
-            ],
-
-            'partiesCount' => $partiesCount,
-
-            'productsCount' => $productsCount,
-
-            'shopsCount' => $shopsCount,
-
-            'assetsCount' => $assetsCount,
-
-            'ordersCount' => $ordersCount,
-
-            'documentsCount' => $documentsCount,
+            'dashboardSections' => $dashboardSections,
         ]);
     }
 

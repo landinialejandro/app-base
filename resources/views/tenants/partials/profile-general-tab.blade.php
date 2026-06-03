@@ -2,9 +2,9 @@
 
 <x-card>
     @if (!($canEditTenantGeneral ?? false))
-        <div class="dashboard-section-header">
-            <h2 class="dashboard-section-title">Datos generales</h2>
-            <p class="dashboard-section-text">
+        <div class="content-section-header">
+            <h2 class="content-section-title">Datos generales</h2>
+            <p class="content-section-text">
                 Esta información se muestra en modo lectura. Solo el owner puede modificar los datos generales
                 de la empresa.
             </p>

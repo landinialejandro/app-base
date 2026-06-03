@@ -1,9 +1,9 @@
 {{-- FILE: resources/views/tenants/partials/profile-pending-invitations.blade.php | V2 --}}
 
 <x-card>
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Invitaciones pendientes</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Invitaciones pendientes</h2>
+        <p class="content-section-text">
             Enlaces generados para esta empresa y todavía no aceptados.
         </p>
     </div>

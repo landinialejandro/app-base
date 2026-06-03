@@ -20,9 +20,9 @@
 @endphp
 
 <x-card class="list-card">
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Fichas</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Fichas</h2>
+        <p class="content-section-text">
             Esta lectura pertenece al plano interno autorizado de la tienda. Muestra fichas, pockets y consumos
             vinculables a productos publicados en esta tienda. self_service_sales conserva el ownership del pocket y
             del consumo externo.
@@ -80,8 +80,8 @@
     @if ($pockets->isEmpty() && $attempts->isEmpty() && $movements->isEmpty())
         <p class="empty-state">Todavía no hay pockets, attempts ni movements vinculables a productos publicados en esta tienda.</p>
     @else
-        <div class="dashboard-section-header">
-            <h3 class="dashboard-section-title">Pockets</h3>
+        <div class="content-section-header">
+            <h3 class="content-section-title">Pockets</h3>
         </div>
 
         @if ($pockets->isEmpty())
@@ -117,9 +117,9 @@
             </div>
         @endif
 
-        <div class="dashboard-section-header">
-            <h3 class="dashboard-section-title">Consumos por punto</h3>
-            <p class="dashboard-section-text">
+        <div class="content-section-header">
+            <h3 class="content-section-title">Consumos por punto</h3>
+            <p class="content-section-text">
                 Lectura interna read-only de attempts y consumos asociados a puntos de consumo de esta tienda.
             </p>
         </div>
@@ -161,9 +161,9 @@
             </div>
         @endif
 
-        <div class="dashboard-section-header">
-            <h3 class="dashboard-section-title">Attempts recientes</h3>
-            <p class="dashboard-section-text">
+        <div class="content-section-header">
+            <h3 class="content-section-title">Attempts recientes</h3>
+            <p class="content-section-text">
                 Gateway simulado indica llamada a controlador simulado. No representa hardware real.
             </p>
         </div>
@@ -227,9 +227,9 @@
             </div>
         @endif
 
-        <div class="dashboard-section-header">
-            <h3 class="dashboard-section-title">Movements recientes</h3>
-            <p class="dashboard-section-text">
+        <div class="content-section-header">
+            <h3 class="content-section-title">Movements recientes</h3>
+            <p class="content-section-text">
                 El movement consumption es descuento lógico del pocket; la referencia de gateway es evidencia simulada.
             </p>
         </div>

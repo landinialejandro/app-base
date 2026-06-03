@@ -918,17 +918,20 @@
     flex-wrap: wrap;
 }
 
-.dashboard-section-header {
+.dashboard-section-header,
+.content-section-header {
     margin-bottom: var(--space-4);
 }
 
-.dashboard-section-title {
+.dashboard-section-title,
+.content-section-title {
     margin: 0;
     font-size: 1rem;
     line-height: 1.2;
 }
 
-.dashboard-section-text {
+.dashboard-section-text,
+.content-section-text {
     margin: var(--space-1) 0 0;
     color: var(--color-muted);
     font-size: 0.9rem;

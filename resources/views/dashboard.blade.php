@@ -152,9 +152,9 @@
 
         @if ($dailyCards->isNotEmpty())
             <x-card>
-                <div class="dashboard-section-header">
-                    <h2 class="dashboard-section-title">Operación diaria</h2>
-                    <p class="dashboard-section-text">Accesos principales para el trabajo cotidiano.</p>
+                <div class="content-section-header">
+                    <h2 class="content-section-title">Operación diaria</h2>
+                    <p class="content-section-text">Accesos principales para el trabajo cotidiano.</p>
                 </div>
 
                 <div class="dashboard-grid dashboard-grid--premium">
@@ -184,9 +184,9 @@
 
         @if ($canAccessServiceMaintenance && $serviceMaintenanceCards->isNotEmpty())
             <x-card>
-                <div class="dashboard-section-header">
-                    <h2 class="dashboard-section-title">Servicio y mantenimiento</h2>
-                    <p class="dashboard-section-text">
+                <div class="content-section-header">
+                    <h2 class="content-section-title">Servicio y mantenimiento</h2>
+                    <p class="content-section-text">
                         Accesos automatizados para trabajos técnicos, servicios y mantenimiento. Las acciones disponibles
                         dependen de los permisos configurados para órdenes de servicio.
                     </p>
@@ -219,9 +219,9 @@
 
         @if ($productionCards->isNotEmpty())
             <x-card>
-                <div class="dashboard-section-header">
-                    <h2 class="dashboard-section-title">Producción</h2>
-                    <p class="dashboard-section-text">
+                <div class="content-section-header">
+                    <h2 class="content-section-title">Producción</h2>
+                    <p class="content-section-text">
                         Acceso operativo a órdenes de producción, recetas y contrato material. Las órdenes siguen siendo
                         gestionadas por Orders, con materiales desde Inventory y composición desde Products.
                     </p>
@@ -254,9 +254,9 @@
 
         @if ($managementCards->isNotEmpty())
             <x-card>
-                <div class="dashboard-section-header">
-                    <h2 class="dashboard-section-title">Gestión complementaria</h2>
-                    <p class="dashboard-section-text">Módulos de seguimiento interno, planificación y soporte.</p>
+                <div class="content-section-header">
+                    <h2 class="content-section-title">Gestión complementaria</h2>
+                    <p class="content-section-text">Módulos de seguimiento interno, planificación y soporte.</p>
                 </div>
 
                 <div class="dashboard-grid dashboard-grid--premium">

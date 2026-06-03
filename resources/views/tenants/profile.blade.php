@@ -104,9 +104,9 @@
         <x-page-header title="Perfil de empresa" />
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Gestión de empresa</h2>
-                <p class="dashboard-section-text">
+            <div class="content-section-header">
+                <h2 class="content-section-title">Gestión de empresa</h2>
+                <p class="content-section-text">
                     Desde este espacio se visualizan los datos de la empresa, usuarios, accesos, permisos, clientes de
                     tienda y actividad.
                     Algunas acciones pueden mostrarse en modo lectura según tu nivel de autorización.

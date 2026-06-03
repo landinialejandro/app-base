@@ -96,9 +96,9 @@
                     </x-card>
 
                     <x-card>
-                        <div class="dashboard-section-header">
-                            <h2 class="dashboard-section-title">Datos de la solicitud</h2>
-                            <p class="dashboard-section-text">Información recibida desde el formulario público.</p>
+                        <div class="content-section-header">
+                            <h2 class="content-section-title">Datos de la solicitud</h2>
+                            <p class="content-section-text">Información recibida desde el formulario público.</p>
                         </div>
 
                         <div class="detail-grid">
@@ -125,9 +125,9 @@
                     </x-card>
 
                     <x-card>
-                        <div class="dashboard-section-header">
-                            <h2 class="dashboard-section-title">Seguimiento</h2>
-                            <p class="dashboard-section-text">Estado del procesamiento administrativo.</p>
+                        <div class="content-section-header">
+                            <h2 class="content-section-title">Seguimiento</h2>
+                            <p class="content-section-text">Estado del procesamiento administrativo.</p>
                         </div>
 
                         <div class="detail-grid">
@@ -217,9 +217,9 @@
                         </x-card>
 
                         <x-card>
-                            <div class="dashboard-section-header">
-                                <h2 class="dashboard-section-title">Invitación generada</h2>
-                                <p class="dashboard-section-text">Resultado del proceso de aprobación.</p>
+                            <div class="content-section-header">
+                                <h2 class="content-section-title">Invitación generada</h2>
+                                <p class="content-section-text">Resultado del proceso de aprobación.</p>
                             </div>
 
                             <div class="detail-grid">
@@ -270,9 +270,9 @@
                         </x-card>
 
                         <x-card>
-                            <div class="dashboard-section-header">
-                                <h2 class="dashboard-section-title">Link de acceso</h2>
-                                <p class="dashboard-section-text">Enlace que utilizará el owner para completar el alta inicial.</p>
+                            <div class="content-section-header">
+                                <h2 class="content-section-title">Link de acceso</h2>
+                                <p class="content-section-text">Enlace que utilizará el owner para completar el alta inicial.</p>
                             </div>
 
                             <div class="form">
@@ -323,9 +323,9 @@
                     <div class="tab-panel-stack">
 
                         <x-card>
-                            <div class="dashboard-section-header">
-                                <h2 class="dashboard-section-title">Aprobación</h2>
-                                <p class="dashboard-section-text">Aprueba la solicitud para generar la invitación inicial del owner.</p>
+                            <div class="content-section-header">
+                                <h2 class="content-section-title">Aprobación</h2>
+                                <p class="content-section-text">Aprueba la solicitud para generar la invitación inicial del owner.</p>
                             </div>
 
                             <div class="form-actions">
@@ -339,9 +339,9 @@
                         </x-card>
 
                         <x-card>
-                            <div class="dashboard-section-header">
-                                <h2 class="dashboard-section-title">Rechazo</h2>
-                                <p class="dashboard-section-text">Registra un motivo o nota interna antes de rechazar la solicitud.</p>
+                            <div class="content-section-header">
+                                <h2 class="content-section-title">Rechazo</h2>
+                                <p class="content-section-text">Registra un motivo o nota interna antes de rechazar la solicitud.</p>
                             </div>
 
                             <form method="POST" action="{{ route('admin.signup-requests.reject', $signupRequest) }}" class="form">

@@ -16,7 +16,7 @@
         <x-card>
             <div class="dashboard-card-content">
                 <div class="detail-block">
-                    <h2 class="dashboard-section-title">Órdenes de servicio</h2>
+                    <h2 class="content-section-title">Órdenes de servicio</h2>
 
                     <p class="form-help">
                         Acceso operativo a las órdenes de servicio gestionadas desde Orders dentro del universo Servicio y mantenimiento.

@@ -9,9 +9,9 @@
 @endphp
 
 <x-card class="list-card">
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Puntos de consumo</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Puntos de consumo</h2>
+        <p class="content-section-text">
             Estos puntos pertenecen al plano interno autorizado de la tienda. Preparan futuros QR de consumo. No
             habilitan hardware real ni consumo por sí mismos.
         </p>

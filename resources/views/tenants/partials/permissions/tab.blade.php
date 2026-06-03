@@ -6,9 +6,9 @@
 ])
 
 <x-card>
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Accesos por función</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Accesos por función</h2>
+        <p class="content-section-text">
             Define qué puede hacer cada persona dentro de tu empresa.
             La información sensible y la configuración importante quedan protegidas.
         </p>

@@ -6,9 +6,9 @@
 @endphp
 
 <x-card class="list-card">
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Ventas / Órdenes</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Ventas / Órdenes</h2>
+        <p class="content-section-text">
             Estas órdenes fueron formalizadas desde el checkout externo de Shopping Autoservicio. La tienda muestra esta
             lectura como contexto interno; Orders conserva el ownership de la venta y de su lifecycle.
         </p>

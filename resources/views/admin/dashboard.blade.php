@@ -42,9 +42,9 @@
         </x-card>
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Onboarding</h2>
-                <p class="dashboard-section-text">Seguimiento de solicitudes, aprobaciones e invitaciones iniciales.</p>
+            <div class="content-section-header">
+                <h2 class="content-section-title">Onboarding</h2>
+                <p class="content-section-text">Seguimiento de solicitudes, aprobaciones e invitaciones iniciales.</p>
             </div>
 
             <div class="dashboard-grid">
@@ -70,9 +70,9 @@
         </x-card>
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Estructura global</h2>
-                <p class="dashboard-section-text">
+            <div class="content-section-header">
+                <h2 class="content-section-title">Estructura global</h2>
+                <p class="content-section-text">
                     Resumen de owners, usuarios compartidos y composición actual de tenants.
                 </p>
             </div>
@@ -117,9 +117,9 @@
         </x-card>
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Sistema y verificación</h2>
-                <p class="dashboard-section-text">Accesos rápidos a vistas públicas y control general.</p>
+            <div class="content-section-header">
+                <h2 class="content-section-title">Sistema y verificación</h2>
+                <p class="content-section-text">Accesos rápidos a vistas públicas y control general.</p>
             </div>
 
             <div class="dashboard-grid">

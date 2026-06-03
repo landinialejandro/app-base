@@ -21,11 +21,11 @@
 @endphp
 
 <x-card>
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">{{ $title }}</h2>
+    <div class="content-section-header">
+        <h2 class="content-section-title">{{ $title }}</h2>
 
         @if (filled($description))
-            <p class="dashboard-section-text">
+            <p class="content-section-text">
                 {{ $description }}
             </p>
         @endif
@@ -132,12 +132,12 @@
 
             @if ($changeDetails->isNotEmpty())
                 <x-modal :id="$changeModalId" title="Detalle de cambios" size="lg">
-                    <div class="dashboard-section-header">
-                        <h3 class="dashboard-section-title">
+                    <div class="content-section-header">
+                        <h3 class="content-section-title">
                             {{ $row['record_label'] }}
                         </h3>
 
-                        <p class="dashboard-section-text">
+                        <p class="content-section-text">
                             {{ $row['occurred_at']?->format('d/m/Y H:i') ?? '—' }}
                         </p>
                     </div>

@@ -17,9 +17,9 @@
         </x-page-header>
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Tenants del sistema</h2>
-                <p class="dashboard-section-text">
+            <div class="content-section-header">
+                <h2 class="content-section-title">Tenants del sistema</h2>
+                <p class="content-section-text">
                     Resumen de empresas con cantidad de usuarios y owners asociados.
                 </p>
             </div>

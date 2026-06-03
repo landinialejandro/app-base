@@ -9,39 +9,39 @@
 @section('content')
     <x-page>
         <x-card>
-            <div class="dashboard-section-header">
-                <h1 class="dashboard-section-title">Seleccionar tienda</h1>
+            <div class="content-section-header">
+                <h1 class="content-section-title">Seleccionar tienda</h1>
 
                 @if(! $hasToken)
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         Este espacio estará disponible para elegir una tienda vinculada a tu cuenta externa.
                     </p>
 
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         La selección de tienda todavía no está habilitada. Iniciá nuevamente el acceso desde Tienda.
                     </p>
                 @elseif(! $selectionToken)
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         No pudimos continuar con la selección de tienda.
                     </p>
 
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         El enlace puede haber vencido o ya no estar disponible. Iniciá nuevamente el acceso desde Tienda.
                     </p>
                 @elseif($storeSelectorRows->isEmpty())
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         No encontramos tiendas disponibles para seleccionar.
                     </p>
 
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         Iniciá nuevamente el acceso desde Tienda o registrate en la tienda de la empresa correspondiente.
                     </p>
                 @else
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         Elegí la tienda a la que querés ingresar.
                     </p>
 
-                    <p class="dashboard-section-text">
+                    <p class="content-section-text">
                         Esta selección todavía no inicia operación comercial. Si tu identidad operativa no está completa,
                         la tienda podrá solicitar datos adicionales antes de permitir compras o servicios.
                     </p>

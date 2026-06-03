@@ -8,9 +8,9 @@
 @endphp
 
 <x-card>
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Usuarios del tenant</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Usuarios del tenant</h2>
+        <p class="content-section-text">
             Gestioná las funciones de cada usuario dentro de la empresa. Las opciones disponibles dependen de tu nivel
             de autorización.
         </p>
@@ -189,11 +189,11 @@
                                                 @csrf
                                                 @method('PUT')
 
-                                                <div class="dashboard-section-header">
-                                                    <h2 class="dashboard-section-title">
+                                                <div class="content-section-header">
+                                                    <h2 class="content-section-title">
                                                         {{ $membership->user?->name ?? 'Usuario' }}
                                                     </h2>
-                                                    <p class="dashboard-section-text">
+                                                    <p class="content-section-text">
                                                         Seleccioná las funciones que tendrá este usuario dentro de la
                                                         empresa.
                                                     </p>

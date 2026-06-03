@@ -14,9 +14,9 @@
 @endphp
 
 <x-card class="list-card">
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Estado de apertura</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Estado de apertura</h2>
+        <p class="content-section-text">
             Este diagnóstico ayuda a revisar si la tienda está preparada para operar en modo simulado/controlado. No
             reemplaza autorización backend ni validaciones de checkout.
         </p>

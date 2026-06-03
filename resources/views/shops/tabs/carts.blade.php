@@ -5,9 +5,9 @@
 @endphp
 
 <x-card class="list-card">
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Carritos externos</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Carritos externos</h2>
+        <p class="content-section-text">
             Estos carritos pertenecen al plano externo de Shopping Autoservicio. La tienda muestra esta lectura como
             contexto interno; self_service_sales conserva el ownership del carrito y de su operación externa.
         </p>

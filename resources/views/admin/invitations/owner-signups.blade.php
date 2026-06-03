@@ -20,9 +20,9 @@
         </x-page-header>
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Pendientes del owner</h2>
-                <p class="dashboard-section-text">
+            <div class="content-section-header">
+                <h2 class="content-section-title">Pendientes del owner</h2>
+                <p class="content-section-text">
                     Invitaciones ya enviadas por superadmin y aún no aceptadas por el owner.
                 </p>
             </div>

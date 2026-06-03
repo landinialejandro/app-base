@@ -205,9 +205,9 @@
         </x-show-summary>
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Perfil operativo de tienda</h2>
-                <p class="dashboard-section-text">
+            <div class="content-section-header">
+                <h2 class="content-section-title">Perfil operativo de tienda</h2>
+                <p class="content-section-text">
                     Este espacio concentra la gestión interna de la tienda. Mantiene la administración del catálogo
                     publicado e incorpora lecturas contextuales de carritos externos y ventas formalizadas, sin absorber
                     el ownership de self_service_sales, Orders, Payments, Inventory ni Documents.

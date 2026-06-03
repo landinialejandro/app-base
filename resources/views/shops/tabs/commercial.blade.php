@@ -6,9 +6,9 @@
 @endphp
 
 <x-card class="list-card">
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Configuración comercial</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Configuración comercial</h2>
+        <p class="content-section-text">
             Esta lectura muestra la configuración comercial general de la tienda. La configuración prepara reglas de
             operación, pero no crea por sí misma Orders, Payments, Documents, InventoryMovement ni compromiso de stock.
         </p>

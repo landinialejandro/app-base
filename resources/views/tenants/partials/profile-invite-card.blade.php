@@ -2,9 +2,9 @@
 
 @can('createTenantInvite', \App\Models\Invitation::class)
     <x-card>
-        <div class="dashboard-section-header">
-            <h2 class="dashboard-section-title">Invitar usuario</h2>
-            <p class="dashboard-section-text">
+        <div class="content-section-header">
+            <h2 class="content-section-title">Invitar usuario</h2>
+            <p class="content-section-text">
                 Genera un link de acceso para compartir manualmente por WhatsApp o cualquier otro medio.
             </p>
         </div>

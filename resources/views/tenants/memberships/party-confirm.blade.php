@@ -15,12 +15,12 @@
         <x-page-header title="Ficha ampliada" />
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">
+            <div class="content-section-header">
+                <h2 class="content-section-title">
                     Crear o vincular ficha ampliada
                 </h2>
 
-                <p class="dashboard-section-text">
+                <p class="content-section-text">
                     Esta acción permite asociar datos ampliados a la pertenencia de este usuario dentro de la empresa.
                     No todos los usuarios internos necesitan una ficha ampliada.
                 </p>

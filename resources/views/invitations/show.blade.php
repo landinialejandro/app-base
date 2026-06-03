@@ -18,9 +18,9 @@
 
                 <x-card>
                     @if ($state === 'accepted')
-                        <div class="dashboard-section-header">
-                            <h2 class="dashboard-section-title">Invitación ya utilizada</h2>
-                            <p class="dashboard-section-text">
+                        <div class="content-section-header">
+                            <h2 class="content-section-title">Invitación ya utilizada</h2>
+                            <p class="content-section-text">
                                 Esta invitación ya fue aceptada anteriormente.
                             </p>
                         </div>
@@ -35,9 +35,9 @@
                             </a>
                         </div>
                     @elseif ($state === 'expired')
-                        <div class="dashboard-section-header">
-                            <h2 class="dashboard-section-title">Invitación vencida</h2>
-                            <p class="dashboard-section-text">
+                        <div class="content-section-header">
+                            <h2 class="content-section-title">Invitación vencida</h2>
+                            <p class="content-section-text">
                                 Este enlace ya no se encuentra disponible.
                             </p>
                         </div>
@@ -46,9 +46,9 @@
                             Solicita un nuevo enlace a la persona o equipo que te lo envió.
                         </p>
                     @else
-                        <div class="dashboard-section-header">
-                            <h2 class="dashboard-section-title">Datos de la invitación</h2>
-                            <p class="dashboard-section-text">
+                        <div class="content-section-header">
+                            <h2 class="content-section-title">Datos de la invitación</h2>
+                            <p class="content-section-text">
                                 Revisa la información antes de continuar.
                             </p>
                         </div>
@@ -85,9 +85,9 @@
                         <hr class="hr-muted">
 
                         @if ($mustLogin)
-                            <div class="dashboard-section-header">
-                                <h2 class="dashboard-section-title">Cuenta existente detectada</h2>
-                                <p class="dashboard-section-text">
+                            <div class="content-section-header">
+                                <h2 class="content-section-title">Cuenta existente detectada</h2>
+                                <p class="content-section-text">
                                     Ya existe una cuenta registrada con este email.
                                 </p>
                             </div>
@@ -108,9 +108,9 @@
                                 </a>
                             </div>
                         @else
-                            <div class="dashboard-section-header">
-                                <h2 class="dashboard-section-title">Completa tu acceso</h2>
-                                <p class="dashboard-section-text">
+                            <div class="content-section-header">
+                                <h2 class="content-section-title">Completa tu acceso</h2>
+                                <p class="content-section-text">
                                     Ingresa tus datos para finalizar el alta.
                                 </p>
                             </div>

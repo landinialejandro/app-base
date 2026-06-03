@@ -20,9 +20,9 @@
         </x-page-header>
 
         <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Bandeja de revisión</h2>
-                <p class="dashboard-section-text">
+            <div class="content-section-header">
+                <h2 class="content-section-title">Bandeja de revisión</h2>
+                <p class="content-section-text">
                     Solicitudes públicas pendientes de aprobación o rechazo.
                 </p>
             </div>

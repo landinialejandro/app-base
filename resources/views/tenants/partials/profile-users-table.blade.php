@@ -1,9 +1,9 @@
 {{-- FILE: resources/views/tenants/partials/profile-users-table.blade.php | V2 --}}
 
 <x-card>
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">Usuarios del tenant</h2>
-        <p class="dashboard-section-text">
+    <div class="content-section-header">
+        <h2 class="content-section-title">Usuarios del tenant</h2>
+        <p class="content-section-text">
             Listado de personas asociadas a esta empresa.
         </p>
     </div>

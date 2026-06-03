@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V14
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V15
 
 namespace App\Support\Catalogs;
 
@@ -45,6 +45,7 @@ class PermissionScopeCatalog
             ModuleCatalog::DASHBOARD => static::dashboardOptionsFor($capability),
 
             ModuleCatalog::SERVICE_MAINTENANCE => static::serviceMaintenanceOptionsFor($capability),
+            ModuleCatalog::PRODUCTION => static::productionOptionsFor($capability),
 
             ModuleCatalog::TASKS => static::taskOptionsFor($capability),
             ModuleCatalog::APPOINTMENTS => static::appointmentOptionsFor($capability),
@@ -78,6 +79,16 @@ class PermissionScopeCatalog
     }
 
     protected static function serviceMaintenanceOptionsFor(string $capability): array
+    {
+        return match ($capability) {
+            CapabilityCatalog::VIEW_ANY => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
+            default => [],
+        };
+    }
+
+    protected static function productionOptionsFor(string $capability): array
     {
         return match ($capability) {
             CapabilityCatalog::VIEW_ANY => [

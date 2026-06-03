@@ -176,6 +176,154 @@ class DashboardController extends Controller
         $canSeeAnalytics = ($membership?->is_owner === true)
             || $security->allows($user, ModuleCatalog::DASHBOARD.'.viewAny');
 
+        $partiesCount = $canAccessParties
+            ? $security->scope($user, ModuleCatalog::PARTIES.'.viewAny', Party::query())->count()
+            : null;
+
+        $productsCount = $canAccessProducts
+            ? $security->scope($user, ModuleCatalog::PRODUCTS.'.viewAny', Product::query())->count()
+            : null;
+
+        $shopsCount = $canAccessShops
+            ? $security->scope($user, ModuleCatalog::SHOPS.'.viewAny', Shop::query())->count()
+            : null;
+
+        $assetsCount = $canAccessAssets
+            ? $security->scope($user, ModuleCatalog::ASSETS.'.viewAny', Asset::query())->count()
+            : null;
+
+        $ordersCount = $canAccessOrders
+            ? $security->scope($user, ModuleCatalog::ORDERS.'.viewAny', Order::query())->count()
+            : null;
+
+        $documentsCount = $canAccessDocuments
+            ? $security->scope($user, ModuleCatalog::DOCUMENTS.'.viewAny', Document::query())->count()
+            : null;
+
+        $dailyCards = $this->visibleDashboardCards([
+            [
+                'module' => ModuleCatalog::APPOINTMENTS,
+                'can' => $canAccessAppointments,
+                'route' => route('appointments.calendar'),
+                'title' => 'Agenda',
+                'text' => 'Ver calendario mensual y administrar turnos',
+                'meta' => 'Calendario operativo',
+            ],
+            [
+                'module' => ModuleCatalog::PARTIES,
+                'can' => $canAccessParties,
+                'route' => route('parties.index'),
+                'title' => 'Contactos',
+                'text' => 'Ver y administrar contactos',
+                'meta' => $partiesCount . ' contactos',
+            ],
+            [
+                'module' => ModuleCatalog::ASSETS,
+                'can' => $canAccessAssets,
+                'route' => route('assets.index'),
+                'title' => 'Activos',
+                'text' => 'Ver y administrar activos operativos',
+                'meta' => $assetsCount . ' activos',
+            ],
+        ]);
+
+        $serviceMaintenanceCards = $this->visibleDashboardCards([
+            [
+                'module' => ModuleCatalog::SERVICE_MAINTENANCE,
+                'can' => $canViewServiceOrders,
+                'route' => route('service.index'),
+                'title' => 'Órdenes de servicio',
+                'text' => 'Ver trabajos técnicos, intervenciones y órdenes de mantenimiento',
+                'meta' => ($serviceOrdersCount ?? 0) . ' órdenes de servicio',
+            ],
+            [
+                'module' => ModuleCatalog::SERVICE_MAINTENANCE,
+                'can' => $canCreateServiceOrders,
+                'route' => route('service.orders.create'),
+                'title' => 'Nueva orden de servicio',
+                'text' => 'Crear una orden de servicio sin configurar el tipo manualmente',
+                'meta' => 'Tipo Servicio preseleccionado',
+            ],
+        ]);
+
+        $productionCards = $this->visibleDashboardCards([
+            [
+                'module' => ModuleCatalog::PRODUCTION,
+                'can' => $canViewProductionOrders,
+                'route' => route('production.index'),
+                'title' => 'Órdenes de producción',
+                'text' => 'Ver producción, recetas, entregas de materiales y cierres operativos',
+                'meta' => ($productionOrdersCount ?? 0) . ' órdenes de producción',
+            ],
+            [
+                'module' => ModuleCatalog::PRODUCTION,
+                'can' => $canCreateProductionOrders,
+                'route' => route('production.orders.create'),
+                'title' => 'Nueva orden de producción',
+                'text' => 'Crear una orden de producción sin configurar el tipo manualmente',
+                'meta' => 'Tipo Producción preseleccionado',
+            ],
+        ]);
+
+        $managementCards = $this->visibleDashboardCards([
+            [
+                'module' => ModuleCatalog::ORDERS,
+                'can' => $canAccessOrders,
+                'route' => route('orders.index'),
+                'title' => 'Órdenes',
+                'text' => 'Ver y administrar órdenes',
+                'meta' => $ordersCount . ' órdenes',
+            ],
+            [
+                'module' => ModuleCatalog::TASKS,
+                'can' => $canAccessTasks,
+                'route' => route('tasks.index'),
+                'title' => 'Tareas',
+                'text' => 'Ver y administrar tareas',
+                'meta' => 'Trabajo diario',
+            ],
+            [
+                'module' => ModuleCatalog::PROJECTS,
+                'can' => $canAccessProjects,
+                'route' => route('projects.index'),
+                'title' => 'Proyectos',
+                'text' => 'Ver y administrar proyectos',
+                'meta' => 'Seguimiento operativo',
+            ],
+            [
+                'module' => ModuleCatalog::PRODUCTS,
+                'can' => $canAccessProducts,
+                'route' => route('products.index'),
+                'title' => 'Productos',
+                'text' => 'Ver y administrar productos y servicios',
+                'meta' => $productsCount . ' productos',
+            ],
+            [
+                'module' => ModuleCatalog::SHOPS,
+                'can' => $canAccessShops,
+                'route' => route('shops.index'),
+                'title' => 'Tiendas',
+                'text' => 'Configurá las tiendas internas que publican catálogo hacia la tienda externa.',
+                'meta' => ($shopsCount ?? 0) . ' tiendas',
+            ],
+            [
+                'module' => ModuleCatalog::INVENTORY,
+                'can' => $canAccessInventory,
+                'route' => route('inventory.index'),
+                'title' => 'Inventario',
+                'text' => 'Ver saldos por producto y abrir fichas operativas',
+                'meta' => 'Stock y movimientos',
+            ],
+            [
+                'module' => ModuleCatalog::DOCUMENTS,
+                'can' => $canAccessDocuments,
+                'route' => route('documents.index'),
+                'title' => 'Documentos',
+                'text' => 'Ver y administrar documentos comerciales',
+                'meta' => $documentsCount . ' documentos',
+            ],
+        ]);
+
         return view('dashboard', [
             'tenant' => $tenant,
 
@@ -201,6 +349,11 @@ class DashboardController extends Controller
             'canCreateProductionOrders' => $canCreateProductionOrders,
             'productionOrdersCount' => $productionOrdersCount,
 
+            'dailyCards' => $dailyCards,
+            'serviceMaintenanceCards' => $serviceMaintenanceCards,
+            'productionCards' => $productionCards,
+            'managementCards' => $managementCards,
+
             'projectOverview' => [
                 'visible_projects_count' => $visibleProjectsCount,
                 'active_projects_count' => $activeProjectsCount,
@@ -220,29 +373,34 @@ class DashboardController extends Controller
                 'my_overdue_tasks_count' => $myOverdueTasksCount,
             ],
 
-            'partiesCount' => $canAccessParties
-                ? $security->scope($user, ModuleCatalog::PARTIES.'.viewAny', Party::query())->count()
-                : null,
+            'partiesCount' => $partiesCount,
 
-            'productsCount' => $canAccessProducts
-                ? $security->scope($user, ModuleCatalog::PRODUCTS.'.viewAny', Product::query())->count()
-                : null,
+            'productsCount' => $productsCount,
 
-            'shopsCount' => $canAccessShops
-                ? $security->scope($user, ModuleCatalog::SHOPS.'.viewAny', Shop::query())->count()
-                : null,
+            'shopsCount' => $shopsCount,
 
-            'assetsCount' => $canAccessAssets
-                ? $security->scope($user, ModuleCatalog::ASSETS.'.viewAny', Asset::query())->count()
-                : null,
+            'assetsCount' => $assetsCount,
 
-            'ordersCount' => $canAccessOrders
-                ? $security->scope($user, ModuleCatalog::ORDERS.'.viewAny', Order::query())->count()
-                : null,
+            'ordersCount' => $ordersCount,
 
-            'documentsCount' => $canAccessDocuments
-                ? $security->scope($user, ModuleCatalog::DOCUMENTS.'.viewAny', Document::query())->count()
-                : null,
+            'documentsCount' => $documentsCount,
         ]);
+    }
+
+    private function visibleDashboardCards(array $cards)
+    {
+        return collect($cards)
+            ->where('can', true)
+            ->map(function (array $card) {
+                return [
+                    'module' => $card['module'],
+                    'icon' => ModuleCatalog::icon($card['module']),
+                    'route' => $card['route'],
+                    'title' => $card['title'],
+                    'text' => $card['text'],
+                    'meta' => $card['meta'],
+                ];
+            })
+            ->values();
     }
 }

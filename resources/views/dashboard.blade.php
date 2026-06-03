@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/dashboard.blade.php | V12 --}}
+{{-- FILE: resources/views/dashboard.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -7,142 +7,6 @@
 @push('head')
     <link rel="stylesheet" href="{{ asset('css/modules/dashboard.css') }}">
 @endpush
-
-@php
-    use App\Support\Catalogs\ModuleCatalog;
-
-    $dailyCards = collect([
-        [
-            'module' => ModuleCatalog::APPOINTMENTS,
-            'can' => $canAccessAppointments,
-            'route' => route('appointments.calendar'),
-            'title' => 'Agenda',
-            'text' => 'Ver calendario mensual y administrar turnos',
-            'meta' => 'Calendario operativo',
-        ],
-        [
-            'module' => ModuleCatalog::PARTIES,
-            'can' => $canAccessParties,
-            'route' => route('parties.index'),
-            'title' => 'Contactos',
-            'text' => 'Ver y administrar contactos',
-            'meta' => $partiesCount . ' contactos',
-        ],
-        [
-            'module' => ModuleCatalog::ASSETS,
-            'can' => $canAccessAssets,
-            'route' => route('assets.index'),
-            'title' => 'Activos',
-            'text' => 'Ver y administrar activos operativos',
-            'meta' => $assetsCount . ' activos',
-        ],
-    ])
-        ->where('can', true)
-        ->values();
-
-    $serviceMaintenanceCards = collect([
-        [
-            'module' => ModuleCatalog::SERVICE_MAINTENANCE,
-            'can' => $canViewServiceOrders,
-            'route' => route('service.index'),
-            'title' => 'Órdenes de servicio',
-            'text' => 'Ver trabajos técnicos, intervenciones y órdenes de mantenimiento',
-            'meta' => ($serviceOrdersCount ?? 0) . ' órdenes de servicio',
-        ],
-        [
-            'module' => ModuleCatalog::SERVICE_MAINTENANCE,
-            'can' => $canCreateServiceOrders,
-            'route' => route('service.orders.create'),
-            'title' => 'Nueva orden de servicio',
-            'text' => 'Crear una orden de servicio sin configurar el tipo manualmente',
-            'meta' => 'Tipo Servicio preseleccionado',
-        ],
-    ])
-        ->where('can', true)
-        ->values();
-
-    $productionCards = collect([
-        [
-            'module' => ModuleCatalog::PRODUCTION,
-            'can' => $canViewProductionOrders ?? false,
-            'route' => route('production.index'),
-            'title' => 'Órdenes de producción',
-            'text' => 'Ver producción, recetas, entregas de materiales y cierres operativos',
-            'meta' => ($productionOrdersCount ?? 0) . ' órdenes de producción',
-        ],
-        [
-            'module' => ModuleCatalog::PRODUCTION,
-            'can' => $canCreateProductionOrders ?? false,
-            'route' => route('production.orders.create'),
-            'title' => 'Nueva orden de producción',
-            'text' => 'Crear una orden de producción sin configurar el tipo manualmente',
-            'meta' => 'Tipo Producción preseleccionado',
-        ],
-    ])
-        ->where('can', true)
-        ->values();
-
-    $managementCards = collect([
-        [
-            'module' => ModuleCatalog::ORDERS,
-            'can' => $canAccessOrders,
-            'route' => route('orders.index'),
-            'title' => 'Órdenes',
-            'text' => 'Ver y administrar órdenes',
-            'meta' => $ordersCount . ' órdenes',
-        ],
-        [
-            'module' => ModuleCatalog::TASKS,
-            'can' => $canAccessTasks,
-            'route' => route('tasks.index'),
-            'title' => 'Tareas',
-            'text' => 'Ver y administrar tareas',
-            'meta' => 'Trabajo diario',
-        ],
-        [
-            'module' => ModuleCatalog::PROJECTS,
-            'can' => $canAccessProjects,
-            'route' => route('projects.index'),
-            'title' => 'Proyectos',
-            'text' => 'Ver y administrar proyectos',
-            'meta' => 'Seguimiento operativo',
-        ],
-        [
-            'module' => ModuleCatalog::PRODUCTS,
-            'can' => $canAccessProducts,
-            'route' => route('products.index'),
-            'title' => 'Productos',
-            'text' => 'Ver y administrar productos y servicios',
-            'meta' => $productsCount . ' productos',
-        ],
-        [
-            'module' => ModuleCatalog::SHOPS,
-            'can' => $canAccessShops,
-            'route' => route('shops.index'),
-            'title' => 'Tiendas',
-            'text' => 'Configurá las tiendas internas que publican catálogo hacia la tienda externa.',
-            'meta' => ($shopsCount ?? 0) . ' tiendas',
-        ],
-        [
-            'module' => ModuleCatalog::INVENTORY,
-            'can' => $canAccessInventory,
-            'route' => route('inventory.index'),
-            'title' => 'Inventario',
-            'text' => 'Ver saldos por producto y abrir fichas operativas',
-            'meta' => 'Stock y movimientos',
-        ],
-        [
-            'module' => ModuleCatalog::DOCUMENTS,
-            'can' => $canAccessDocuments,
-            'route' => route('documents.index'),
-            'title' => 'Documentos',
-            'text' => 'Ver y administrar documentos comerciales',
-            'meta' => $documentsCount . ' documentos',
-        ],
-    ])
-        ->where('can', true)
-        ->values();
-@endphp
 
 @section('content')
     <x-page>
@@ -159,18 +23,14 @@
 
                 <div class="dashboard-grid dashboard-grid--premium">
                     @foreach ($dailyCards as $card)
-                        @php
-                            $icon = ModuleCatalog::icon($card['module']);
-                        @endphp
-
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
                             <span class="dashboard-module-icon">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-module-watermark">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-link-title">{{ $card['title'] }}</span>
@@ -182,7 +42,7 @@
             </x-card>
         @endif
 
-        @if ($canAccessServiceMaintenance && $serviceMaintenanceCards->isNotEmpty())
+        @if ($serviceMaintenanceCards->isNotEmpty())
             <x-card>
                 <div class="content-section-header">
                     <h2 class="content-section-title">Servicio y mantenimiento</h2>
@@ -194,18 +54,14 @@
 
                 <div class="dashboard-grid dashboard-grid--premium">
                     @foreach ($serviceMaintenanceCards as $card)
-                        @php
-                            $icon = ModuleCatalog::icon($card['module']);
-                        @endphp
-
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
                             <span class="dashboard-module-icon">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-module-watermark">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-link-title">{{ $card['title'] }}</span>
@@ -229,18 +85,14 @@
 
                 <div class="dashboard-grid dashboard-grid--premium">
                     @foreach ($productionCards as $card)
-                        @php
-                            $icon = ModuleCatalog::icon($card['module']);
-                        @endphp
-
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
                             <span class="dashboard-module-icon">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-module-watermark">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-link-title">{{ $card['title'] }}</span>
@@ -261,18 +113,14 @@
 
                 <div class="dashboard-grid dashboard-grid--premium">
                     @foreach ($managementCards as $card)
-                        @php
-                            $icon = ModuleCatalog::icon($card['module']);
-                        @endphp
-
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
                             <span class="dashboard-module-icon">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-module-watermark">
-                                <x-dynamic-component :component="'icons.' . $icon" />
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
                             </span>
 
                             <span class="dashboard-link-title">{{ $card['title'] }}</span>
@@ -291,6 +139,6 @@
             ])
         @endif
 
-        <x-dev-component-version name="dashboard" version="V12" align="right" />
+        <x-dev-component-version name="dashboard" version="V13" align="right" />
     </x-page>
 @endsection

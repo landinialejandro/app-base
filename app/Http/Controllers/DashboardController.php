@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V12
+// FILE: app/Http/Controllers/DashboardController.php | V13
 
 namespace App\Http\Controllers;
 
@@ -200,6 +200,20 @@ class DashboardController extends Controller
             ? $security->scope($user, ModuleCatalog::DOCUMENTS.'.viewAny', Document::query())->count()
             : null;
 
+        $dailyInfoCards = $this->visibleDashboardInfoCards([
+            [
+                'module' => ModuleCatalog::TASKS,
+                'can' => $canSeeAnalytics,
+                'title' => 'Resumen operativo',
+                'text' => 'Lectura rápida del trabajo visible para tu usuario.',
+                'meta' => $visibleTasksCount . ' tareas visibles',
+            ],
+        ]);
+
+        $serviceMaintenanceInfoCards = collect();
+        $productionInfoCards = collect();
+        $managementInfoCards = collect();
+
         $dailyCards = $this->visibleDashboardCards([
             [
                 'module' => ModuleCatalog::APPOINTMENTS,
@@ -353,6 +367,10 @@ class DashboardController extends Controller
             'serviceMaintenanceCards' => $serviceMaintenanceCards,
             'productionCards' => $productionCards,
             'managementCards' => $managementCards,
+            'dailyInfoCards' => $dailyInfoCards,
+            'serviceMaintenanceInfoCards' => $serviceMaintenanceInfoCards,
+            'productionInfoCards' => $productionInfoCards,
+            'managementInfoCards' => $managementInfoCards,
 
             'projectOverview' => [
                 'visible_projects_count' => $visibleProjectsCount,
@@ -396,6 +414,22 @@ class DashboardController extends Controller
                     'module' => $card['module'],
                     'icon' => ModuleCatalog::icon($card['module']),
                     'route' => $card['route'],
+                    'title' => $card['title'],
+                    'text' => $card['text'],
+                    'meta' => $card['meta'],
+                ];
+            })
+            ->values();
+    }
+
+    private function visibleDashboardInfoCards(array $cards)
+    {
+        return collect($cards)
+            ->where('can', true)
+            ->map(function (array $card) {
+                return [
+                    'module' => $card['module'],
+                    'icon' => ModuleCatalog::icon($card['module']),
                     'title' => $card['title'],
                     'text' => $card['text'],
                     'meta' => $card['meta'],

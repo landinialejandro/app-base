@@ -60,7 +60,7 @@ body {
         background 160ms ease;
 }
 
-.dashboard-module-card:hover {
+.dashboard-link-card.dashboard-module-card:hover {
     transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--dashboard-accent) 46%, var(--color-border));
     background:
@@ -71,9 +71,20 @@ body {
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.085);
 }
 
-.dashboard-module-card:focus-visible {
+.dashboard-link-card.dashboard-module-card:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--dashboard-accent) 34%, transparent);
     outline-offset: 3px;
+}
+
+.dashboard-info-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--dashboard-accent);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    cursor: default;
 }
 
 .dashboard-module-icon {
@@ -127,23 +138,29 @@ body {
 
 .dashboard-module-card .dashboard-link-title,
 .dashboard-module-card .dashboard-link-text,
-.dashboard-module-card .dashboard-link-meta {
+.dashboard-module-card .dashboard-link-meta,
+.dashboard-module-card .dashboard-info-title,
+.dashboard-module-card .dashboard-info-text,
+.dashboard-module-card .dashboard-info-meta {
     position: relative;
     z-index: 1;
     max-width: calc(100% - 2.2rem);
 }
 
-.dashboard-module-card .dashboard-link-title {
+.dashboard-module-card .dashboard-link-title,
+.dashboard-module-card .dashboard-info-title {
     color: color-mix(in srgb, var(--dashboard-accent) 30%, var(--color-text));
     font-weight: 700;
     letter-spacing: -0.01em;
 }
 
-.dashboard-module-card .dashboard-link-text {
+.dashboard-module-card .dashboard-link-text,
+.dashboard-module-card .dashboard-info-text {
     line-height: 1.45;
 }
 
-.dashboard-module-card .dashboard-link-meta {
+.dashboard-module-card .dashboard-link-meta,
+.dashboard-module-card .dashboard-info-meta {
     margin-top: auto;
     color: #94a3b8;
 }
@@ -221,7 +238,10 @@ body {
 
     .dashboard-module-card .dashboard-link-title,
     .dashboard-module-card .dashboard-link-text,
-    .dashboard-module-card .dashboard-link-meta {
+    .dashboard-module-card .dashboard-link-meta,
+    .dashboard-module-card .dashboard-info-title,
+    .dashboard-module-card .dashboard-info-text,
+    .dashboard-module-card .dashboard-info-meta {
         max-width: calc(100% - 1.2rem);
     }
 }

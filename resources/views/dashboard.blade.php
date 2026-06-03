@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/dashboard.blade.php | V13 --}}
+{{-- FILE: resources/views/dashboard.blade.php | V14 --}}
 
 @extends('layouts.app')
 
@@ -14,7 +14,7 @@
 
         <x-page-header title="Dashboard" />
 
-        @if ($dailyCards->isNotEmpty())
+        @if ($dailyInfoCards->isNotEmpty() || $dailyCards->isNotEmpty())
             <x-card>
                 <div class="content-section-header">
                     <h2 class="content-section-title">Operación diaria</h2>
@@ -22,6 +22,22 @@
                 </div>
 
                 <div class="dashboard-grid dashboard-grid--premium">
+                    @foreach ($dailyInfoCards as $card)
+                        <div class="dashboard-info-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+                            <span class="dashboard-module-icon">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-module-watermark">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-info-title">{{ $card['title'] }}</span>
+                            <span class="dashboard-info-text">{{ $card['text'] }}</span>
+                            <span class="dashboard-info-meta">{{ $card['meta'] }}</span>
+                        </div>
+                    @endforeach
+
                     @foreach ($dailyCards as $card)
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
@@ -42,7 +58,7 @@
             </x-card>
         @endif
 
-        @if ($serviceMaintenanceCards->isNotEmpty())
+        @if ($serviceMaintenanceInfoCards->isNotEmpty() || $serviceMaintenanceCards->isNotEmpty())
             <x-card>
                 <div class="content-section-header">
                     <h2 class="content-section-title">Servicio y mantenimiento</h2>
@@ -53,6 +69,22 @@
                 </div>
 
                 <div class="dashboard-grid dashboard-grid--premium">
+                    @foreach ($serviceMaintenanceInfoCards as $card)
+                        <div class="dashboard-info-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+                            <span class="dashboard-module-icon">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-module-watermark">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-info-title">{{ $card['title'] }}</span>
+                            <span class="dashboard-info-text">{{ $card['text'] }}</span>
+                            <span class="dashboard-info-meta">{{ $card['meta'] }}</span>
+                        </div>
+                    @endforeach
+
                     @foreach ($serviceMaintenanceCards as $card)
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
@@ -73,7 +105,7 @@
             </x-card>
         @endif
 
-        @if ($productionCards->isNotEmpty())
+        @if ($productionInfoCards->isNotEmpty() || $productionCards->isNotEmpty())
             <x-card>
                 <div class="content-section-header">
                     <h2 class="content-section-title">Producción</h2>
@@ -84,6 +116,22 @@
                 </div>
 
                 <div class="dashboard-grid dashboard-grid--premium">
+                    @foreach ($productionInfoCards as $card)
+                        <div class="dashboard-info-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+                            <span class="dashboard-module-icon">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-module-watermark">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-info-title">{{ $card['title'] }}</span>
+                            <span class="dashboard-info-text">{{ $card['text'] }}</span>
+                            <span class="dashboard-info-meta">{{ $card['meta'] }}</span>
+                        </div>
+                    @endforeach
+
                     @foreach ($productionCards as $card)
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
@@ -104,7 +152,7 @@
             </x-card>
         @endif
 
-        @if ($managementCards->isNotEmpty())
+        @if ($managementInfoCards->isNotEmpty() || $managementCards->isNotEmpty())
             <x-card>
                 <div class="content-section-header">
                     <h2 class="content-section-title">Gestión complementaria</h2>
@@ -112,6 +160,22 @@
                 </div>
 
                 <div class="dashboard-grid dashboard-grid--premium">
+                    @foreach ($managementInfoCards as $card)
+                        <div class="dashboard-info-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+                            <span class="dashboard-module-icon">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-module-watermark">
+                                <x-dynamic-component :component="'icons.' . $card['icon']" />
+                            </span>
+
+                            <span class="dashboard-info-title">{{ $card['title'] }}</span>
+                            <span class="dashboard-info-text">{{ $card['text'] }}</span>
+                            <span class="dashboard-info-meta">{{ $card['meta'] }}</span>
+                        </div>
+                    @endforeach
+
                     @foreach ($managementCards as $card)
                         <a href="{{ $card['route'] }}"
                             class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
@@ -139,6 +203,6 @@
             ])
         @endif
 
-        <x-dev-component-version name="dashboard" version="V13" align="right" />
+        <x-dev-component-version name="dashboard" version="V14" align="right" />
     </x-page>
 @endsection

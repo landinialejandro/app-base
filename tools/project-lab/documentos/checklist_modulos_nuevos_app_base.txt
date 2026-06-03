@@ -10,7 +10,7 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 OBJETIVO
 
@@ -54,6 +54,8 @@ Casos vigentes:
 
 Servicios y Mantenimiento debe evaluarse como capa satélite productiva ERP/CMMS liviana.
 
+Producción debe evaluarse como capa satélite productiva sobre Orders, no como módulo CRUD ordinario.
+
 Shopping Autoservicio debe evaluarse como capa satélite comercial autogestiva por tenant.
 
 Regla:
@@ -82,7 +84,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00032
+SECTION_VERSION: 00033
 
 REGLA GENERAL
 
@@ -181,6 +183,30 @@ entrada pública externa
 Caso vigente:
 
 Servicios y Mantenimiento debe leerse como capa satélite productiva ERP/CMMS liviana y no como CRUD aislado.
+
+Caso vigente adicional:
+
+Producción debe leerse como capa satélite productiva sobre Orders, no como CRUD aislado.
+
+Reglas:
+
+no reemplaza Orders
+
+no absorbe ownership de orders ni order_items
+
+no crea lifecycle separado
+
+no crea entidad nueva
+
+no crea módulo nuevo por existir /production
+
+group = production clasifica funcionalmente órdenes productivas dentro de Orders
+
+/production expresa universo semántico, navegación especializada y contexto operativo
+
+la entrada visual o dashboard de producción no autoriza por sí misma acciones sobre Orders
+
+las acciones reales continúan bajo el contrato del módulo dueño
 
 Reglas:
 

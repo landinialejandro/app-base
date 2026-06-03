@@ -64,7 +64,8 @@ protected function capabilitiesForModule(string $module): array
     {
         return match ($module) {
             ModuleCatalog::DASHBOARD,
-            ModuleCatalog::SERVICE_MAINTENANCE => [
+            ModuleCatalog::SERVICE_MAINTENANCE,
+            ModuleCatalog::PRODUCTION => [
                 CapabilityCatalog::VIEW_ANY,
             ],
 

@@ -129,9 +129,13 @@ class DashboardController extends Controller
         $canAccessInventory = $security->allows($user, ModuleCatalog::INVENTORY.'.viewAny');
 
         $serviceMaintenanceEnabled = TenantModuleAccess::isEnabled(ModuleCatalog::SERVICE_MAINTENANCE, $tenant);
+        $productionEnabled = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTION, $tenant);
 
         $canAccessServiceMaintenance = $serviceMaintenanceEnabled
             && $security->allows($user, ModuleCatalog::SERVICE_MAINTENANCE.'.viewAny');
+
+        $canAccessProduction = $productionEnabled
+            && $security->allows($user, ModuleCatalog::PRODUCTION.'.viewAny');
 
         $canViewServiceOrders = $canAccessServiceMaintenance
             && $security->allows($user, ModuleCatalog::ORDERS.'.viewAny');
@@ -151,14 +155,16 @@ class DashboardController extends Controller
                 ->count()
             : null;
 
-        $canViewProductionOrders = $canAccessOrders;
+        $canViewProductionOrders = $canAccessProduction
+            && $security->allows($user, ModuleCatalog::ORDERS.'.viewAny');
 
-        $canCreateProductionOrders = $security->allows(
-            $user,
-            ModuleCatalog::ORDERS.'.create',
-            Order::class,
-            ['kind' => OrderCatalog::GROUP_PRODUCTION]
-        );
+        $canCreateProductionOrders = $canAccessProduction
+            && $security->allows(
+                $user,
+                ModuleCatalog::ORDERS.'.create',
+                Order::class,
+                ['kind' => OrderCatalog::GROUP_PRODUCTION]
+            );
 
         $productionOrdersCount = $canViewProductionOrders
             ? $security

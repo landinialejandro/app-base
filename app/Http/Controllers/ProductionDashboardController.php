@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 
@@ -16,6 +17,12 @@ class ProductionDashboardController extends Controller
         $tenant = app('tenant');
         $user = auth()->user();
         $security = app(Security::class);
+
+        abort_unless(
+            TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTION, $tenant)
+                && $security->allows($user, ModuleCatalog::PRODUCTION.'.viewAny'),
+            403
+        );
 
         $canViewProductionOrders = $security->allows($user, ModuleCatalog::ORDERS.'.viewAny');
 

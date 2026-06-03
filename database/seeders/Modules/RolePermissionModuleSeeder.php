@@ -551,6 +551,7 @@ protected function effectiveMatrix(): array
         return array_replace(
             $this->matrix(),
             $this->serviceMaintenanceMatrix(),
+            $this->productionMatrix(),
             $this->tenantCapabilityMatrix()
         );
     }
@@ -595,6 +596,24 @@ protected function effectiveMatrix(): array
                         ],
                     ],
                     RoleCatalog::ADMINISTRATOR => [
+                        CapabilityCatalog::VIEW_ANY => [
+                            'scope' => PermissionScopeCatalog::TENANT_ALL,
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+    protected function productionMatrix(): array
+        {
+            return [
+                ModuleCatalog::PRODUCTION => [
+                    RoleCatalog::OWNER => [
+                        CapabilityCatalog::VIEW_ANY => [
+                            'scope' => PermissionScopeCatalog::TENANT_ALL,
+                        ],
+                    ],
+                    RoleCatalog::ADMIN => [
                         CapabilityCatalog::VIEW_ANY => [
                             'scope' => PermissionScopeCatalog::TENANT_ALL,
                         ],

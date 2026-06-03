@@ -143,77 +143,51 @@ Si una información solo ordena cómo empezar un chat, corresponde a esta planti
 <<END SECTION>>
 
 <<SECTION: DOCUMENTOS DE REFERENCIA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DOCUMENTOS DE REFERENCIA
 
-Documentos rectores iniciales:
+Esta plantilla no es el índice documental del proyecto.
+
+La fuente principal para ubicar documentos activos, decidir qué documento responde cada materia y evitar listas paralelas es:
+
+<DOC_REF slug="indice_documental_app_base">Índice documental del proyecto</DOC_REF>
+
+Regla:
+
+si hay dudas sobre qué documento consultar, usar el índice documental.
+
+Esta plantilla ordena cómo iniciar y conducir un chat técnico.
+
+El índice ordena dónde buscar.
+
+Lectura mínima inicial:
 
 <DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
 
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 
-Documentos de gobernanza documental:
+<DOC_REF slug="indice_documental_app_base">Índice documental del proyecto</DOC_REF>
+
+Documentos operativos a consultar solo cuando correspondan por frente:
 
 <DOC_REF slug="estandar_documental_app_base">Estándar documental del proyecto</DOC_REF>
 
-<DOC_REF slug="indice_documental_app_base">Índice documental del proyecto</DOC_REF>
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
 
 <DOC_REF slug="audiencia_usos_producto_app_base">Audiencia y usos del producto</DOC_REF>
 
-Documento de convenciones:
-
-<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
-
-Documento operativo de Project Lab:
-
 <DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
-Documento operativo de Codex:
-
 <DOC_REF slug="codex_operativo_app_base">Codex operativo</DOC_REF>
-
-Documentos de control y continuidad:
-
-<DOC_REF slug="checklist_modulos_nuevos_app_base">Checklist oficial para crear módulos nuevos</DOC_REF>
-
-<DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
-
-<DOC_REF slug="decisiones_vivas_app_base">Decisiones vivas del proyecto</DOC_REF>
-
-<DOC_REF slug="patrones_validados_app_base">Patrones validados del proyecto</DOC_REF>
-
-<DOC_REF slug="errores_y_lecciones_app_base">Errores y lecciones del proyecto</DOC_REF>
-
-Documentos estructurales:
-
-<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
-
-<DOC_REF slug="mapa_navegacion_relaciones_app_base">Mapa de navegación y relaciones</DOC_REF>
-
-<DOC_REF slug="base_visual_proyecto_app_base">Base visual del proyecto</DOC_REF>
-
-<DOC_REF slug="mapa_componentes_app_base">Mapa de componentes del sistema</DOC_REF>
-
-Documentos especializados vigentes, si el frente los requiere:
-
-<DOC_REF slug="shopping_autoservicio_app_base">Shopping Autoservicio</DOC_REF>
-
-<DOC_REF slug="paquete_servicios_mantenimiento_app_base">Paquete de servicios y mantenimiento</DOC_REF>
-
-<DOC_REF slug="capa_ia_operativa_app_base">Capa IA operativa</DOC_REF>
-
-<DOC_REF slug="monetizacion_proyecto_app_base">Monetización del proyecto</DOC_REF>
-
-<DOC_REF slug="welcome_usuario_app_base">Bienvenida y guía de uso</DOC_REF>
 
 Regla:
 
 no todos los documentos deben leerse en todos los chats.
 
-Después de los dos rectores y esta plantilla, se deben leer solo los documentos especializados necesarios para el frente activo.
+Después de los rectores, esta plantilla y el índice, se deben leer solo los documentos especializados necesarios para el frente activo.
 
-Los documentos de gobernanza documental deben consultarse cuando el frente activo sea documentación, creación de documentos, organización documental, audiencia, usos, copy, UX, IA aplicada a documentación o continuidad entre proyectos.
+La lista completa de documentos activos, familias, precedencias y lecturas por frente vive en el índice documental.
 <<END SECTION>>
 
 <<SECTION: IDENTIFICACIÓN DEL FRENTE ACTIVO>>

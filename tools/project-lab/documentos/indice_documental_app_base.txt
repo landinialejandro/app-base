@@ -87,6 +87,68 @@ NO SE ASUME.
 NO SE SUPONE.
 <<END SECTION>>
 
+<<SECTION: MODO DE USO RÁPIDO PARA IA>>
+SECTION_VERSION: 00001
+
+MODO DE USO RÁPIDO PARA IA
+
+Este índice es la puerta de entrada documental para ubicar información del proyecto app-base.
+
+Su función es orientar dónde buscar.
+
+No reemplaza documentos rectores, documentos especializados, mapas, memoria operativa ni evidencia real.
+
+Antes de responder, auditar, proponer, documentar o generar código, la IA debe:
+
+1. identificar la pregunta del usuario o frente activo
+
+2. clasificar la consulta por materia:
+
+arquitectura
+seguridad
+documentación
+UI
+navegación
+componentes
+módulo especializado
+roadmap
+memoria operativa
+usuario final
+producto o comercial
+
+3. consultar documentos rectores si la intervención afecta arquitectura o seguridad
+
+4. consultar el documento especializado cuando exista un frente activo
+
+5. consultar código real, ruta, clase, método, permiso, schema, runtime o evidencia Project Lab cuando sea necesario
+
+Reglas:
+
+no leer todos los documentos por defecto si el frente está acotado
+
+no usar memoria operativa como doctrina primaria si existe documento rector o especializado
+
+no usar roadmap como fuente doctrinal primaria
+
+no responder desde memoria, analogía o inferencia
+
+no transformar este índice en manual completo, plantilla de trabajo ni resumen doctrinal del proyecto
+
+si falta código real, ruta, clase, método, permiso, schema, runtime o evidencia, pedir el dato exacto o solicitar auditoría Project Lab.
+
+Regla final:
+
+el índice orienta la búsqueda documental.
+
+La plantilla de inicio ordena cómo comenzar y conducir el trabajo.
+
+Los documentos rectores y especializados definen doctrina de su materia.
+
+NO SE ASUME.
+
+NO SE SUPONE.
+<<END SECTION>>
+
 <<SECTION: FAMILIAS DOCUMENTALES>>
 SECTION_VERSION: 00001
 

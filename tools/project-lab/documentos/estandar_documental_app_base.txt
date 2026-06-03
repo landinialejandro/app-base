@@ -587,6 +587,32 @@ documentar para IA no significa escribir más.
 Significa escribir con fronteras más claras.
 <<END SECTION>>
 
+<<SECTION: FRONTERA ENTRE ÍNDICE, PLANTILLA Y DOCUMENTOS ESPECIALIZADOS>>
+SECTION_VERSION: 00001
+
+FRONTERA ENTRE ÍNDICE, PLANTILLA Y DOCUMENTOS ESPECIALIZADOS
+
+<DOC_REF slug="indice_documental_app_base">Índice documental del proyecto</DOC_REF>
+
+Define qué documentos existen, qué responde cada uno y cuándo consultarlos.
+
+<DOC_REF slug="plantilla_inicio_chats_proyecto_app_base">Plantilla de inicio de chats del proyecto</DOC_REF>
+
+Define cómo iniciar y conducir un chat técnico.
+
+Los documentos rectores y especializados definen doctrina de su materia.
+
+Reglas:
+
+no crear índices paralelos dentro de documentos no destinados a indexar
+
+no convertir plantillas de trabajo en matrices documentales extensas
+
+no usar el índice como manual completo del proyecto
+
+las listas documentales en otros documentos deben ser mínimas y remitir al índice cuando corresponda
+<<END SECTION>>
+
 <<SECTION: DOCUMENTACIÓN ORIENTADA A USUARIO FINAL>>
 SECTION_VERSION: 00001
 

@@ -12,4 +12,5 @@
     <span class="dashboard-info-title">{{ $card['title'] }}</span>
     <span class="dashboard-info-text">{{ $card['text'] }}</span>
     <span class="dashboard-info-meta">{{ $card['meta'] }}</span>
+    <x-dev-component-version name="info-card" version="V1" align="right" />
 </div>

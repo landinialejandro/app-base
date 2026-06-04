@@ -18,5 +18,6 @@
                 @include('dashboard.partials.action-card', ['card' => $card])
             @endforeach
         </div>
+        <x-dev-component-version name="section" version="V1" align="right" />
     </x-card>
 @endif

@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\CapabilityCatalog;
+use App\Support\Catalogs\ModuleCapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\PartyCatalog;
@@ -97,50 +98,7 @@ public function update(Request $request)
 
     protected function buildModuleCapabilityMap(array $enabledModules): array
     {
-        if (empty($enabledModules)) {
-            return [];
-        }
-
-        $map = [];
-
-        foreach ($enabledModules as $module) {
-            $capabilities = $this->capabilitiesForModule($module);
-
-            if (! empty($capabilities)) {
-                $map[$module] = $capabilities;
-            }
-        }
-
-        return $map;
-    }
-
-protected function capabilitiesForModule(string $module): array
-    {
-        return match ($module) {
-            ModuleCatalog::DASHBOARD,
-            ModuleCatalog::SERVICE_MAINTENANCE,
-            ModuleCatalog::PRODUCTION => [
-                CapabilityCatalog::VIEW_ANY,
-            ],
-
-            ModuleCatalog::APPOINTMENTS,
-            ModuleCatalog::ASSETS,
-            ModuleCatalog::PRODUCTS,
-            ModuleCatalog::INVENTORY,
-            ModuleCatalog::DOCUMENTS,
-            ModuleCatalog::PROJECTS,
-            ModuleCatalog::TASKS,
-            ModuleCatalog::ORDERS,
-            ModuleCatalog::PARTIES => [
-                CapabilityCatalog::VIEW_ANY,
-                CapabilityCatalog::VIEW,
-                CapabilityCatalog::CREATE,
-                CapabilityCatalog::UPDATE,
-                CapabilityCatalog::DELETE,
-            ],
-
-            default => [],
-        };
+        return ModuleCapabilityCatalog::mapFor($enabledModules);
     }
 
     protected function buildExistingPermissionMatrix(Role $role, array $moduleCapabilityMap): array

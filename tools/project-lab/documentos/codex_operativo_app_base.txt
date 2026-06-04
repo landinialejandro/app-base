@@ -864,6 +864,70 @@ Project Lab verifica.
 ChatGPT interpreta, controla y documenta.
 <<END SECTION>>
 
+<<SECTION: LARAVEL BOOST Y MCP>>
+SECTION_VERSION: 00001
+
+LARAVEL BOOST Y MCP
+
+Laravel Boost queda incorporado como herramienta local de asistencia para Codex mediante MCP.
+
+Boost no es funcionalidad del SaaS app-base.
+
+Boost no reemplaza:
+
+ChatGPT
+Project Lab
+documentación rectora
+doctrina específica de app-base
+evidencia runtime
+autorización explícita
+
+Uso permitido para Codex:
+
+application_info para obtener contexto real de versión, paquetes y entorno.
+search_docs para consultar documentación version-aware cuando la tarea dependa de comportamiento Laravel, Fortify, Pint, PHPUnit u otro paquete cubierto por Boost.
+database_schema para inspección estructural.
+database_query como herramienta diagnóstica de lectura cuando esté autorizado.
+read_log_entries, browser_logs y last_error para diagnóstico.
+get_absolute_url cuando corresponda compartir una URL real del proyecto.
+
+Regla:
+
+la documentación version-aware de Boost ayuda a inspeccionar comportamiento de framework y paquetes.
+
+No reemplaza doctrina app-base, Project Lab ni validación operativa.
+
+Para rutas registradas, Artisan sigue siendo mecanismo válido cuando no exista herramienta MCP específica.
+
+Ejemplo:
+
+php artisan route:list
+
+Frontera de datos:
+
+las herramientas de base de datos, logs y schema pueden exponer datos sensibles.
+
+Codex no debe usar Boost para leer, reproducir o compartir secretos, credenciales, tokens, .env, .env.production ni datos sensibles innecesarios.
+
+database_query debe tratarse como herramienta diagnóstica y de solo lectura salvo autorización explícita.
+
+Toda acción sensible detectada mediante Boost debe pasar por:
+
+backend autorizado
+tenant correcto
+permisos efectivos
+evidencia
+validación posterior
+
+Regla final:
+
+Boost mejora la capacidad de inspección de Codex.
+
+No amplía autoridad, no autoriza acciones y no convierte asistencia MCP en capa arquitectónica del producto.
+
+Project Lab conserva su rol de evidencia, auditoría y validación operativa.
+<<END SECTION>>
+
 <<SECTION: ESQUEMA LOCAL DE SESIONES CODEX>>
 SECTION_VERSION: 00001
 

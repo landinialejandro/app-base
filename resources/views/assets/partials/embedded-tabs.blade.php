@@ -6,6 +6,7 @@
     $assets = $assets ?? collect();
 
     $showParty = $showParty ?? false;
+    $supportsPartiesModule = $supportsPartiesModule ?? false;
     $emptyMessage = $emptyMessage ?? 'No hay activos para mostrar.';
     $allLabel = $allLabel ?? 'Todos';
 
@@ -66,6 +67,7 @@
                 @include('assets.partials.table', [
                     'assets' => $assets,
                     'showParty' => $showParty,
+                    'supportsPartiesModule' => $supportsPartiesModule,
                     'emptyMessage' => $emptyMessage,
                     'trailQuery' => $trailQuery,
                 ])
@@ -84,6 +86,7 @@
                     @include('assets.partials.table', [
                         'assets' => $kindAssets,
                         'showParty' => $showParty,
+                        'supportsPartiesModule' => $supportsPartiesModule,
                         'emptyMessage' => "No hay activos de tipo {$label} para mostrar.",
                         'trailQuery' => $trailQuery,
                     ])

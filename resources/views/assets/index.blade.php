@@ -80,6 +80,7 @@
             @include('assets.partials.table', [
                 'assets' => $assets,
                 'showParty' => true,
+                'supportsPartiesModule' => $supportsPartiesModule,
                 'emptyMessage' => 'No hay activos para esta empresa.',
                 'trailQuery' => $trailQuery,
             ])

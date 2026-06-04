@@ -854,11 +854,13 @@ class OrderController extends Controller
             return;
         }
 
+        $tenant = app('tenant');
         $user = auth()->user();
         $security = app(Security::class);
 
         abort_unless(
-            $security->allows($user, ModuleCatalog::ORDERS.'.viewAny'),
+            TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTION, $tenant)
+                && $security->allows($user, ModuleCatalog::PRODUCTION.'.viewAny'),
             403
         );
     }

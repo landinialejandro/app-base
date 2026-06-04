@@ -51,13 +51,7 @@ class NavbarContext
             return null;
         }
 
-        foreach (ModuleCatalog::navDefinitions() as $definition) {
-            if (($definition['module'] ?? null) === $prefix) {
-                return $prefix;
-            }
-        }
-
-        return null;
+        return ModuleCatalog::hasNav($prefix) ? $prefix : null;
     }
 
     public static function resolveModuleFromRouteName(?string $routeName): ?string
@@ -67,9 +61,15 @@ class NavbarContext
         }
 
         foreach (ModuleCatalog::navDefinitions() as $definition) {
-            foreach (($definition['active'] ?? []) as $pattern) {
+            $module = $definition['module'] ?? null;
+
+            if (! is_string($module)) {
+                continue;
+            }
+
+            foreach (ModuleCatalog::navActivePatterns($module) as $pattern) {
                 if (Str::is($pattern, $routeName)) {
-                    return $definition['module'] ?? null;
+                    return $module;
                 }
             }
         }

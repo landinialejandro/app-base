@@ -240,18 +240,67 @@ class ModuleCatalog
         return static::$definitions[$module]['activity_record_set'] ?? null;
     }
 
+    public static function navDefinition(string $module): ?array
+    {
+        $definition = static::$definitions[$module] ?? null;
+
+        if (! is_array($definition) || ! isset($definition['nav']) || ! is_array($definition['nav'])) {
+            return null;
+        }
+
+        return [
+            'module' => $module,
+            'label' => $definition['label'],
+            'icon' => $definition['icon'] ?? 'box',
+            ...$definition['nav'],
+        ];
+    }
+
+    public static function hasNav(string $module): bool
+    {
+        return static::navDefinition($module) !== null;
+    }
+
+    public static function navRoute(string $module): ?string
+    {
+        $route = static::navDefinition($module)['route'] ?? null;
+
+        return is_string($route) && trim($route) !== '' ? $route : null;
+    }
+
+    public static function navGroup(string $module): ?string
+    {
+        $group = static::navDefinition($module)['group'] ?? null;
+
+        return is_string($group) && trim($group) !== '' ? $group : null;
+    }
+
+    public static function navActivePatterns(string $module): array
+    {
+        $patterns = static::navDefinition($module)['active'] ?? [];
+
+        if (! is_array($patterns)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $patterns,
+            fn ($pattern) => is_string($pattern) && trim($pattern) !== ''
+        ));
+    }
+
+    public static function navOrder(string $module): ?int
+    {
+        $order = static::navDefinition($module)['order'] ?? null;
+
+        return is_numeric($order) ? (int) $order : null;
+    }
+
     public static function navDefinitions(): array
     {
-        return collect(static::$definitions)
-            ->filter(fn (array $definition) => isset($definition['nav']))
-            ->map(function (array $definition, string $module) {
-                return [
-                    'module' => $module,
-                    'label' => $definition['label'],
-                    'icon' => $definition['icon'] ?? 'box',
-                    ...$definition['nav'],
-                ];
-            })
+        return collect(static::all())
+            ->map(fn (string $module) => static::navDefinition($module))
+            ->filter()
             ->sortBy('order')
             ->values()
             ->all();

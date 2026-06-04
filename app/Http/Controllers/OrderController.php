@@ -158,6 +158,13 @@ class OrderController extends Controller
             ]);
         }
 
+        if ($this->isProductionUniverse($request)) {
+            $request->merge([
+                'group' => OrderCatalog::GROUP_PRODUCTION,
+                'kind' => $request->input('kind', OrderCatalog::KIND_STANDARD),
+            ]);
+        }
+
         $tenant = app('tenant');
         $security = app(Security::class);
         $user = auth()->user();
@@ -242,9 +249,11 @@ class OrderController extends Controller
 
         $navigationTrail = OrderNavigationTrail::show($request, $order);
 
-        $showRouteName = $this->isServiceUniverse($request)
-            ? 'service.orders.show'
-            : 'orders.show';
+        $showRouteName = match (true) {
+            $this->isServiceUniverse($request) => 'service.orders.show',
+            $this->isProductionUniverse($request) => 'production.orders.show',
+            default => 'orders.show',
+        };
 
         return redirect()
             ->route($showRouteName, ['order' => $order] + NavigationTrail::toQuery($navigationTrail))

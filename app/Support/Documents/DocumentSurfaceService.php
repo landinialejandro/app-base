@@ -9,6 +9,8 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Database\Eloquent\Model;
@@ -141,6 +143,7 @@ class DocumentSurfaceService implements ModuleSurfaceService
                     'tabsId' => $tabsId,
                     'trailQuery' => $trailQuery,
                 ],
+                $this->moduleSupportConfig(),
                 $this->documentViewConfig($record, $recordType),
             ),
         ];
@@ -159,8 +162,20 @@ class DocumentSurfaceService implements ModuleSurfaceService
                     'tabsId' => $tabsId,
                     'trailQuery' => $trailQuery,
                 ],
+                $this->moduleSupportConfig(),
                 $this->emptyDocumentViewConfig($recordType),
             ),
+        ];
+    }
+
+    private function moduleSupportConfig(): array
+    {
+        $tenant = app()->bound('tenant') ? app('tenant') : null;
+
+        return [
+            'supportsPartiesModule' => TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant),
+            'supportsAssetsModule' => TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant),
+            'supportsOrdersModule' => TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant),
         ];
     }
 

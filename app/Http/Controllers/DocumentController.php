@@ -12,7 +12,9 @@ use App\Models\DocumentItem;
 use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\DocumentCatalog;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\LineItems\LineItemMath;
 use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
@@ -29,8 +31,12 @@ class DocumentController extends Controller
     {
         $this->authorize('viewAny', Document::class);
 
+        $tenant = app('tenant');
         $security = app(Security::class);
         $user = auth()->user();
+        $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
+        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
 
         $q = trim((string) $request->get('q', ''));
         $partyId = $request->get('party_id');
@@ -79,7 +85,15 @@ class DocumentController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('documents.index', compact('documents', 'parties', 'assets', 'orders'));
+        return view('documents.index', compact(
+            'documents',
+            'parties',
+            'assets',
+            'orders',
+            'supportsPartiesModule',
+            'supportsAssetsModule',
+            'supportsOrdersModule',
+        ));
     }
 
     public function create(Request $request)

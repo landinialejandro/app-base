@@ -45,28 +45,6 @@
             [
                 'type' => 'embedded',
                 'slot' => 'tab_panels',
-                'key' => 'tasks',
-                'label' => 'Tareas',
-                'priority' => 10,
-                'count' => $tasks->count(),
-                'view' => 'tasks.partials.embedded-tabs',
-                'data' => [
-                    'tasks' => $tasks,
-                    'openTasks' => $openTasks,
-                    'doneTasks' => $doneTasks,
-                    'emptyMessageOpen' => 'No hay tareas abiertas en este proyecto.',
-                    'emptyMessageDone' => 'No hay tareas finalizadas en este proyecto.',
-                    'emptyMessageAll' => 'No hay tareas asociadas a este proyecto.',
-                    'tabsId' => 'project-tasks-tabs',
-                    'createBaseQuery' => [
-                        'project_id' => $project->id,
-                    ],
-                    'trailQuery' => $trailQuery,
-                ],
-            ],
-            [
-                'type' => 'embedded',
-                'slot' => 'tab_panels',
                 'key' => 'attachments',
                 'label' => 'Adjuntos',
                 'priority' => 20,

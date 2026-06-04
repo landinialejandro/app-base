@@ -8,6 +8,7 @@
     $emptyMessageOpen = $emptyMessageOpen ?? 'No hay tareas abiertas para mostrar.';
     $emptyMessageDone = $emptyMessageDone ?? 'No hay tareas finalizadas para mostrar.';
     $emptyMessageAll = $emptyMessageAll ?? 'No hay tareas para mostrar.';
+    $supportsOrdersModule = $supportsOrdersModule ?? false;
 
     $tabsId = $tabsId ?? 'tasks-tabs-' . uniqid();
     $trailQuery = $trailQuery ?? [];
@@ -60,6 +61,7 @@
             <x-card class="list-card">
                 @include('tasks.partials.table', [
                     'tasks' => $openTasks,
+                    'supportsOrdersModule' => $supportsOrdersModule,
                     'emptyMessage' => $emptyMessageOpen,
                     'trailQuery' => $trailQuery,
                 ])
@@ -72,6 +74,7 @@
             <x-card class="list-card">
                 @include('tasks.partials.table', [
                     'tasks' => $doneTasks,
+                    'supportsOrdersModule' => $supportsOrdersModule,
                     'emptyMessage' => $emptyMessageDone,
                     'trailQuery' => $trailQuery,
                 ])
@@ -84,6 +87,7 @@
             <x-card class="list-card">
                 @include('tasks.partials.table', [
                     'tasks' => $tasks,
+                    'supportsOrdersModule' => $supportsOrdersModule,
                     'emptyMessage' => $emptyMessageAll,
                     'trailQuery' => $trailQuery,
                 ])

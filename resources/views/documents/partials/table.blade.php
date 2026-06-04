@@ -2,9 +2,7 @@
 
 @php
     use App\Support\Assets\AssetLinked;
-    use App\Support\Auth\TenantModuleAccess;
     use App\Support\Catalogs\DocumentCatalog;
-    use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Navigation\OrderNavigationTrail;
     use App\Support\Parties\PartyLinked;
@@ -14,14 +12,11 @@
     $showCounterparty = $showCounterparty ?? ($showParty ?? true);
     $showAsset = $showAsset ?? true;
     $showOrder = $showOrder ?? true;
+    $supportsPartiesModule = $supportsPartiesModule ?? false;
+    $supportsAssetsModule = $supportsAssetsModule ?? false;
+    $supportsOrdersModule = $supportsOrdersModule ?? false;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
-
-    $tenant = app('tenant');
-
-    $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
-    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
-    $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
 
     $renderCounterpartyColumn = $showCounterparty;
     $renderAssetColumn = $showAsset && $supportsAssetsModule;

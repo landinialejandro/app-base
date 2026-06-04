@@ -129,6 +129,9 @@
                 'showCounterparty' => true,
                 'showAsset' => true,
                 'showOrder' => true,
+                'supportsPartiesModule' => $supportsPartiesModule,
+                'supportsAssetsModule' => $supportsAssetsModule,
+                'supportsOrdersModule' => $supportsOrdersModule,
                 'emptyMessage' => 'No hay documentos cargados.',
                 'trailQuery' => $trailQuery,
             ])

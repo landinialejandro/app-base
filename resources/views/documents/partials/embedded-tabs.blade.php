@@ -10,6 +10,9 @@
     $showCounterparty = $showCounterparty ?? ($showParty ?? true);
     $showAsset = $showAsset ?? true;
     $showOrder = $showOrder ?? true;
+    $supportsPartiesModule = $supportsPartiesModule ?? false;
+    $supportsAssetsModule = $supportsAssetsModule ?? false;
+    $supportsOrdersModule = $supportsOrdersModule ?? false;
 
     $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
     $allLabel = $allLabel ?? 'Todos';
@@ -131,6 +134,9 @@
                     'showCounterparty' => $showCounterparty,
                     'showAsset' => $showAsset,
                     'showOrder' => $showOrder,
+                    'supportsPartiesModule' => $supportsPartiesModule,
+                    'supportsAssetsModule' => $supportsAssetsModule,
+                    'supportsOrdersModule' => $supportsOrdersModule,
                     'emptyMessage' => $emptyMessage,
                     'trailQuery' => $trailQuery,
                 ])
@@ -151,6 +157,9 @@
                         'showCounterparty' => $showCounterparty,
                         'showAsset' => $showAsset,
                         'showOrder' => $showOrder,
+                        'supportsPartiesModule' => $supportsPartiesModule,
+                        'supportsAssetsModule' => $supportsAssetsModule,
+                        'supportsOrdersModule' => $supportsOrdersModule,
                         'emptyMessage' => "No hay documentos de tipo {$label} para mostrar.",
                         'trailQuery' => $trailQuery,
                     ])

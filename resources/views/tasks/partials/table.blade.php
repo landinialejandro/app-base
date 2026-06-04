@@ -1,8 +1,6 @@
 {{-- FILE: resources/views/tasks/partials/table.blade.php | V8 --}}
 
 @php
-    use App\Support\Auth\TenantModuleAccess;
-    use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\TaskCatalog;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Orders\OrderLinked;
@@ -10,11 +8,9 @@
 
     $tasks = $tasks ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay tareas para mostrar.';
+    $supportsOrdersModule = $supportsOrdersModule ?? false;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
-
-    $tenant = app('tenant');
-    $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
 @endphp
 
 @if ($tasks->count())

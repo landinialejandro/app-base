@@ -4,6 +4,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperationalRecordCreated;
+use App\Events\OperationalRecordUpdated;
 use App\Models\Project;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\ProjectCatalog;
@@ -132,29 +134,29 @@ class ProjectController extends Controller
         ]);
     }
 
-public function store(Request $request)
-{
-    $this->authorize('create', Project::class);
+    public function store(Request $request)
+    {
+        $this->authorize('create', Project::class);
 
-    $data = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'description' => ['nullable', 'string'],
-        'status' => ['required', 'string', Rule::in(ProjectCatalog::statuses())],
-    ]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(ProjectCatalog::statuses())],
+        ]);
 
-    $project = Project::create($data);
+        $project = Project::create($data);
 
-    event(new \App\Events\OperationalRecordCreated(
-        record: $project,
-        actorUserId: auth()->id(),
-    ));
+        event(new OperationalRecordCreated(
+            record: $project,
+            actorUserId: auth()->id(),
+        ));
 
-    $navigationTrail = ProjectNavigationTrail::show($request, $project);
+        $navigationTrail = ProjectNavigationTrail::show($request, $project);
 
-    return redirect()
-        ->route('projects.show', ['project' => $project] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', "Proyecto #{$project->id} creado correctamente.");
-}
+        return redirect()
+            ->route('projects.show', ['project' => $project] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', "Proyecto #{$project->id} creado correctamente.");
+    }
 
     public function show(Request $request, Project $project)
     {
@@ -197,32 +199,32 @@ public function store(Request $request)
         ]);
     }
 
-public function update(Request $request, Project $project)
-{
-    $this->authorize('update', $project);
+    public function update(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
 
-    $data = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'description' => ['nullable', 'string'],
-        'status' => ['required', 'string', Rule::in(ProjectCatalog::statuses())],
-    ]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(ProjectCatalog::statuses())],
+        ]);
 
-    $beforeAttributes = $project->getAttributes();
+        $beforeAttributes = $project->getAttributes();
 
-    $project->update($data);
+        $project->update($data);
 
-    event(new \App\Events\OperationalRecordUpdated(
-        record: $project,
-        beforeAttributes: $beforeAttributes,
-        actorUserId: auth()->id(),
-    ));
+        event(new OperationalRecordUpdated(
+            record: $project,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: auth()->id(),
+        ));
 
-    $navigationTrail = ProjectNavigationTrail::show($request, $project);
+        $navigationTrail = ProjectNavigationTrail::show($request, $project);
 
-    return redirect()
-        ->route('projects.show', ['project' => $project] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Proyecto actualizado');
-}
+        return redirect()
+            ->route('projects.show', ['project' => $project] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Proyecto actualizado');
+    }
 
     public function destroy(Request $request, Project $project)
     {

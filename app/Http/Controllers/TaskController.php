@@ -4,10 +4,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperationalRecordCreated;
+use App\Events\OperationalRecordUpdated;
 use App\Models\Party;
 use App\Models\Project;
 use App\Models\Task;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Navigation\NavigationTrail;
@@ -33,6 +37,7 @@ class TaskController extends Controller
         $status = $request->get('status');
         $priority = $request->get('priority');
         $assignedUserId = $request->get('assigned_user_id');
+        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
 
         $effectiveScope = $this->taskViewScope();
         $canViewAll = $effectiveScope === PermissionScopeCatalog::TENANT_ALL;
@@ -108,6 +113,7 @@ class TaskController extends Controller
             'users' => $users,
             'scope' => $effectiveScope,
             'canViewAll' => $canViewAll,
+            'supportsOrdersModule' => $supportsOrdersModule,
         ]);
     }
 
@@ -159,100 +165,100 @@ class TaskController extends Controller
         ));
     }
 
-public function store(Request $request)
-{
-    $tenant = app('tenant');
-    $tenantUsers = app(TenantUserDirectory::class);
+    public function store(Request $request)
+    {
+        $tenant = app('tenant');
+        $tenantUsers = app(TenantUserDirectory::class);
 
-    $this->authorize('create', Task::class);
+        $this->authorize('create', Task::class);
 
-    $data = $request->validate([
-        'project_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-            }),
-        ],
-        'party_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-            }),
-        ],
-        'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
-        'name' => ['required', 'string', 'max:255'],
-        'description' => ['nullable', 'string'],
-        'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
-        'priority' => ['required', 'string', Rule::in(array_keys(TaskCatalog::priorityLabels()))],
-        'due_date' => ['nullable', 'date'],
-    ]);
+        $data = $request->validate([
+            'project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
+            'priority' => ['required', 'string', Rule::in(array_keys(TaskCatalog::priorityLabels()))],
+            'due_date' => ['nullable', 'date'],
+        ]);
 
-    $data['assigned_user_id'] = $data['assigned_user_id']
-        ?? $tenantUsers->defaultAssignedUserId($tenant, auth()->user());
+        $data['assigned_user_id'] = $data['assigned_user_id']
+            ?? $tenantUsers->defaultAssignedUserId($tenant, auth()->user());
 
-    if (! $data['assigned_user_id']) {
-        return back()
-            ->withErrors([
-                'assigned_user_id' => 'No hay colaboradores activos disponibles para asignar la tarea.',
-            ])
-            ->withInput();
+        if (! $data['assigned_user_id']) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'No hay colaboradores activos disponibles para asignar la tarea.',
+                ])
+                ->withInput();
+        }
+
+        if (! $tenantUsers->userBelongsToTenant($tenant, (int) $data['assigned_user_id'])) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
+                ])
+                ->withInput();
+        }
+
+        $task = Task::create($data);
+
+        event(new OperationalRecordCreated(
+            record: $task,
+            actorUserId: auth()->id(),
+        ));
+
+        $task->load(['project', 'party', 'assignedUser', 'order']);
+
+        $navigationTrail = TaskNavigationTrail::show($request, $task);
+
+        return redirect()
+            ->route('tasks.show', ['task' => $task] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Tarea creada correctamente.');
     }
 
-    if (! $tenantUsers->userBelongsToTenant($tenant, (int) $data['assigned_user_id'])) {
-        return back()
-            ->withErrors([
-                'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
-            ])
-            ->withInput();
+    public function show(Request $request, Task $task)
+    {
+        $tenant = app('tenant');
+
+        $this->authorize('view', $task);
+
+        $task->load([
+            'project',
+            'party',
+            'assignedUser',
+            'order',
+            'attachments' => fn ($query) => $query->ordered(),
+        ]);
+
+        $canEditTask = auth()->user()->can('update', $task);
+        $canDeleteTask = auth()->user()->can('delete', $task);
+        $isForeignTaskForAdmin = $this->canManageForeignTask($task);
+
+        $navigationTrail = TaskNavigationTrail::show($request, $task);
+
+        return view('tasks.show', compact(
+            'tenant',
+            'task',
+            'navigationTrail',
+            'canEditTask',
+            'canDeleteTask',
+            'isForeignTaskForAdmin'
+        ));
     }
-
-    $task = Task::create($data);
-
-    event(new \App\Events\OperationalRecordCreated(
-        record: $task,
-        actorUserId: auth()->id(),
-    ));
-
-    $task->load(['project', 'party', 'assignedUser', 'order']);
-
-    $navigationTrail = TaskNavigationTrail::show($request, $task);
-
-    return redirect()
-        ->route('tasks.show', ['task' => $task] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Tarea creada correctamente.');
-}
-
-public function show(Request $request, Task $task)
-{
-    $tenant = app('tenant');
-
-    $this->authorize('view', $task);
-
-    $task->load([
-        'project',
-        'party',
-        'assignedUser',
-        'order',
-        'attachments' => fn ($query) => $query->ordered(),
-    ]);
-
-    $canEditTask = auth()->user()->can('update', $task);
-    $canDeleteTask = auth()->user()->can('delete', $task);
-    $isForeignTaskForAdmin = $this->canManageForeignTask($task);
-
-    $navigationTrail = TaskNavigationTrail::show($request, $task);
-
-    return view('tasks.show', compact(
-        'tenant',
-        'task',
-        'navigationTrail',
-        'canEditTask',
-        'canDeleteTask',
-        'isForeignTaskForAdmin'
-    ));
-}
 
     public function edit(Request $request, Task $task)
     {
@@ -299,86 +305,86 @@ public function show(Request $request, Task $task)
         ));
     }
 
-public function update(Request $request, Task $task)
-{
-    $tenant = app('tenant');
-    $tenantUsers = app(TenantUserDirectory::class);
+    public function update(Request $request, Task $task)
+    {
+        $tenant = app('tenant');
+        $tenantUsers = app(TenantUserDirectory::class);
 
-    $this->authorize('update', $task);
+        $this->authorize('update', $task);
 
-    $data = $request->validate([
-        'project_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-            }),
-        ],
-        'party_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-            }),
-        ],
-        'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
-        'name' => ['required', 'string', 'max:255'],
-        'description' => ['nullable', 'string'],
-        'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
-        'priority' => ['required', 'string', Rule::in(array_keys(TaskCatalog::priorityLabels()))],
-        'due_date' => ['nullable', 'date'],
-        'confirm_foreign_task_edit' => ['nullable', 'string'],
-    ]);
+        $data = $request->validate([
+            'project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
+            'priority' => ['required', 'string', Rule::in(array_keys(TaskCatalog::priorityLabels()))],
+            'due_date' => ['nullable', 'date'],
+            'confirm_foreign_task_edit' => ['nullable', 'string'],
+        ]);
 
-    $data['assigned_user_id'] = $data['assigned_user_id']
-        ?? $tenantUsers->defaultAssignedUserId($tenant, auth()->user());
+        $data['assigned_user_id'] = $data['assigned_user_id']
+            ?? $tenantUsers->defaultAssignedUserId($tenant, auth()->user());
 
-    if (! $data['assigned_user_id']) {
-        return back()
-            ->withErrors([
-                'assigned_user_id' => 'No hay colaboradores activos disponibles para asignar la tarea.',
-            ])
-            ->withInput();
+        if (! $data['assigned_user_id']) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'No hay colaboradores activos disponibles para asignar la tarea.',
+                ])
+                ->withInput();
+        }
+
+        if (! $tenantUsers->userBelongsToTenant($tenant, (int) $data['assigned_user_id'])) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
+                ])
+                ->withInput();
+        }
+
+        $isAdminEditingForeignTask = $this->canManageForeignTask($task);
+
+        if ($isAdminEditingForeignTask && $request->input('confirm_foreign_task_edit') !== '1') {
+            return back()
+                ->withErrors([
+                    'confirm_foreign_task_edit' => 'Estás editando una tarea asignada a otro colaborador. Confirmá la modificación antes de guardar.',
+                ])
+                ->withInput();
+        }
+
+        unset($data['confirm_foreign_task_edit']);
+
+        $beforeAttributes = $task->getAttributes();
+
+        $task->update($data);
+
+        event(new OperationalRecordUpdated(
+            record: $task,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: auth()->id(),
+        ));
+
+        $task->load(['project', 'party', 'assignedUser', 'order']);
+
+        $navigationTrail = TaskNavigationTrail::show($request, $task);
+
+        return redirect()
+            ->route('tasks.show', ['task' => $task] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Tarea actualizada correctamente.');
     }
-
-    if (! $tenantUsers->userBelongsToTenant($tenant, (int) $data['assigned_user_id'])) {
-        return back()
-            ->withErrors([
-                'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
-            ])
-            ->withInput();
-    }
-
-    $isAdminEditingForeignTask = $this->canManageForeignTask($task);
-
-    if ($isAdminEditingForeignTask && $request->input('confirm_foreign_task_edit') !== '1') {
-        return back()
-            ->withErrors([
-                'confirm_foreign_task_edit' => 'Estás editando una tarea asignada a otro colaborador. Confirmá la modificación antes de guardar.',
-            ])
-            ->withInput();
-    }
-
-    unset($data['confirm_foreign_task_edit']);
-
-    $beforeAttributes = $task->getAttributes();
-
-    $task->update($data);
-
-    event(new \App\Events\OperationalRecordUpdated(
-        record: $task,
-        beforeAttributes: $beforeAttributes,
-        actorUserId: auth()->id(),
-    ));
-
-    $task->load(['project', 'party', 'assignedUser', 'order']);
-
-    $navigationTrail = TaskNavigationTrail::show($request, $task);
-
-    return redirect()
-        ->route('tasks.show', ['task' => $task] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Tarea actualizada correctamente.');
-}
 
     public function destroy(Request $request, Task $task)
     {

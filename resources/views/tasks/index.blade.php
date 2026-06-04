@@ -90,6 +90,7 @@
         <x-card class="list-card">
             @include('tasks.partials.table', [
                 'tasks' => $tasks,
+                'supportsOrdersModule' => $supportsOrdersModule,
                 'emptyMessage' => 'No hay tareas registradas para esta empresa.',
                 'trailQuery' => $trailQuery,
             ])

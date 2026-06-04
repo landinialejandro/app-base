@@ -429,7 +429,8 @@ class TenantProfileController extends Controller
     {
         return match ($module) {
             ModuleCatalog::DASHBOARD,
-            ModuleCatalog::SERVICE_MAINTENANCE => [
+            ModuleCatalog::SERVICE_MAINTENANCE,
+            ModuleCatalog::PRODUCTION => [
                 CapabilityCatalog::VIEW_ANY,
             ],
 

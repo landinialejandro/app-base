@@ -1,28 +1,10 @@
-{{-- FILE: resources/views/components/layout/navbar.blade.php | V7 --}}
-
-@php
-    use App\Support\Tenants\TenantProfileAccess;
-
-    $user = auth()->user();
-    $tenant = app()->bound('tenant') ? app('tenant') : null;
-
-    $currentMembership = $user && $tenant
-        ? $user->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->with('roles')
-            ->first()
-        : null;
-
-    $canViewTenantProfile = $user && $tenant
-        ? app(TenantProfileAccess::class)->canViewProfile($currentMembership)
-        : false;
-@endphp
+{{-- FILE: resources/views/components/layout/navbar.blade.php | V8 --}}
 
 <header class="app-header">
     <div class="container app-header-inner">
 
         <div class="app-brand">
-            <a href="{{ auth()->check() ? route('dashboard') : url('/') }}" class="app-brand-link" aria-label="app-base">
+            <a href="{{ $brandUrl }}" class="app-brand-link" aria-label="app-base">
                 <span class="app-brand__icon" aria-hidden="true">
                     @include('svg.app-logo')
                 </span>
@@ -30,7 +12,7 @@
         </div>
 
         <nav class="app-nav">
-            @auth
+            @if ($userName)
                 @if (count($secondaryLinks))
                     <details class="app-nav-dropdown" @if ($secondaryIsExpanded) open @endif>
                         <summary class="app-nav-link app-nav-link--with-icon {{ $secondaryIsActive ? 'is-active' : '' }}">
@@ -42,17 +24,11 @@
 
                         <div class="app-nav-dropdown-menu">
                             @foreach ($secondaryLinks as $link)
-                                @php
-                                    $isActive = $activeModule === $link['module'];
-                                    $isCurrent = $currentModule === $link['module'];
-                                    $icon = $link['icon'] ?? 'box';
-                                @endphp
-
-                                <a class="app-nav-dropdown-link {{ $isActive ? 'is-active' : '' }}"
-                                    href="{{ route($link['route']) }}"
-                                    @if ($isCurrent) aria-current="page" @endif>
+                                <a class="app-nav-dropdown-link {{ $link['is_active'] ? 'is-active' : '' }}"
+                                    href="{{ $link['url'] }}"
+                                    @if ($link['is_current']) aria-current="page" @endif>
                                     <span class="app-nav-link__icon" aria-hidden="true">
-                                        <x-dynamic-component :component="'icons.' . $icon" />
+                                        <x-dynamic-component :component="$link['icon_component']" />
                                     </span>
                                     <span>{{ $link['label'] }}</span>
                                 </a>
@@ -62,29 +38,23 @@
                 @endif
 
                 @foreach ($quickLinks as $link)
-                    @php
-                        $isActive = $activeModule === $link['module'];
-                        $isCurrent = $currentModule === $link['module'];
-                        $icon = $link['icon'] ?? 'box';
-                    @endphp
-
-                    <a class="app-nav-link app-nav-link--with-icon {{ $isActive ? 'is-active' : '' }}"
-                        href="{{ route($link['route']) }}" @if ($isCurrent) aria-current="page" @endif>
+                    <a class="app-nav-link app-nav-link--with-icon {{ $link['is_active'] ? 'is-active' : '' }}"
+                        href="{{ $link['url'] }}" @if ($link['is_current']) aria-current="page" @endif>
                         <span class="app-nav-link__icon" aria-hidden="true">
-                            <x-dynamic-component :component="'icons.' . $icon" />
+                            <x-dynamic-component :component="$link['icon_component']" />
                         </span>
                         <span>{{ $link['label'] }}</span>
                     </a>
                 @endforeach
-            @endauth
+            @endif
         </nav>
 
         <div class="app-header-actions">
-            @auth
-                @if ($tenant)
+            @if ($userName)
+                @if ($tenantName)
                     <div class="app-company">
                         <span class="app-company-label">Empresa</span>
-                        <span class="app-company-name">{{ $tenant->name }}</span>
+                        <span class="app-company-name">{{ $tenantName }}</span>
                     </div>
                 @endif
 
@@ -96,33 +66,21 @@
 
                         <span class="app-user-trigger-text">
                             <span class="app-user-trigger-label">Usuario</span>
-                            <span class="app-user-trigger-name">{{ $user->name }}</span>
+                            <span class="app-user-trigger-name">{{ $userName }}</span>
                         </span>
                     </summary>
 
                     <div class="app-user-dropdown-menu">
-                        <a href="{{ route('profile.show') }}"
-                            class="app-user-dropdown-link {{ request()->routeIs('profile.show') ? 'is-active' : '' }}">
-                            Perfil
-                        </a>
-
-                        @if ($canViewTenantProfile)
-                            <a href="{{ route('tenant.profile.show') }}"
-                                class="app-user-dropdown-link {{ request()->routeIs('tenant.profile.show') ? 'is-active' : '' }}">
-                                Perfil de empresa
+                        @foreach ($userMenuLinks as $link)
+                            <a href="{{ $link['url'] }}"
+                                class="app-user-dropdown-link {{ $link['is_active'] ? 'is-active' : '' }}">
+                                {{ $link['label'] }}
                             </a>
-                        @endif
-
-                        @if ($user->tenants->count() > 1)
-                            <a href="{{ route('tenants.select') }}"
-                                class="app-user-dropdown-link {{ request()->routeIs('tenants.select') ? 'is-active' : '' }}">
-                                Cambiar empresa
-                            </a>
-                        @endif
+                        @endforeach
 
                         <div class="app-user-dropdown-divider"></div>
 
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ $logoutUrl }}">
                             @csrf
                             <button class="app-user-dropdown-button" type="submit">
                                 Cerrar sesión
@@ -130,7 +88,7 @@
                         </form>
                     </div>
                 </details>
-            @endauth
+            @endif
         </div>
 
     </div>

@@ -6,7 +6,7 @@ namespace App\View\Components\Layout;
 
 use App\Models\Tenant;
 use App\Models\User;
-use App\Support\Auth\RolePermissionResolver;
+use App\Support\Auth\RoleModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Navigation\NavbarContext;
 use App\Support\Tenants\TenantProfileAccess;
@@ -70,11 +70,9 @@ class Navbar extends Component
             return;
         }
 
-        $resolver = app(RolePermissionResolver::class);
-
         $visibleLinks = collect(ModuleCatalog::navDefinitions())
-            ->filter(function (array $link) use ($resolver, $tenant, $user) {
-                return $resolver->canUseModule($link['module'], $tenant, $user);
+            ->filter(function (array $link) use ($tenant, $user) {
+                return RoleModuleAccess::canAccess($link['module'], $tenant, $user);
             })
             ->map(function (array $link) {
                 if ($link['module'] === ModuleCatalog::APPOINTMENTS) {

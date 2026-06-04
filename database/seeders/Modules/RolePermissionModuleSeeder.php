@@ -464,10 +464,12 @@ protected function matrix(): array
                 CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
                 ]),
                 CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
                 ]),
                 CapabilityCatalog::CREATE => $this->orderMeta(null, [
                     OrderCatalog::KIND_SALE,

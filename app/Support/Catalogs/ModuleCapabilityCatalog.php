@@ -21,7 +21,9 @@ class ModuleCapabilityCatalog
             ModuleCatalog::PROJECTS,
             ModuleCatalog::TASKS,
             ModuleCatalog::ORDERS,
-            ModuleCatalog::PARTIES => [
+            ModuleCatalog::PARTIES,
+            ModuleCatalog::SHOPS,
+            ModuleCatalog::ATTACHMENTS => [
                 CapabilityCatalog::VIEW_ANY,
                 CapabilityCatalog::VIEW,
                 CapabilityCatalog::CREATE,

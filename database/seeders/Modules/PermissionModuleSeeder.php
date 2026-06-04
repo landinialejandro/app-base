@@ -6,6 +6,7 @@ namespace Database\Seeders\Modules;
 
 use App\Models\Permission;
 use App\Support\Catalogs\CapabilityCatalog;
+use App\Support\Catalogs\ModuleCapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 
 class PermissionModuleSeeder extends BaseModuleSeeder
@@ -33,7 +34,7 @@ protected function getPermissionDefinitions(): array
     $definitions = [];
 
     foreach (ModuleCatalog::all() as $module) {
-        foreach ($this->capabilitiesForModule($module) as $capability) {
+        foreach (ModuleCapabilityCatalog::capabilitiesFor($module) as $capability) {
             $definitions[] = [
                 'slug' => CapabilityCatalog::permissionSlug($module, $capability),
                 'name' => $this->buildPermissionName($module, $capability),
@@ -59,25 +60,6 @@ protected function getPermissionDefinitions(): array
 
     return $definitions;
 }
-
-protected function capabilitiesForModule(string $module): array
-    {
-        return match ($module) {
-            ModuleCatalog::DASHBOARD,
-            ModuleCatalog::SERVICE_MAINTENANCE,
-            ModuleCatalog::PRODUCTION => [
-                CapabilityCatalog::VIEW_ANY,
-            ],
-
-            default => [
-                CapabilityCatalog::VIEW_ANY,
-                CapabilityCatalog::VIEW,
-                CapabilityCatalog::CREATE,
-                CapabilityCatalog::UPDATE,
-                CapabilityCatalog::DELETE,
-            ],
-        };
-    }
 
     protected function buildPermissionName(string $module, string $capability): string
     {

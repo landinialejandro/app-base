@@ -53,7 +53,10 @@
 
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
+    --color-primary-subtle: rgba(37, 99, 235, 0.06);
     --color-primary-soft: rgba(37, 99, 235, 0.12);
+    --color-primary-subtle-strong: rgba(37, 99, 235, 0.1);
+    --color-primary-border-soft: rgba(37, 99, 235, 0.22);
     --color-primary-strong: #1d4ed8;
 
     --color-secondary: #e5e7eb;
@@ -96,6 +99,7 @@
     --color-overlay-backdrop: rgba(0, 0, 0, 0.45);
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.055);
     --shadow-dropdown: 0 10px 30px rgba(15, 23, 42, 0.1);
 
     --radius: 8px;
@@ -316,15 +320,15 @@ a:hover {
 }
 
 .app-nav-link:hover {
-    background: rgba(37, 99, 235, 0.06);
-    border-color: rgba(37, 99, 235, 0.1);
+    background: var(--color-primary-subtle);
+    border-color: var(--color-primary-subtle-strong);
     color: var(--color-primary);
     text-decoration: none;
     transform: translateY(-1px);
 }
 
 .app-nav-link.is-active {
-    background: rgba(37, 99, 235, 0.1);
+    background: var(--color-primary-subtle-strong);
     border-color: rgba(37, 99, 235, 0.14);
     color: var(--color-primary);
     font-weight: 700;
@@ -414,7 +418,7 @@ a:hover {
 }
 
 .app-nav-dropdown-link.is-active {
-    background: rgba(37, 99, 235, 0.1);
+    background: var(--color-primary-subtle-strong);
     color: var(--color-primary);
     font-weight: 700;
 }
@@ -542,7 +546,7 @@ a:hover {
 }
 
 .app-user-dropdown-link.is-active {
-    background: rgba(37, 99, 235, 0.1);
+    background: var(--color-primary-subtle-strong);
     color: var(--color-primary);
     font-weight: 700;
 }
@@ -1007,9 +1011,9 @@ body.app-modal-open {
 
 .btn-secondary:hover {
     background: var(--color-surface);
-    border-color: rgba(37, 99, 235, 0.22);
+    border-color: var(--color-primary-border-soft);
     color: var(--color-primary);
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.055);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-success {

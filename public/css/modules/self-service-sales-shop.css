@@ -576,7 +576,7 @@
     padding: 0.55rem 0.65rem;
     border-radius: var(--radius);
     background: rgba(245, 158, 11, 0.14);
-    color: #92400e;
+    color: var(--color-warning-text);
     font-size: 0.86rem;
     font-weight: 700;
 }

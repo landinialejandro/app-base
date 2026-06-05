@@ -347,7 +347,7 @@
 }
 
 .appointment-calendar-day.is-today .appointment-calendar-day-number {
-    color: #1d4ed8;
+    color: var(--color-primary-strong);
 }
 
 .appointment-calendar-day.is-past-day {
@@ -365,7 +365,7 @@
 .appointment-calendar-day.is-past-day .appointment-calendar-day-summary,
 .appointment-calendar-day.is-past-day .appointment-calendar-empty,
 .appointment-calendar-day.is-past-day .appointment-calendar-more {
-    color: #6b7280;
+    color: var(--color-muted);
 }
 
 /* =========================================================

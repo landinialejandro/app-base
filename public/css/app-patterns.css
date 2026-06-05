@@ -632,7 +632,7 @@
 }
 
 .tabs-link:hover {
-    background: #ffffff;
+    background: var(--color-surface);
     border-color: var(--color-track);
     color: var(--color-text);
     text-decoration: none;
@@ -826,7 +826,7 @@
     padding: .5rem .65rem;
     border-radius: .5rem;
     background: #111827;
-    color: #ffffff;
+    color: var(--color-surface);
     font-size: .78rem;
     line-height: 1.35;
     box-shadow: 0 10px 24px rgba(15, 23, 42, .18);
@@ -1160,7 +1160,7 @@
 
 .pie-segment--in-progress,
 .dashboard-pie-segment--in-progress {
-    stroke: #2563eb;
+    stroke: var(--color-primary);
 }
 
 .pie-segment--done,
@@ -1170,7 +1170,7 @@
 
 .pie-segment--cancelled,
 .dashboard-pie-segment--cancelled {
-    stroke: #6b7280;
+    stroke: var(--color-muted);
 }
 
 .pie-center,
@@ -1228,7 +1228,7 @@
 
 .pie-dot--in-progress,
 .dashboard-pie-dot--in-progress {
-    background: #2563eb;
+    background: var(--color-primary);
 }
 
 .pie-dot--done,
@@ -1238,7 +1238,7 @@
 
 .pie-dot--cancelled,
 .dashboard-pie-dot--cancelled {
-    background: #6b7280;
+    background: var(--color-muted);
 }
 
 .visual-kpi,

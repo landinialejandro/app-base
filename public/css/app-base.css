@@ -272,7 +272,7 @@ a:hover {
 
 .app-company-label {
     font-size: 0.72rem;
-    color: #94a3b8;
+    color: var(--color-muted);
 }
 
 .app-company-name {
@@ -453,7 +453,7 @@ a:hover {
 }
 
 .app-user-trigger:hover {
-    background: #fff;
+    background: var(--color-surface);
     border-color: rgba(37, 99, 235, 0.18);
     box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
 }
@@ -489,7 +489,7 @@ a:hover {
 
 .app-user-trigger-label {
     font-size: 0.68rem;
-    color: #94a3b8;
+    color: var(--color-muted);
 }
 
 .app-user-trigger-name {
@@ -585,7 +585,7 @@ a:hover {
     justify-content: center;
     width: 1.15rem;
     height: 1.15rem;
-    color: #94a3b8;
+    color: var(--color-muted);
     opacity: 0.78;
 }
 
@@ -610,7 +610,7 @@ a:hover {
     border: 1px solid rgba(148, 163, 184, 0.28);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.72);
-    color: #94a3b8;
+    color: var(--color-muted);
     font-size: 0.74rem;
     font-weight: 600;
     line-height: 1.1;
@@ -988,7 +988,7 @@ body.app-modal-open {
 .btn-primary {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: #fff;
+    color: var(--color-surface);
     box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
 }
 
@@ -1005,7 +1005,7 @@ body.app-modal-open {
 }
 
 .btn-secondary:hover {
-    background: #fff;
+    background: var(--color-surface);
     border-color: rgba(37, 99, 235, 0.22);
     color: var(--color-primary);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.055);
@@ -1014,7 +1014,7 @@ body.app-modal-open {
 .btn-success {
     background: var(--color-success);
     border-color: var(--color-success);
-    color: #fff;
+    color: var(--color-surface);
     box-shadow: 0 1px 2px rgba(22, 101, 52, 0.12);
 }
 
@@ -1027,7 +1027,7 @@ body.app-modal-open {
 .btn-danger {
     background: var(--color-danger);
     border-color: var(--color-danger);
-    color: #fff;
+    color: var(--color-surface);
     box-shadow: 0 1px 2px rgba(220, 38, 38, 0.12);
 }
 
@@ -1182,7 +1182,7 @@ body.app-modal-open {
     padding: 0.7rem 0.85rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: #fff;
+    background: var(--color-surface);
     color: var(--color-text);
     font: inherit;
     line-height: 1.2;

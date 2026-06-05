@@ -1155,22 +1155,22 @@
 
 .pie-segment--pending,
 .dashboard-pie-segment--pending {
-    stroke: #f59e0b;
+    stroke: var(--chart-pending);
 }
 
 .pie-segment--in-progress,
 .dashboard-pie-segment--in-progress {
-    stroke: var(--color-primary);
+    stroke: var(--chart-in-progress);
 }
 
 .pie-segment--done,
 .dashboard-pie-segment--done {
-    stroke: #16a34a;
+    stroke: var(--chart-done);
 }
 
 .pie-segment--cancelled,
 .dashboard-pie-segment--cancelled {
-    stroke: var(--color-muted);
+    stroke: var(--chart-cancelled);
 }
 
 .pie-center,
@@ -1223,22 +1223,22 @@
 
 .pie-dot--pending,
 .dashboard-pie-dot--pending {
-    background: #f59e0b;
+    background: var(--chart-pending);
 }
 
 .pie-dot--in-progress,
 .dashboard-pie-dot--in-progress {
-    background: var(--color-primary);
+    background: var(--chart-in-progress);
 }
 
 .pie-dot--done,
 .dashboard-pie-dot--done {
-    background: #16a34a;
+    background: var(--chart-done);
 }
 
 .pie-dot--cancelled,
 .dashboard-pie-dot--cancelled {
-    background: var(--color-muted);
+    background: var(--chart-cancelled);
 }
 
 .visual-kpi,
@@ -1339,23 +1339,23 @@
 }
 
 .access-dot--owner {
-    background: #e55353;
+    background: var(--role-owner);
 }
 
 .access-dot--admin {
-    background: #f59e0b;
+    background: var(--role-admin);
 }
 
 .access-dot--sales {
-    background: #22c55e;
+    background: var(--role-sales);
 }
 
 .access-dot--operator {
-    background: #3b82f6;
+    background: var(--role-operator);
 }
 
 .access-dot--administrator {
-    background: #eab308;
+    background: var(--role-administrator);
 }
 
 .mt-0 {

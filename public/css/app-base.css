@@ -95,6 +95,17 @@
     --color-danger-soft: #fee2e2;
     --color-danger-strong: #b91c1c;
 
+    --chart-pending: #f59e0b;
+    --chart-in-progress: var(--color-primary);
+    --chart-done: #16a34a;
+    --chart-cancelled: var(--color-muted);
+
+    --role-owner: #e55353;
+    --role-admin: var(--chart-pending);
+    --role-sales: #22c55e;
+    --role-operator: #3b82f6;
+    --role-administrator: #eab308;
+
     --color-track: #e5e7eb;
     --color-surface-hover: #f9fafb;
     --color-overlay-backdrop: rgba(0, 0, 0, 0.45);

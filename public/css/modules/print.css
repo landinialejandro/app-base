@@ -1,7 +1,9 @@
 /* FILE: public/css/modules/print.css | V3 */
 
 :root {
+    --print-surface: #ffffff;
     --print-border: #d1d5db;
+    --print-border-soft: #e5e7eb;
     --print-text: #111827;
     --print-muted: #6b7280;
     --print-soft: #f3f4f6;
@@ -17,7 +19,7 @@ body {
     padding: 0;
     font-family: Arial, Helvetica, sans-serif;
     color: var(--print-text);
-    background: #ffffff;
+    background: var(--print-surface);
     font-size: 12px;
     line-height: 1.45;
 }
@@ -46,7 +48,7 @@ body {
     padding: 0 14px;
     border: 1px solid var(--print-border);
     border-radius: 6px;
-    background: #ffffff;
+    background: var(--print-surface);
     color: var(--print-text);
     font-size: 12px;
     font-weight: 600;
@@ -173,7 +175,7 @@ body {
     border: 1px solid var(--print-border);
     border-radius: 8px;
     padding: 10px 12px;
-    background: #ffffff;
+    background: var(--print-surface);
 }
 
 .print-block-label {
@@ -342,7 +344,7 @@ body {
     border-radius: 10px;
     padding: 12px 14px;
     vertical-align: top;
-    background: #ffffff;
+    background: var(--print-surface);
 }
 
 .ticket-print__hero-label {
@@ -421,7 +423,7 @@ body {
 }
 
 .ticket-print__row+.ticket-print__row {
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--print-border-soft);
 }
 
 .ticket-print__label,

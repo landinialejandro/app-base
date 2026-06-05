@@ -37,8 +37,8 @@ body {
 
 .dashboard-module-card {
     --dashboard-accent: var(--color-primary);
-    --dashboard-accent-soft: rgba(37, 99, 235, 0.08);
-    --dashboard-accent-glow: rgba(37, 99, 235, 0.16);
+    --dashboard-accent-soft: var(--color-primary-soft);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-primary) 16%, transparent);
 
     position: relative;
     isolation: isolate;
@@ -162,63 +162,51 @@ body {
 .dashboard-module-card .dashboard-link-meta,
 .dashboard-module-card .dashboard-info-meta {
     margin-top: auto;
-    color: #94a3b8;
+    color: var(--color-muted);
 }
 
-/* Colores por módulo */
+/* Acentos reutilizables */
 
-.dashboard-module-card--appointments {
-    --dashboard-accent: #2563eb;
-    --dashboard-accent-soft: rgba(37, 99, 235, 0.075);
-    --dashboard-accent-glow: rgba(37, 99, 235, 0.14);
+.dashboard-module-card--accent-primary {
+    --dashboard-accent: var(--color-primary);
+    --dashboard-accent-soft: var(--color-primary-soft);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-primary) 16%, transparent);
 }
 
-.dashboard-module-card--parties {
-    --dashboard-accent: #0891b2;
-    --dashboard-accent-soft: rgba(8, 145, 178, 0.075);
-    --dashboard-accent-glow: rgba(8, 145, 178, 0.14);
+.dashboard-module-card--accent-info {
+    --dashboard-accent: var(--color-info-text);
+    --dashboard-accent-soft: var(--color-info-soft);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-info-text) 16%, transparent);
 }
 
-.dashboard-module-card--assets {
-    --dashboard-accent: #475569;
-    --dashboard-accent-soft: rgba(71, 85, 105, 0.075);
-    --dashboard-accent-glow: rgba(71, 85, 105, 0.14);
+.dashboard-module-card--accent-success {
+    --dashboard-accent: var(--color-success);
+    --dashboard-accent-soft: var(--color-success-bg);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-success) 16%, transparent);
 }
 
-.dashboard-module-card--orders {
-    --dashboard-accent: #2563eb;
-    --dashboard-accent-soft: rgba(37, 99, 235, 0.085);
-    --dashboard-accent-glow: rgba(37, 99, 235, 0.16);
+.dashboard-module-card--accent-warning {
+    --dashboard-accent: var(--color-warning-text);
+    --dashboard-accent-soft: var(--color-warning-soft);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-warning-text) 16%, transparent);
 }
 
-.dashboard-module-card--tasks {
-    --dashboard-accent: #f59e0b;
-    --dashboard-accent-soft: rgba(245, 158, 11, 0.08);
-    --dashboard-accent-glow: rgba(245, 158, 11, 0.15);
+.dashboard-module-card--accent-danger {
+    --dashboard-accent: var(--color-danger);
+    --dashboard-accent-soft: var(--color-danger-soft);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-danger) 16%, transparent);
 }
 
-.dashboard-module-card--projects {
-    --dashboard-accent: #7c3aed;
-    --dashboard-accent-soft: rgba(124, 58, 237, 0.075);
-    --dashboard-accent-glow: rgba(124, 58, 237, 0.14);
+.dashboard-module-card--accent-purple {
+    --dashboard-accent: var(--color-purple-text);
+    --dashboard-accent-soft: var(--color-purple-soft);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-purple-text) 16%, transparent);
 }
 
-.dashboard-module-card--products {
-    --dashboard-accent: #16a34a;
-    --dashboard-accent-soft: rgba(22, 163, 74, 0.075);
-    --dashboard-accent-glow: rgba(22, 163, 74, 0.14);
-}
-
-.dashboard-module-card--inventory {
-    --dashboard-accent: #15803d;
-    --dashboard-accent-soft: rgba(21, 128, 61, 0.08);
-    --dashboard-accent-glow: rgba(21, 128, 61, 0.15);
-}
-
-.dashboard-module-card--documents {
-    --dashboard-accent: #6d28d9;
-    --dashboard-accent-soft: rgba(109, 40, 217, 0.075);
-    --dashboard-accent-glow: rgba(109, 40, 217, 0.14);
+.dashboard-module-card--accent-neutral {
+    --dashboard-accent: var(--color-cancelled-text);
+    --dashboard-accent-soft: var(--color-cancelled-soft);
+    --dashboard-accent-glow: color-mix(in srgb, var(--color-muted) 16%, transparent);
 }
 
 @media (max-width: 640px) {

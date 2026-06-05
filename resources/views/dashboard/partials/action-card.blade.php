@@ -1,7 +1,7 @@
 {{-- FILE: resources/views/dashboard/partials/action-card.blade.php | V1 --}}
 
 <a href="{{ $card['route'] }}"
-    class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+    class="dashboard-link-card dashboard-module-card dashboard-module-card--accent-{{ $card['accent'] }} dashboard-module-card--module-{{ $card['module'] }}">
     <span class="dashboard-module-icon">
         <x-dynamic-component :component="'icons.' . $card['icon']" />
     </span>

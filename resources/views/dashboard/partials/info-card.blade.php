@@ -1,6 +1,7 @@
 {{-- FILE: resources/views/dashboard/partials/info-card.blade.php | V1 --}}
 
-<div class="dashboard-info-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+<div
+    class="dashboard-info-card dashboard-module-card dashboard-module-card--accent-{{ $card['accent'] }} dashboard-module-card--module-{{ $card['module'] }}">
     <span class="dashboard-module-icon">
         <x-dynamic-component :component="'icons.' . $card['icon']" />
     </span>

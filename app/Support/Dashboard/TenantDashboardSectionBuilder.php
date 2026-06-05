@@ -354,6 +354,7 @@ class TenantDashboardSectionBuilder
                 'type' => 'action',
                 'order' => 99,
                 'module' => ModuleCatalog::SHOPS,
+                'accent' => 'danger',
                 'route' => [
                     'name' => 'self_service_sales.shop',
                     'parameters' => [

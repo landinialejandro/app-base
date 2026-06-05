@@ -145,6 +145,7 @@ class TenantDashboardResolver
             'visible' => true,
             'module' => $item['module'],
             'icon' => ModuleCatalog::icon($item['module']),
+            'accent' => $this->resolveAccent($item),
             'title' => $item['title'],
             'text' => $item['text'],
             'meta' => $this->resolveMeta($item['meta'], $tenant, $user),
@@ -155,6 +156,26 @@ class TenantDashboardResolver
         }
 
         return $resolved;
+    }
+
+    private function resolveAccent(array $item): string
+    {
+        $accent = $item['accent'] ?? ModuleCatalog::accent($item['module'] ?? null);
+
+        return in_array($accent, $this->supportedAccents(), true) ? $accent : 'primary';
+    }
+
+    private function supportedAccents(): array
+    {
+        return [
+            'primary',
+            'info',
+            'success',
+            'warning',
+            'danger',
+            'purple',
+            'neutral',
+        ];
     }
 
     private function resolvePayload(array $payload, Tenant $tenant, User $user): array

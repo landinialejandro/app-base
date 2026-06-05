@@ -51,21 +51,25 @@ class ModuleCatalog
         self::DASHBOARD => [
             'label' => 'Dashboard',
             'icon' => 'grid',
+            'accent' => 'primary',
         ],
 
         self::SERVICE_MAINTENANCE => [
             'label' => 'Servicio y mantenimiento',
             'icon' => 'wrench',
+            'accent' => 'neutral',
         ],
 
         self::PRODUCTION => [
             'label' => 'Producción',
             'icon' => 'factory',
+            'accent' => 'primary',
         ],
 
         self::PROJECTS => [
             'label' => 'Proyectos',
             'icon' => 'folder',
+            'accent' => 'purple',
             'surface_service' => ProjectSurfaceService::class,
             'activity_record_set' => ProjectActivityRecordSet::class,
             'nav' => [
@@ -78,6 +82,7 @@ class ModuleCatalog
         self::TASKS => [
             'label' => 'Tareas',
             'icon' => 'list-check',
+            'accent' => 'warning',
             'surface_service' => TaskSurfaceService::class,
             'nav' => [
                 'group' => 'main',
@@ -90,6 +95,7 @@ class ModuleCatalog
         self::APPOINTMENTS => [
             'label' => 'Turnos',
             'icon' => 'calendar',
+            'accent' => 'primary',
             'surface_service' => AppointmentSurfaceService::class,
             'nav' => [
                 'group' => 'main',
@@ -102,6 +108,7 @@ class ModuleCatalog
         self::PARTIES => [
             'label' => 'Contactos',
             'icon' => 'user-group',
+            'accent' => 'info',
             'surface_service' => PartySurfaceService::class,
             'activity_context' => PartyEmployeeActivityContext::class,
             'nav' => [
@@ -115,6 +122,7 @@ class ModuleCatalog
         self::PRODUCTS => [
             'label' => 'Productos',
             'icon' => 'box',
+            'accent' => 'success',
             'surface_service' => ProductSurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -127,6 +135,7 @@ class ModuleCatalog
         self::SHOPS => [
             'label' => 'Tiendas',
             'icon' => 'store',
+            'accent' => 'success',
             'nav' => [
                 'group' => 'management',
                 'route' => 'shops.index',
@@ -138,6 +147,7 @@ class ModuleCatalog
         self::INVENTORY => [
             'label' => 'Inventario',
             'icon' => 'archive-box',
+            'accent' => 'success',
             'surface_service' => InventorySurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -150,6 +160,7 @@ class ModuleCatalog
         self::ASSETS => [
             'label' => 'Activos',
             'icon' => 'screen',
+            'accent' => 'neutral',
             'surface_service' => AssetSurfaceService::class,
             'nav' => [
                 'group' => 'main',
@@ -162,6 +173,7 @@ class ModuleCatalog
         self::ORDERS => [
             'label' => 'Órdenes',
             'icon' => 'orders',
+            'accent' => 'primary',
             'surface_service' => OrderSurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -174,6 +186,7 @@ class ModuleCatalog
         self::DOCUMENTS => [
             'label' => 'Documentos',
             'icon' => 'file-text',
+            'accent' => 'purple',
             'surface_service' => DocumentSurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -186,6 +199,7 @@ class ModuleCatalog
         self::ATTACHMENTS => [
             'label' => 'Adjuntos',
             'icon' => 'paperclip',
+            'accent' => 'neutral',
             'surface_service' => AttachmentSurfaceService::class,
         ],
     ];
@@ -223,6 +237,15 @@ class ModuleCatalog
         }
 
         return static::$definitions[$module]['icon'] ?? $default;
+    }
+
+    public static function accent(?string $module, string $default = 'primary'): string
+    {
+        if ($module === null) {
+            return $default;
+        }
+
+        return static::$definitions[$module]['accent'] ?? $default;
     }
 
     public static function surfaceService(string $module): ?string

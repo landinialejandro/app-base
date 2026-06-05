@@ -113,7 +113,7 @@ class TenantDashboardSectionBuilder
             ],
             'management' => [
                 'enabled' => true,
-                'order' => 40,
+                'order' => 50,
                 'type' => 'cards',
                 'title' => 'Gestión complementaria',
                 'text' => 'Módulos de seguimiento interno, planificación y soporte.',
@@ -123,14 +123,29 @@ class TenantDashboardSectionBuilder
                     'tasks.index',
                     'projects.index',
                     'products.index',
-                    'shops.index',
                     'inventory.index',
                     'documents.index',
                 ],
             ],
+            'shop' => [
+                'enabled' => true,
+                'order' => 40,
+                'type' => 'cards',
+                'title' => 'Tienda',
+                'text' => 'Administración interna de tiendas y acceso al catálogo público publicado para el tenant.',
+                'variant' => 'premium',
+                'requires' => [
+                    ['type' => 'module_enabled', 'module' => ModuleCatalog::SHOPS],
+                    ['type' => 'ability', 'ability' => ModuleCatalog::SHOPS.'.viewAny'],
+                ],
+                'items' => [
+                    'shops.index',
+                    'self_service_sales.shop',
+                ],
+            ],
             'project_operational_analysis' => [
                 'enabled' => true,
-                'order' => 50,
+                'order' => 60,
                 'type' => 'partial',
                 'requires' => [
                     ['type' => 'analytics'],
@@ -148,7 +163,7 @@ class TenantDashboardSectionBuilder
     {
         return [
             'operational.summary' => [
-                'enabled' => false,
+                'enabled' => true,
                 'type' => 'info',
                 'order' => 10,
                 'module' => ModuleCatalog::TASKS,
@@ -329,9 +344,27 @@ class TenantDashboardSectionBuilder
                 'requires' => [
                     ['type' => 'ability', 'ability' => ModuleCatalog::SHOPS.'.viewAny'],
                 ],
-                'title' => 'Tiendas',
-                'text' => 'Configurá las tiendas internas que publican catálogo hacia la tienda externa.',
+                'title' => 'Gestionar tiendas',
+                'text' => 'Configurar tiendas internas, catálogo publicado y puntos de consumo.',
                 'meta' => ':shops_count tiendas',
+            ],
+            'self_service_sales.shop' => [
+                'enabled' => true,
+                'type' => 'action',
+                'order' => 60,
+                'module' => ModuleCatalog::SHOPS,
+                'route' => [
+                    'name' => 'self_service_sales.shop',
+                    'parameters' => [
+                        'tenant' => ':tenant',
+                    ],
+                ],
+                'requires' => [
+                    ['type' => 'active_shop'],
+                ],
+                'title' => 'Abrir tienda activa',
+                'text' => 'Abrir la tienda pública publicada para este tenant.',
+                'meta' => ':active_shop_name',
             ],
             'inventory.index' => [
                 'enabled' => true,

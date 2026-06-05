@@ -20,6 +20,7 @@ use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Projects\ProjectVisibility;
+use App\Support\Shops\ShopPublishedCatalogReader;
 use App\Support\Tasks\TaskVisibility;
 use Illuminate\Support\Collection;
 
@@ -31,10 +32,14 @@ class TenantDashboardResolver
 
     private ?Collection $visibleTasks = null;
 
+    private ?Shop $activeShop = null;
+
+    private bool $activeShopResolved = false;
+
     public function __construct(
         private readonly Security $security,
-    ) {
-    }
+        private readonly ShopPublishedCatalogReader $shopCatalogReader,
+    ) {}
 
     public function forTenantUser(Tenant $tenant, User $user): Collection
     {
@@ -42,6 +47,8 @@ class TenantDashboardResolver
         $this->metrics = [];
         $this->visibleProjects = null;
         $this->visibleTasks = null;
+        $this->activeShop = null;
+        $this->activeShopResolved = false;
 
         return $this->resolveSections(
             TenantDashboardSectionBuilder::matrix(),
@@ -119,6 +126,7 @@ class TenantDashboardResolver
                 $requirement['subject'] ?? null,
                 $requirement['context'] ?? []
             ),
+            'active_shop' => $this->activeShopForTenant($tenant) instanceof Shop,
             'analytics' => $this->canSeeAnalytics($tenant, $user),
             default => false,
         };
@@ -143,7 +151,7 @@ class TenantDashboardResolver
         ];
 
         if (($item['type'] ?? null) === 'action') {
-            $resolved['route'] = $this->resolveRoute($item['route']);
+            $resolved['route'] = $this->resolveRoute($item['route'], $tenant);
         }
 
         return $resolved;
@@ -158,13 +166,23 @@ class TenantDashboardResolver
             ->all();
     }
 
-    private function resolveRoute(array|string $route): string
+    private function resolveRoute(array|string $route, Tenant $tenant): string
     {
         if (is_array($route)) {
-            return route($route['name'], $route['parameters'] ?? []);
+            return route(
+                $route['name'],
+                $this->resolveRouteParameters($route['parameters'] ?? [], $tenant)
+            );
         }
 
         return route($route);
+    }
+
+    private function resolveRouteParameters(array $parameters, Tenant $tenant): array
+    {
+        return collect($parameters)
+            ->map(fn (mixed $value) => $value === ':tenant' ? $tenant : $value)
+            ->all();
     }
 
     private function resolveMeta(string $meta, Tenant $tenant, User $user): string
@@ -187,6 +205,7 @@ class TenantDashboardResolver
             'orders_count' => $this->security->scope($user, ModuleCatalog::ORDERS.'.viewAny', Order::query())->count(),
             'products_count' => $this->security->scope($user, ModuleCatalog::PRODUCTS.'.viewAny', Product::query())->count(),
             'shops_count' => $this->security->scope($user, ModuleCatalog::SHOPS.'.viewAny', Shop::query())->count(),
+            'active_shop_name' => $this->activeShopForTenant($tenant)?->name ?? 'Tienda activa',
             'documents_count' => $this->security->scope($user, ModuleCatalog::DOCUMENTS.'.viewAny', Document::query())->count(),
             'service_orders_count' => $this->security
                 ->scope($user, ModuleCatalog::ORDERS.'.viewAny', Order::query())
@@ -224,6 +243,16 @@ class TenantDashboardResolver
                 'tasks.status',
                 'tasks.due_date',
             ]);
+    }
+
+    private function activeShopForTenant(Tenant $tenant): ?Shop
+    {
+        if (! $this->activeShopResolved) {
+            $this->activeShop = $this->shopCatalogReader->activeShopForTenant($tenant);
+            $this->activeShopResolved = true;
+        }
+
+        return $this->activeShop;
     }
 
     private function projectOverview(Tenant $tenant, User $user): array

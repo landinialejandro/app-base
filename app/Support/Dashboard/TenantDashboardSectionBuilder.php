@@ -140,6 +140,7 @@ class TenantDashboardSectionBuilder
                 ],
                 'items' => [
                     'shops.index',
+                    'shops.active.edit',
                     'self_service_sales.shop',
                 ],
             ],
@@ -351,7 +352,7 @@ class TenantDashboardSectionBuilder
             'self_service_sales.shop' => [
                 'enabled' => true,
                 'type' => 'action',
-                'order' => 60,
+                'order' => 99,
                 'module' => ModuleCatalog::SHOPS,
                 'route' => [
                     'name' => 'self_service_sales.shop',
@@ -362,8 +363,31 @@ class TenantDashboardSectionBuilder
                 'requires' => [
                     ['type' => 'active_shop'],
                 ],
-                'title' => 'Abrir tienda activa',
-                'text' => 'Abrir la tienda pública publicada para este tenant.',
+                'title' => 'Abrir tienda externa',
+                'text' => 'Abrir la tienda pública externa publicada para este tenant.',
+                'meta' => ':active_shop_name',
+            ],
+            'shops.active.edit' => [
+                'enabled' => true,
+                'type' => 'action',
+                'order' => 60,
+                'module' => ModuleCatalog::SHOPS,
+                'route' => [
+                    'name' => 'shops.show',
+                    'parameters' => [
+                        'shop' => ':active_shop',
+                    ],
+                ],
+                'requires' => [
+                    ['type' => 'active_shop'],
+                    [
+                        'type' => 'ability',
+                        'ability' => ModuleCatalog::SHOPS.'.view',
+                        'subject' => ':active_shop',
+                    ],
+                ],
+                'title' => 'Editar tienda activa',
+                'text' => 'Abrir el perfil interno de la tienda activa publicada para este tenant.',
                 'meta' => ':active_shop_name',
             ],
             'inventory.index' => [

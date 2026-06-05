@@ -123,7 +123,7 @@ class TenantDashboardResolver
             'ability' => $this->security->allows(
                 $user,
                 $requirement['ability'],
-                $requirement['subject'] ?? null,
+                $this->resolveRequirementSubject($requirement['subject'] ?? null, $tenant),
                 $requirement['context'] ?? []
             ),
             'active_shop' => $this->activeShopForTenant($tenant) instanceof Shop,
@@ -181,8 +181,25 @@ class TenantDashboardResolver
     private function resolveRouteParameters(array $parameters, Tenant $tenant): array
     {
         return collect($parameters)
-            ->map(fn (mixed $value) => $value === ':tenant' ? $tenant : $value)
+            ->map(fn (mixed $value) => $this->resolveRouteParameter($value, $tenant))
             ->all();
+    }
+
+    private function resolveRouteParameter(mixed $value, Tenant $tenant): mixed
+    {
+        return match ($value) {
+            ':tenant' => $tenant,
+            ':active_shop' => $this->activeShopForTenant($tenant),
+            default => $value,
+        };
+    }
+
+    private function resolveRequirementSubject(mixed $subject, Tenant $tenant): mixed
+    {
+        return match ($subject) {
+            ':active_shop' => $this->activeShopForTenant($tenant),
+            default => $subject,
+        };
     }
 
     private function resolveMeta(string $meta, Tenant $tenant, User $user): string

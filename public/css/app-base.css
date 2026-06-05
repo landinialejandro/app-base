@@ -45,9 +45,11 @@
     --color-surface: #ffffff;
     --color-surface-muted: #f8fafc;
     --color-border: #d9e1ec;
+    --color-border-soft: rgba(217, 225, 236, 0.86);
     --color-text: #1f2937;
     --color-muted: #6b7280;
     --color-text-muted: #6b7280;
+    --color-text-inverse: #ffffff;
 
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
@@ -59,9 +61,7 @@
 
     --color-danger: #dc2626;
     --color-danger-hover: #b91c1c;
-    /* 
-    --color-success: #16a34a;
-    --color-success-hover: #15803d; */
+
     --color-success: #166534;
     --color-success-hover: #14532d;
 
@@ -93,6 +93,7 @@
 
     --color-track: #e5e7eb;
     --color-surface-hover: #f9fafb;
+    --color-overlay-backdrop: rgba(0, 0, 0, 0.45);
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
     --shadow-dropdown: 0 10px 30px rgba(15, 23, 42, 0.1);
@@ -193,7 +194,7 @@ a:hover {
 .app-header {
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94));
-    border-bottom: 1px solid rgba(217, 225, 236, 0.86);
+    border-bottom: 1px solid var(--color-border-soft);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
 }
 
@@ -558,7 +559,7 @@ a:hover {
    ========================================================= */
 
 .app-footer {
-    border-top: 1px solid rgba(217, 225, 236, 0.86);
+    border-top: 1px solid var(--color-border-soft);
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 252, 0.96));
 }
@@ -687,7 +688,7 @@ a:hover {
 .app-modal__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--color-overlay-backdrop);
 }
 
 .app-modal__dialog {
@@ -988,7 +989,7 @@ body.app-modal-open {
 .btn-primary {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: var(--color-surface);
+    color: var(--color-text-inverse);
     box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
 }
 
@@ -1014,7 +1015,7 @@ body.app-modal-open {
 .btn-success {
     background: var(--color-success);
     border-color: var(--color-success);
-    color: var(--color-surface);
+    color: var(--color-text-inverse);
     box-shadow: 0 1px 2px rgba(22, 101, 52, 0.12);
 }
 
@@ -1027,7 +1028,7 @@ body.app-modal-open {
 .btn-danger {
     background: var(--color-danger);
     border-color: var(--color-danger);
-    color: var(--color-surface);
+    color: var(--color-text-inverse);
     box-shadow: 0 1px 2px rgba(220, 38, 38, 0.12);
 }
 

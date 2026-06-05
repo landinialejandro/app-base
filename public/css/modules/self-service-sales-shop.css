@@ -1,6 +1,45 @@
 /* FILE: public/css/modules/self-service-sales-shop.css | V4 */
 
 .shop-public-shell {
+    --shop-accent: #0f766e;
+    --shop-accent-border: rgba(15, 118, 110, 0.38);
+    --shop-accent-soft: rgba(15, 118, 110, 0.13);
+    --shop-accent-shadow: 0 10px 24px rgba(15, 118, 110, 0.18);
+    --shop-accent-shadow-strong: 0 8px 18px rgba(15, 118, 110, 0.22);
+    --shop-brand-secondary: var(--color-primary);
+    --shop-brand-gradient: linear-gradient(145deg, var(--shop-accent), var(--shop-brand-secondary));
+    --shop-border-card: rgba(217, 225, 236, 0.7);
+    --shop-border-control: rgba(217, 225, 236, 0.95);
+    --shop-border-header: rgba(217, 225, 236, 0.9);
+    --shop-border-nav: rgba(217, 225, 236, 0.92);
+    --shop-border-panel: rgba(217, 225, 236, 0.82);
+    --shop-bottom-nav-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+    --shop-card-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    --shop-drawer-shadow: -16px 0 48px rgba(15, 23, 42, 0.18);
+    --shop-gallery-gradient: linear-gradient(145deg, #e5f6f3, #eff4ff);
+    --shop-gallery-glow: rgba(255, 255, 255, 0.82);
+    --shop-header-bg: rgba(245, 247, 251, 0.94);
+    --shop-media-bg: #eef4f8;
+    --shop-modal-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+    --shop-overlay: rgba(15, 23, 42, 0.48);
+    --shop-payment-border: rgba(37, 99, 235, 0.35);
+    --shop-payment-mark: rgba(37, 99, 235, 0.12);
+    --shop-photo-count-bg: rgba(15, 23, 42, 0.74);
+    --shop-placeholder-gradient: linear-gradient(145deg, #dff6f2, #eaf1ff 52%, #fff7ed);
+    --shop-placeholder-glow: rgba(255, 255, 255, 0.72);
+    --shop-surface: var(--color-surface);
+    --shop-surface-glass: rgba(255, 255, 255, 0.82);
+    --shop-surface-glass-soft: rgba(255, 255, 255, 0.72);
+    --shop-surface-glass-stage: rgba(255, 255, 255, 0.84);
+    --shop-surface-glass-strong: rgba(255, 255, 255, 0.86);
+    --shop-surface-glass-solid: rgba(255, 255, 255, 0.96);
+    --shop-text-inverse: var(--color-text-inverse);
+    --shop-text-muted-strong: rgba(15, 23, 42, 0.68);
+    --shop-text-strong: var(--color-text);
+    --shop-warning-bg: rgba(245, 158, 11, 0.08);
+    --shop-warning-bg-strong: rgba(245, 158, 11, 0.14);
+    --shop-warning-border: rgba(245, 158, 11, 0.38);
+
     width: min(100%, 72rem);
     margin: 0 auto;
     padding: 0 0 calc(7rem + env(safe-area-inset-bottom, 0px));
@@ -17,8 +56,8 @@
     min-height: 4.25rem;
     margin: calc(var(--space-5) * -1) calc(var(--space-4) * -1) var(--space-2);
     padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid rgba(217, 225, 236, 0.9);
-    background: rgba(245, 247, 251, 0.94);
+    border-bottom: 1px solid var(--shop-border-header);
+    background: var(--shop-header-bg);
     backdrop-filter: blur(14px);
 }
 
@@ -37,10 +76,10 @@
     align-items: center;
     justify-content: center;
     border-radius: 14px;
-    background: linear-gradient(145deg, #0f766e, #2563eb);
-    color: #fff;
+    background: var(--shop-brand-gradient);
+    color: var(--shop-text-inverse);
     font-weight: 800;
-    box-shadow: 0 10px 24px rgba(15, 118, 110, 0.18);
+    box-shadow: var(--shop-accent-shadow);
 }
 
 .shop-hero h1 {
@@ -74,9 +113,9 @@
 .shop-header-action {
     min-height: 2.15rem;
     padding: 0 var(--space-3);
-    border: 1px solid rgba(217, 225, 236, 0.95);
+    border: 1px solid var(--shop-border-control);
     border-radius: var(--radius-pill);
-    background: rgba(255, 255, 255, 0.86);
+    background: var(--shop-surface-glass-strong);
     color: var(--color-text);
     cursor: pointer;
     font-size: 0.82rem;
@@ -96,9 +135,9 @@
     gap: var(--space-3);
     min-height: 2.8rem;
     padding: 0.55rem 0.75rem;
-    border: 1px solid rgba(217, 225, 236, 0.82);
+    border: 1px solid var(--shop-border-panel);
     border-radius: var(--radius-pill);
-    background: rgba(255, 255, 255, 0.82);
+    background: var(--shop-surface-glass);
 }
 
 .shop-status-panel__line,
@@ -164,18 +203,18 @@
     flex: 0 0 auto;
     min-height: 2.25rem;
     padding: 0 var(--space-3);
-    border: 1px solid rgba(217, 225, 236, 0.95);
+    border: 1px solid var(--shop-border-control);
     border-radius: var(--radius-pill);
-    background: #fff;
+    background: var(--shop-surface);
     color: var(--color-text);
     cursor: pointer;
     font-weight: 700;
 }
 
 .shop-category-chip.is-active {
-    border-color: rgba(15, 118, 110, 0.38);
-    background: #0f766e;
-    color: #fff;
+    border-color: var(--shop-accent-border);
+    background: var(--shop-accent);
+    color: var(--shop-text-inverse);
 }
 
 .shop-section-heading {
@@ -200,10 +239,10 @@
 .shop-product-card {
     min-width: 0;
     overflow: hidden;
-    border: 1px solid rgba(217, 225, 236, 0.7);
+    border: 1px solid var(--shop-border-card);
     border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+    background: var(--shop-surface);
+    box-shadow: var(--shop-card-shadow);
 }
 
 .shop-product-card[hidden] {
@@ -219,7 +258,7 @@
     align-items: stretch;
     justify-content: stretch;
     padding: 0;
-    background: #eef4f8;
+    background: var(--shop-media-bg);
     cursor: pointer;
 }
 
@@ -243,9 +282,9 @@
     padding: var(--space-3);
     overflow: hidden;
     background:
-        radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.72), transparent 32%),
-        linear-gradient(145deg, #dff6f2, #eaf1ff 52%, #fff7ed);
-    color: #0f172a;
+        radial-gradient(circle at 18% 18%, var(--shop-placeholder-glow), transparent 32%),
+        var(--shop-placeholder-gradient);
+    color: var(--shop-text-strong);
     text-align: left;
 }
 
@@ -257,7 +296,7 @@
     width: 6.5rem;
     height: 6.5rem;
     border-radius: 50%;
-    background: rgba(15, 118, 110, 0.13);
+    background: var(--shop-accent-soft);
 }
 
 .shop-product-placeholder::after {
@@ -268,7 +307,7 @@
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 12px;
-    background: rgba(37, 99, 235, 0.12);
+    background: var(--shop-payment-mark);
     transform: rotate(12deg);
 }
 
@@ -284,7 +323,7 @@
     position: relative;
     z-index: 1;
     max-width: 100%;
-    color: rgba(15, 23, 42, 0.68);
+    color: var(--shop-text-muted-strong);
     font-size: 0.75rem;
     font-weight: 800;
     line-height: 1.05;
@@ -297,8 +336,8 @@
     z-index: 2;
     padding: 0.25rem 0.45rem;
     border-radius: var(--radius-pill);
-    background: rgba(15, 23, 42, 0.74);
-    color: #fff;
+    background: var(--shop-photo-count-bg);
+    color: var(--shop-text-inverse);
     font-size: 0.68rem;
     font-weight: 800;
 }
@@ -367,7 +406,7 @@
     padding: var(--space-4);
     border: 1px dashed var(--color-border);
     border-radius: var(--radius);
-    background: rgba(255, 255, 255, 0.72);
+    background: var(--shop-surface-glass-soft);
     color: var(--color-muted);
 }
 
@@ -387,7 +426,7 @@
 .shop-drawer__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.48);
+    background: var(--shop-overlay);
 }
 
 .shop-product-detail,
@@ -399,8 +438,8 @@
     margin: 1rem auto;
     overflow: auto;
     border-radius: 18px;
-    background: #fff;
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+    background: var(--shop-surface);
+    box-shadow: var(--shop-modal-shadow);
 }
 
 .shop-product-detail {
@@ -424,8 +463,8 @@
     gap: var(--space-2);
     padding: var(--space-4);
     background:
-        radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.82), transparent 28%),
-        linear-gradient(145deg, #e5f6f3, #eff4ff);
+        radial-gradient(circle at 15% 12%, var(--shop-gallery-glow), transparent 28%),
+        var(--shop-gallery-gradient);
 }
 
 .shop-gallery__stage {
@@ -434,7 +473,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.84);
+    background: var(--shop-surface-glass-stage);
     color: var(--color-muted);
     text-align: center;
     padding: var(--space-4);
@@ -510,7 +549,7 @@
     height: 2.25rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    background: #fff;
+    background: var(--shop-surface);
     color: var(--color-text);
     cursor: pointer;
     font-size: 1.25rem;
@@ -527,8 +566,8 @@
     height: 100%;
     display: grid;
     grid-template-rows: auto 1fr auto;
-    background: #fff;
-    box-shadow: -16px 0 48px rgba(15, 23, 42, 0.18);
+    background: var(--shop-surface);
+    box-shadow: var(--shop-drawer-shadow);
 }
 
 .shop-cart__header {
@@ -567,15 +606,15 @@
 
 .shop-cart-line.is-unavailable {
     padding: var(--space-3);
-    border: 1px solid rgba(245, 158, 11, 0.38);
+    border: 1px solid var(--shop-warning-border);
     border-radius: var(--radius);
-    background: rgba(245, 158, 11, 0.08);
+    background: var(--shop-warning-bg);
 }
 
 .shop-cart-line__warning {
     padding: 0.55rem 0.65rem;
     border-radius: var(--radius);
-    background: rgba(245, 158, 11, 0.14);
+    background: var(--shop-warning-bg-strong);
     color: var(--color-warning-text);
     font-size: 0.86rem;
     font-weight: 700;
@@ -631,7 +670,7 @@ button.is-disabled {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px dashed rgba(37, 99, 235, 0.35);
+    border: 1px dashed var(--shop-payment-border);
     border-radius: var(--radius);
     background: var(--color-primary-soft);
     color: var(--color-primary-strong);
@@ -649,10 +688,10 @@ button.is-disabled {
     grid-template-columns: 1fr 1.15fr 1fr;
     gap: 0.35rem;
     padding: 0.38rem;
-    border: 1px solid rgba(217, 225, 236, 0.92);
+    border: 1px solid var(--shop-border-nav);
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16);
+    background: var(--shop-surface-glass-solid);
+    box-shadow: var(--shop-bottom-nav-shadow);
     backdrop-filter: blur(14px);
 }
 
@@ -682,9 +721,9 @@ button.is-disabled {
 }
 
 .shop-bottom-nav__primary {
-    background: #0f766e !important;
-    color: #fff !important;
-    box-shadow: 0 8px 18px rgba(15, 118, 110, 0.22);
+    background: var(--shop-accent) !important;
+    color: var(--shop-text-inverse) !important;
+    box-shadow: var(--shop-accent-shadow-strong);
 }
 
 @media (min-width: 680px) {

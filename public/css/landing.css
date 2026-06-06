@@ -30,9 +30,44 @@
     --landing-success: #166534;
     --landing-success-soft: #dcfce7;
 
+    --landing-page-glow-highlight: radial-gradient(circle at top left, rgba(245, 158, 11, 0.08), transparent 22%);
+    --landing-page-glow-accent: radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 24%);
+    --landing-page-gradient: linear-gradient(180deg, var(--landing-bg-alt) 0%, var(--landing-bg) 100%);
+    --landing-header-bg: rgba(250, 250, 249, 0.78);
+    --landing-header-border: rgba(228, 228, 231, 0.82);
+    --landing-border-glass: rgba(228, 228, 231, 0.88);
+    --landing-border-glass-soft: rgba(228, 228, 231, 0.72);
+    --landing-border-glass-strong: rgba(228, 228, 231, 0.92);
+    --landing-border-on-dark: rgba(245, 245, 244, 0.12);
+    --landing-surface-glass-soft: rgba(255, 255, 255, 0.58);
+    --landing-surface-glass: rgba(255, 255, 255, 0.78);
+    --landing-surface-glass-muted: rgba(255, 255, 255, 0.82);
+    --landing-surface-glass-card: rgba(255, 255, 255, 0.86);
+    --landing-surface-glass-strong: rgba(255, 255, 255, 0.92);
+    --landing-surface-glass-solid: rgba(255, 255, 255, 0.96);
+    --landing-surface-on-dark: rgba(255, 255, 255, 0.06);
+    --landing-surface-on-dark-soft: rgba(255, 255, 255, 0.05);
+    --landing-text-on-primary: #ffffff;
+    --landing-text-on-dark-muted: #d6d3d1;
+    --landing-text-on-dark-soft: rgba(245, 245, 244, 0.88);
+    --landing-showcase-gradient: linear-gradient(180deg, #ffffff 0%, #f8f7f4 100%);
+    --landing-showcase-dark-gradient: linear-gradient(180deg, #18181b 0%, #27272a 100%);
+    --landing-section-dark-gradient: linear-gradient(180deg, #18181b 0%, #292524 100%);
+    --landing-cta-gradient: linear-gradient(180deg, #ffffff 0%, #f7f7f5 100%);
+    --landing-footer-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(250, 250, 249, 0.92) 100%);
+    --landing-highlight-gradient: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+    --landing-highlight-border: rgba(245, 158, 11, 0.35);
+    --landing-highlight-ring: 0 0 0 1px rgba(245, 158, 11, 0.10);
+    --landing-highlight-text: #b45309;
+    --landing-dot: #d6d3d1;
     --landing-shadow: 0 24px 60px rgba(24, 24, 27, 0.10);
     --landing-shadow-soft: 0 12px 30px rgba(24, 24, 27, 0.06);
     --landing-shadow-card: 0 10px 24px rgba(24, 24, 27, 0.05);
+    --landing-shadow-header: 0 8px 24px rgba(24, 24, 27, 0.03);
+    --landing-shadow-logo: 0 8px 18px rgba(24, 24, 27, 0.04);
+    --landing-shadow-primary: 0 12px 26px rgba(24, 24, 27, 0.16);
+    --landing-shadow-pricing-hover: 0 18px 40px rgba(24, 24, 27, 0.08);
+    --landing-shadow-pricing-featured: 0 22px 52px rgba(24, 24, 27, 0.10);
 
     --landing-radius: 24px;
     --landing-radius-sm: 16px;
@@ -52,9 +87,9 @@ body.landing-body {
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
     background:
-        radial-gradient(circle at top left, rgba(245, 158, 11, 0.08), transparent 22%),
-        radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 24%),
-        linear-gradient(180deg, var(--landing-bg-alt) 0%, var(--landing-bg) 100%);
+        var(--landing-page-glow-highlight),
+        var(--landing-page-glow-accent),
+        var(--landing-page-gradient);
     color: var(--landing-text);
     line-height: 1.55;
 }
@@ -84,9 +119,9 @@ button {
     top: 0;
     z-index: 20;
     backdrop-filter: blur(16px);
-    background: rgba(250, 250, 249, 0.78);
-    border-bottom: 1px solid rgba(228, 228, 231, 0.82);
-    box-shadow: 0 8px 24px rgba(24, 24, 27, 0.03);
+    background: var(--landing-header-bg);
+    border-bottom: 1px solid var(--landing-header-border);
+    box-shadow: var(--landing-shadow-header);
 }
 
 .landing-header__inner {
@@ -107,9 +142,9 @@ button {
     text-decoration: none;
     line-height: 1;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(228, 228, 231, 0.88);
-    box-shadow: 0 8px 18px rgba(24, 24, 27, 0.04);
+    background: var(--landing-surface-glass);
+    border: 1px solid var(--landing-border-glass);
+    box-shadow: var(--landing-shadow-logo);
 }
 
 .landing-brand:hover {
@@ -183,8 +218,8 @@ button {
 
 .landing-btn--primary {
     background: var(--landing-primary);
-    color: #fff;
-    box-shadow: 0 12px 26px rgba(24, 24, 27, 0.16);
+    color: var(--landing-text-on-primary);
+    box-shadow: var(--landing-shadow-primary);
 }
 
 .landing-btn--primary:hover {
@@ -202,13 +237,13 @@ button {
 }
 
 .landing-btn--ghost {
-    background: rgba(255, 255, 255, 0.78);
+    background: var(--landing-surface-glass);
     color: var(--landing-text);
     border-color: var(--landing-border);
 }
 
 .landing-btn--ghost:hover {
-    background: #fff;
+    background: var(--landing-surface);
     border-color: var(--landing-border-strong);
 }
 
@@ -282,7 +317,7 @@ button {
     padding: 1rem 1.1rem;
     border: 1px solid var(--landing-border);
     border-radius: var(--landing-radius-sm);
-    background: rgba(255, 255, 255, 0.86);
+    background: var(--landing-surface-glass-card);
     box-shadow: var(--landing-shadow-card);
 }
 
@@ -303,9 +338,9 @@ button {
 
 .landing-showcase {
     overflow: hidden;
-    border: 1px solid rgba(228, 228, 231, 0.92);
+    border: 1px solid var(--landing-border-glass-strong);
     border-radius: 30px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8f7f4 100%);
+    background: var(--landing-showcase-gradient);
     box-shadow: var(--landing-shadow);
 }
 
@@ -313,14 +348,14 @@ button {
     display: flex;
     gap: 0.45rem;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid rgba(228, 228, 231, 0.88);
+    border-bottom: 1px solid var(--landing-border-glass);
 }
 
 .landing-dot {
     width: 10px;
     height: 10px;
     border-radius: 999px;
-    background: #d6d3d1;
+    background: var(--landing-dot);
 }
 
 .landing-showcase__body {
@@ -330,7 +365,7 @@ button {
 .landing-showcase__block {
     padding: 1.3rem;
     border-radius: 20px;
-    background: linear-gradient(180deg, #18181b 0%, #27272a 100%);
+    background: var(--landing-showcase-dark-gradient);
     color: var(--landing-text-inverse);
 }
 
@@ -341,7 +376,7 @@ button {
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #d6d3d1;
+    color: var(--landing-text-on-dark-muted);
 }
 
 .landing-showcase__block strong {
@@ -352,7 +387,7 @@ button {
 
 .landing-showcase__block p {
     margin: 0.75rem 0 0;
-    color: #d6d3d1;
+    color: var(--landing-text-on-dark-muted);
 }
 
 .landing-showcase__stats {
@@ -365,7 +400,7 @@ button {
     padding: 1rem 1.1rem;
     border: 1px solid var(--landing-border);
     border-radius: 18px;
-    background: #fff;
+    background: var(--landing-surface);
 }
 
 .landing-stat__label {
@@ -385,13 +420,13 @@ button {
 }
 
 .landing-section--soft {
-    background: rgba(255, 255, 255, 0.58);
-    border-top: 1px solid rgba(228, 228, 231, 0.72);
-    border-bottom: 1px solid rgba(228, 228, 231, 0.72);
+    background: var(--landing-surface-glass-soft);
+    border-top: 1px solid var(--landing-border-glass-soft);
+    border-bottom: 1px solid var(--landing-border-glass-soft);
 }
 
 .landing-section--dark {
-    background: linear-gradient(180deg, #18181b 0%, #292524 100%);
+    background: var(--landing-section-dark-gradient);
     color: var(--landing-text-inverse);
 }
 
@@ -446,7 +481,7 @@ button {
 }
 
 .landing-card {
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--landing-surface-glass-strong);
     border: 1px solid var(--landing-border);
     box-shadow: var(--landing-shadow-card);
 }
@@ -458,8 +493,8 @@ button {
 }
 
 .landing-module-card {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(245, 245, 244, 0.12);
+    background: var(--landing-surface-on-dark);
+    border: 1px solid var(--landing-border-on-dark);
     box-shadow: none;
 }
 
@@ -494,7 +529,7 @@ button {
     padding: 1.2rem;
     border: 1px solid var(--landing-border);
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--landing-surface-glass-solid);
     box-shadow: var(--landing-shadow-card);
 }
 
@@ -519,7 +554,7 @@ button {
     padding: 2.4rem;
     border: 1px solid var(--landing-border);
     border-radius: 30px;
-    background: linear-gradient(180deg, #ffffff 0%, #f7f7f5 100%);
+    background: var(--landing-cta-gradient);
     box-shadow: var(--landing-shadow);
 }
 
@@ -545,9 +580,8 @@ button {
 
 .landing-footer {
     padding: 3rem 0 3.25rem;
-    border-top: 1px solid rgba(228, 228, 231, 0.82);
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(250, 250, 249, 0.92) 100%);
+    border-top: 1px solid var(--landing-header-border);
+    background: var(--landing-footer-gradient);
 }
 
 .landing-footer__inner {
@@ -575,9 +609,9 @@ button {
     text-decoration: none;
     line-height: 1;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(228, 228, 231, 0.88);
-    box-shadow: 0 8px 18px rgba(24, 24, 27, 0.04);
+    background: var(--landing-surface-glass-muted);
+    border: 1px solid var(--landing-border-glass);
+    box-shadow: var(--landing-shadow-logo);
 }
 
 .landing-footer__brand:hover {
@@ -629,9 +663,9 @@ button {
 .landing-growth-note {
     margin-top: 2rem;
     padding: 1.55rem;
-    border: 1px solid rgba(245, 245, 244, 0.12);
+    border: 1px solid var(--landing-border-on-dark);
     border-radius: 26px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--landing-surface-on-dark-soft);
 }
 
 .landing-growth-note__content {
@@ -647,11 +681,11 @@ button {
 
 .landing-growth-note__content p {
     margin: 0;
-    color: rgba(245, 245, 244, 0.88);
+    color: var(--landing-text-on-dark-soft);
 }
 
 .landing-eyebrow--light {
-    color: #d6d3d1;
+    color: var(--landing-text-on-dark-muted);
 }
 
 .landing-pricing-card {
@@ -662,7 +696,7 @@ button {
     padding: 1.75rem;
     border: 1px solid var(--landing-border);
     border-radius: 28px;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--landing-surface-glass-solid);
     box-shadow: var(--landing-shadow-card);
     transition:
         transform 0.18s ease,
@@ -672,16 +706,16 @@ button {
 
 .landing-pricing-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 18px 40px rgba(24, 24, 27, 0.08);
+    box-shadow: var(--landing-shadow-pricing-hover);
 }
 
 .landing-pricing-card--featured {
     position: relative;
-    border-color: rgba(245, 158, 11, 0.35);
-    background: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+    border-color: var(--landing-highlight-border);
+    background: var(--landing-highlight-gradient);
     box-shadow:
-        0 22px 52px rgba(24, 24, 27, 0.10),
-        0 0 0 1px rgba(245, 158, 11, 0.10);
+        var(--landing-shadow-pricing-featured),
+        var(--landing-highlight-ring);
     transform: translateY(-6px);
 }
 
@@ -703,7 +737,7 @@ button {
     padding: 0.4rem 0.75rem;
     border-radius: 999px;
     background: var(--landing-highlight-soft);
-    color: #b45309;
+    color: var(--landing-highlight-text);
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.05em;

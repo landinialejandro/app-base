@@ -600,6 +600,7 @@ rsync: instalado
 SELinux: activo
 /srv/nas: samba_share_t
 Samba: operativo para share landini
+Espacio NAS observado: 916G total, 4,8G usados, 865G disponibles, 1% uso
 ```
 
 Al momento de la configuración, el NAS estaba disponible con amplio espacio libre.
@@ -610,6 +611,76 @@ Regla:
 NAS local no reemplaza copia offsite.
 No registrar contraseñas ni secretos.
 Las password files existen y quedan fuera de este documento.
+```
+
+## Estado global de timers Landini
+
+Validado con:
+
+```bash
+systemctl list-timers --all | grep landini
+```
+
+Timers activos:
+
+```text
+landini-backup-server.timer
+Service: landini-backup-server.service
+Próxima ejecución observada: Mon 2026-06-08 03:38:56 EDT
+Uso: backup diario servidor
+
+landini-backup-thinkpad-home.timer
+Service: landini-backup-thinkpad-home.service
+Próxima ejecución observada: Mon 2026-06-08 04:09:58 EDT
+Uso: backup diario ThinkPad
+
+landini-backup-macbook-home.timer
+Service: landini-backup-macbook-home.service
+Próxima ejecución observada: Mon 2026-06-08 04:37:15 EDT
+Uso: backup diario MacBook selectivo
+
+landini-restic-maintenance.timer
+Service: landini-restic-maintenance.service
+Próxima ejecución observada: Sun 2026-06-14 04:40:34 EDT
+Uso: mantenimiento semanal repo servidor
+
+landini-restic-maintenance-thinkpad.timer
+Service: landini-restic-maintenance-thinkpad.service
+Próxima ejecución observada: Sun 2026-06-14 05:16:26 EDT
+Uso: mantenimiento semanal repo ThinkPad
+
+landini-restic-maintenance-macbook.timer
+Service: landini-restic-maintenance-macbook.service
+Próxima ejecución observada: Sun 2026-06-14 05:54:06 EDT
+Uso: mantenimiento semanal repo MacBook
+```
+
+Systemd units existentes validadas:
+
+```text
+/etc/systemd/system/landini-backup-macbook-home.service
+/etc/systemd/system/landini-backup-server.service
+/etc/systemd/system/landini-backup-thinkpad-home.service
+/etc/systemd/system/landini-restic-maintenance-macbook.service
+/etc/systemd/system/landini-restic-maintenance.service
+/etc/systemd/system/landini-restic-maintenance-thinkpad.service
+/etc/systemd/system/landini-backup-macbook-home.timer
+/etc/systemd/system/landini-backup-server.timer
+/etc/systemd/system/landini-backup-thinkpad-home.timer
+/etc/systemd/system/landini-restic-maintenance-macbook.timer
+/etc/systemd/system/landini-restic-maintenance-thinkpad.timer
+/etc/systemd/system/landini-restic-maintenance.timer
+```
+
+Scripts operativos validados:
+
+```text
+/usr/local/sbin/landini-backup-macbook-home.sh              3,7K  -rwxr-x---  root:root
+/usr/local/sbin/landini-backup-server.sh                    2,7K  -rwxr-x---  root:root
+/usr/local/sbin/landini-backup-thinkpad-home.sh             3,4K  -rwxr-x---  root:root
+/usr/local/sbin/landini-restic-maintenance-macbook.sh       1,4K  -rwxr-x---  root:root
+/usr/local/sbin/landini-restic-maintenance.sh               1,4K  -rwxr-x---  root:root
+/usr/local/sbin/landini-restic-maintenance-thinkpad.sh      1,4K  -rwxr-x---  root:root
 ```
 
 ## Backup landini-server
@@ -647,8 +718,19 @@ Logs: /srv/nas/landini/backups/_logs/
 Snapshots validados:
 
 ```text
-f5778f6c  tags: landini-server, manual, system-config
-79be230d  tags: landini-server, scheduled, system-config
+f5778f6c
+Time: 2026-06-07 15:35:28
+Host: landini-server
+Tags: landini-server, manual, system-config
+Paths: /etc, /root, /tmp/landini-server-report-20260607_153526, /var/lib/samba
+Size: 59.344 MiB
+
+79be230d
+Time: 2026-06-07 15:40:21
+Host: landini-server
+Tags: landini-server, scheduled, system-config
+Paths: /etc, /root, /tmp/landini-server-report-20260607_154019, /var/lib/samba
+Size: 59.344 MiB
 ```
 
 Validaciones:
@@ -668,6 +750,7 @@ Service: landini-backup-server.service
 Horario: diario 03:30 con RandomizedDelaySec=10m
 Persistent: true
 Estado validado: active waiting
+Próxima ejecución observada: Mon 2026-06-08 03:38:56 EDT
 ```
 
 ## Mantenimiento Restic landini-server
@@ -703,6 +786,7 @@ Service: landini-restic-maintenance.service
 Horario: domingo 04:30 con RandomizedDelaySec=15m
 Persistent: true
 Estado validado: active waiting
+Próxima ejecución observada: Sun 2026-06-14 04:40:34 EDT
 ```
 
 ## Backup ThinkPad
@@ -795,8 +879,21 @@ app-base runtime/data queda como frente futuro separado si corresponde.
 Snapshots validados:
 
 ```text
-c3ff03b7  tags: thinkpad, manual, home  tamaño procesado observado: 2.727 GiB  check OK
-09ae650c  tags: thinkpad, scheduled, home  check OK
+c3ff03b7
+Time: 2026-06-07 16:20:14
+Host: landini-server
+Tags: thinkpad, manual, home
+Paths: /srv/nas/landini/backups/thinkpad/reports/20260607_161856, /srv/nas/landini/backups/thinkpad/staging-home
+Size: 2.727 GiB
+Check: OK
+
+09ae650c
+Time: 2026-06-07 16:24:57
+Host: landini-server
+Tags: thinkpad, scheduled, home
+Paths: /srv/nas/landini/backups/thinkpad/reports/20260607_162445, /srv/nas/landini/backups/thinkpad/staging-home
+Size: 2.727 GiB
+Check: OK
 ```
 
 Restore test:
@@ -816,6 +913,7 @@ Service: landini-backup-thinkpad-home.service
 Horario: diario 04:00 con RandomizedDelaySec=10m
 Persistent: true
 Estado validado: active waiting
+Próxima ejecución observada: Mon 2026-06-08 04:09:58 EDT
 ```
 
 ## Mantenimiento Restic ThinkPad
@@ -851,21 +949,300 @@ Service: landini-restic-maintenance-thinkpad.service
 Horario: domingo 05:15 con RandomizedDelaySec=15m
 Persistent: true
 Estado validado: active waiting
+Próxima ejecución observada: Sun 2026-06-14 05:16:26 EDT
 ```
 
-Timers activos validados:
+## Backup MacBook
+
+Equipo:
 
 ```text
-landini-backup-server.timer
-landini-backup-thinkpad-home.timer
-landini-restic-maintenance.timer
-landini-restic-maintenance-thinkpad.timer
+Host: MacBook-Ale.local
+IP: 192.168.0.118
+Usuario remoto: alejandro
+```
+
+Acceso SSH dedicado:
+
+```text
+Origen: root@landini-server
+Destino: alejandro@192.168.0.118
+Clave privada: /root/.ssh/landini_backup_macbook
+Validación SSH: hostname MacBook-Ale.local, whoami alejandro
+```
+
+Repositorio Restic:
+
+```text
+/srv/nas/landini/backups/macbook/restic
+Repo ID observado: a5292db8
+Password file: /root/.config/restic/macbook-home.pass
+```
+
+Rutas:
+
+```text
+Staging: /srv/nas/landini/backups/macbook/staging-home
+Reportes: /srv/nas/landini/backups/macbook/reports/
+Script: /usr/local/sbin/landini-backup-macbook-home.sh
+```
+
+Origen y método:
+
+```text
+Tipo: pull desde landini-server
+Método: rsync selectivo por SSH desde MacBook hacia staging local en NAS
+Restic: respalda staging + reporte
+```
+
+Decisión de criterio:
+
+```text
+MacBook NO usa backup completo de /Users/alejandro.
+/Users/alejandro observado: 25G.
+/Users/alejandro/Library observado: 24G.
+Se detectaron errores y permisos protegidos en zonas internas de macOS.
+Zonas observadas: Library/Application Support/FileProvider, Library/Group Containers.
+No se respalda Library completa.
+No se respalda .codex completo.
+No se respalda Downloads.
+```
+
+Criterio MacBook:
+
+```text
+Backup selectivo de configuración mínima y carpetas personales reales.
+```
+
+Incluye:
+
+```text
+/Users/alejandro/.ssh
+/Users/alejandro/.zshrc
+/Users/alejandro/.zprofile
+/Users/alejandro/.config
+/Users/alejandro/Desktop
+/Users/alejandro/Documents
+/Users/alejandro/Pictures
+/Users/alejandro/Movies
+/Users/alejandro/Music
+/Users/alejandro/Public
+```
+
+Excluye:
+
+```text
+/Users/alejandro/.codex
+/Users/alejandro/Library completo
+/Users/alejandro/Downloads
+caches internas de macOS
+FileProvider
+Group Containers
+node_modules
+vendor
+*.dmg
+*.iso
+*.img
+*.qcow2
+*.vdi
+*.vmdk
+```
+
+Rsync selectivo validado:
+
+```text
+Number of files: 662
+Number of regular files transferred: 496
+Total file size: 43.193.792 bytes
+Total transferred file size: 43.193.346 bytes
+Staging final: 44M
+```
+
+Estructura staging validada:
+
+```text
+/srv/nas/landini/backups/macbook/staging-home
+/srv/nas/landini/backups/macbook/staging-home/.config
+/srv/nas/landini/backups/macbook/staging-home/.config/Synergy
+/srv/nas/landini/backups/macbook/staging-home/.ssh
+/srv/nas/landini/backups/macbook/staging-home/.ssh/agent
+/srv/nas/landini/backups/macbook/staging-home/Desktop
+/srv/nas/landini/backups/macbook/staging-home/Documents
+/srv/nas/landini/backups/macbook/staging-home/Movies
+/srv/nas/landini/backups/macbook/staging-home/Movies/TV
+/srv/nas/landini/backups/macbook/staging-home/Music
+/srv/nas/landini/backups/macbook/staging-home/Music/Music
+/srv/nas/landini/backups/macbook/staging-home/Pictures
+/srv/nas/landini/backups/macbook/staging-home/Pictures/Fototeca de Photo Booth
+/srv/nas/landini/backups/macbook/staging-home/Pictures/Photos Library.photoslibrary
+/srv/nas/landini/backups/macbook/staging-home/Public
+/srv/nas/landini/backups/macbook/staging-home/Public/Drop Box
+```
+
+Snapshots validados:
+
+```text
+9d2ae9d6
+Time: 2026-06-07 17:39:24
+Host: landini-server
+Tags: macbook, manual, selective-home
+Paths: /srv/nas/landini/backups/macbook/reports/20260607_173919, /srv/nas/landini/backups/macbook/staging-home
+Size: 41.194 MiB
+
+e8990720
+Time: 2026-06-07 17:41:16
+Host: landini-server
+Tags: macbook, scheduled, selective-home
+Paths: /srv/nas/landini/backups/macbook/reports/20260607_174114, /srv/nas/landini/backups/macbook/staging-home
+Size: 41.194 MiB
+```
+
+Validaciones:
+
+```text
+script manual ejecutado OK
+snapshot scheduled e8990720 creado
+restic check OK
+no errors were found
+mantenimiento Restic MacBook ejecutado manualmente OK
+forget + prune OK
+restic check OK
+timer backup diario active waiting
+timer mantenimiento semanal active waiting
+```
+
+Timer diario:
+
+```text
+Timer: landini-backup-macbook-home.timer
+Service: landini-backup-macbook-home.service
+Estado validado: active waiting
+Próxima ejecución observada: Mon 2026-06-08 04:37:15 EDT
+```
+
+## Mantenimiento Restic MacBook
+
+Script:
+
+```text
+/usr/local/sbin/landini-restic-maintenance-macbook.sh
+```
+
+Política:
+
+```text
+keep-daily 7
+keep-weekly 4
+keep-monthly 6
+prune
+```
+
+Validación:
+
+```text
+ejecución manual OK
+forget + prune OK
+restic check OK
+no errors were found
+```
+
+Timer semanal:
+
+```text
+Timer: landini-restic-maintenance-macbook.timer
+Service: landini-restic-maintenance-macbook.service
+Estado validado: active waiting
+Próxima ejecución observada: Sun 2026-06-14 05:54:06 EDT
+```
+
+## Logs y medición de espacio
+
+Logs observados:
+
+```text
+Directorio: /srv/nas/landini/backups/_logs
+landini-backup-macbook-home-20260607_174114.log
+landini-backup-server-20260607_154019.log
+landini-backup-thinkpad-home-20260607_162445.log
+landini-restic-maintenance-20260607_154843.log
+landini-restic-maintenance-macbook-20260607_175119.log
+landini-restic-maintenance-thinkpad-20260607_162917.log
+```
+
+Observación:
+
+```text
+Los logs están creados como root:root.
+El directorio _logs figura como alejandro:alejandro.
+```
+
+Espacio NAS validado:
+
+```text
+Comando: df -hT /srv/nas
+Filesystem: /dev/sdb1
+Type: ext4
+Size: 916G
+Used: 4,8G
+Avail: 865G
+Use%: 1%
+Mount: /srv/nas
+```
+
+Medición visible sin sudo:
+
+```text
+/srv/nas/landini/backups/landini-server: 212K visible, incompleto por permission denied en repo/reportes root
+/srv/nas/landini/backups/_logs: 44K
+/srv/nas/landini/backups/macbook: 44M visible
+/srv/nas/landini/backups/thinkpad: 2,9G visible
+```
+
+Regla operativa:
+
+```text
+Para medición completa de repositorios Restic creados por root, usar sudo du -sh.
+Permission denied en du sin sudo no invalida backups; snapshots y restic check ya fueron validados.
+```
+
+## Estado global final de backups
+
+Backups diarios:
+
+```text
+landini-server: activo
+ThinkPad: activo
+MacBook: activo
+```
+
+Mantenimientos semanales:
+
+```text
+landini-server: activo
+ThinkPad: activo
+MacBook: activo
+```
+
+Repositorios Restic:
+
+```text
+landini-server: validado
+ThinkPad: validado
+MacBook: validado
+```
+
+Restore tests:
+
+```text
+landini-server: realizado y validado restaurando /etc/hostname
+ThinkPad: realizado y validado restaurando .bashrc desde staging-home
+MacBook: pendiente realizar restore test específico si se quiere cerrar simetría
 ```
 
 Pendientes:
 
 ```text
-Definir backup de MacBook.
+Realizar restore test de MacBook para cerrar simetría con servidor y ThinkPad.
 Definir backup específico de app-base runtime/data si corresponde:
 - base de datos
 - storage privado
@@ -876,7 +1253,8 @@ Definir backup offsite:
 - nube futura
 - otro servidor
 Guardar contraseñas Restic fuera del servidor.
-Evaluar permisos de logs si se quieren leer cómodamente por Samba.
+Evaluar permisos de logs si se quieren consultar cómodamente por Samba.
+Evaluar si Pictures/Photos Library.photoslibrary debe mantenerse incluida en MacBook si crece mucho en el futuro.
 ```
 
 ---
@@ -953,4 +1331,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido y backups locales validados para landini-server y ThinkPad**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido y backups locales activos para landini-server, ThinkPad y MacBook**.

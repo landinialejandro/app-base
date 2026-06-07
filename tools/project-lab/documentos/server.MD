@@ -1107,6 +1107,14 @@ no errors were found
 mantenimiento Restic MacBook ejecutado manualmente OK
 forget + prune OK
 restic check OK
+restore test OK desde latest, resuelto a e8990720
+archivo restaurado: /srv/nas/landini/backups/macbook/staging-home/.zshrc
+destino temporal: /tmp/restic-restore-test-macbook
+archivo temporal validado: /tmp/restic-restore-test-macbook/srv/nas/landini/backups/macbook/staging-home/.zshrc
+tamaño validado: 187 bytes
+sha256 validado: 292a6bde8229cf7649f6f52f81757612304f7613f6f79019be37cefaafdf557b
+limpieza temporal OK
+no se tocaron datos reales de la MacBook
 timer backup diario active waiting
 timer mantenimiento semanal active waiting
 ```
@@ -1236,13 +1244,12 @@ Restore tests:
 ```text
 landini-server: realizado y validado restaurando /etc/hostname
 ThinkPad: realizado y validado restaurando .bashrc desde staging-home
-MacBook: pendiente realizar restore test específico si se quiere cerrar simetría
+MacBook: realizado y validado restaurando .zshrc desde snapshot latest resuelto a e8990720 hacia /tmp en landini-server
 ```
 
 Pendientes:
 
 ```text
-Realizar restore test de MacBook para cerrar simetría con servidor y ThinkPad.
 Definir backup específico de app-base runtime/data si corresponde:
 - base de datos
 - storage privado

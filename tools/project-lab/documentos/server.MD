@@ -788,78 +788,97 @@ Estructura base creada en `/srv/web`:
 /srv/web/tmp
 ```
 
-Sitio de prueba:
+Sitio base LAN:
 
 ```text
-/srv/web/sites/test-local/current/public
-/srv/web/sites/test-local/shared/storage
-/srv/web/sites/test-local/shared/uploads
-/srv/web/sites/test-local/shared/config
-/srv/web/sites/test-local/shared/logs
-/srv/web/sites/test-local/releases
-/srv/web/sites/test-local/backups
+/srv/web/sites/local
+/srv/web/sites/local/backups
+/srv/web/sites/local/current
+/srv/web/sites/local/current/public
+/srv/web/sites/local/releases
+/srv/web/sites/local/shared
+/srv/web/sites/local/shared/storage
+/srv/web/sites/local/shared/uploads
+/srv/web/sites/local/shared/config
+/srv/web/sites/local/shared/logs
 ```
 
 VirtualHost local:
 
 ```text
-Nombre local: test-local.landini
-DocumentRoot: /srv/web/sites/test-local/current/public
-Archivo de prueba: /srv/web/sites/test-local/current/public/index.php
-VirtualHost: /etc/apache2/vhosts.d/test-local-landini.conf
+Nombre local: local.landini
+DocumentRoot: /srv/web/sites/local/current/public
+Archivo base: /srv/web/sites/local/current/public/index.php
+VirtualHost vigente: /etc/apache2/vhosts.d/local-landini.conf
 Backend PHP-FPM: SetHandler "proxy:fcgi://127.0.0.1:9000"
 ```
 
 Pruebas locales validadas:
 
 ```bash
-curl -H 'Host: test-local.landini' http://127.0.0.1/
-curl -H 'Host: test-local.landini' http://localhost/
-curl -sS -H "Host: test-local.landini" http://192.168.0.210/
+curl -sS -H "Host: local.landini" http://127.0.0.1/
+curl -sS -H "Host: local.landini" http://192.168.0.210/
 ```
 
 Respuesta validada:
 
 ```text
 LANDINI WEB OK
-Sitio: test-local
+Sitio: local.landini
 PHP: 8.5.7
 ```
 
-Validación HTTP LAN desde servidor:
+Validación local desde servidor:
 
 ```bash
-curl -sS -H "Host: test-local.landini" http://192.168.0.210/
+curl -sS -H "Host: local.landini" http://127.0.0.1/
 ```
 
 Respuesta validada:
 
 ```text
 LANDINI WEB OK
-Sitio: test-local
+Sitio: local.landini
 PHP: 8.5.7
-Fecha: 2026-06-08T18:50:42+00:00
+Fecha: 2026-06-08T19:03:52+00:00
+```
+
+Validación LAN desde servidor contra IP LAN:
+
+```bash
+curl -sS -H "Host: local.landini" http://192.168.0.210/
+```
+
+Respuesta validada:
+
+```text
+LANDINI WEB OK
+Sitio: local.landini
+PHP: 8.5.7
+Fecha: 2026-06-08T19:03:52+00:00
 ```
 
 Validación HTTP LAN desde MacBook:
 
 ```bash
-curl -sS -H "Host: test-local.landini" http://192.168.0.210/
+curl -sS -H "Host: local.landini" http://192.168.0.210/
 ```
 
 Respuesta validada:
 
 ```text
 LANDINI WEB OK
-Sitio: test-local
+Sitio: local.landini
 PHP: 8.5.7
-Fecha: 2026-06-08T18:51:00+00:00
 ```
 
 Lectura operativa:
 
 ```text
-test-local.landini responde desde MacBook usando Host header contra 192.168.0.210.
+local.landini queda como host LAN base.
+/srv/web/sites/local queda como sitio base vigente.
+/etc/apache2/vhosts.d/local-landini.conf queda como vhost vigente.
+local.landini responde usando Host header contra 192.168.0.210.
 Este cierre valida servicio HTTP interno LAN.
 No implica exposición pública.
 No implica DNS público.
@@ -867,6 +886,43 @@ No implica HTTPS.
 No implica certbot.
 No implica publicación externa.
 No implica hosting productivo comercial todavía.
+```
+
+Migración limpia a `local.landini`:
+
+```text
+Host anterior: test-local.landini
+Host nuevo: local.landini
+Sitio anterior: /srv/web/sites/test-local
+Sitio nuevo: /srv/web/sites/local
+VHost anterior: /etc/apache2/vhosts.d/test-local-landini.conf
+VHost nuevo: /etc/apache2/vhosts.d/local-landini.conf
+Respaldo operativo previo: /root/landini-rollback-local-host-20260608_150352
+Apache configtest: Syntax OK
+```
+
+Acciones validadas:
+
+```text
+/srv/web/sites/test-local renombrado a /srv/web/sites/local.
+/etc/apache2/vhosts.d/local-landini.conf creado.
+/etc/apache2/vhosts.d/test-local-landini.conf eliminado.
+Backups .bak activos del vhost anterior eliminados.
+Marcador del index local actualizado.
+/usr/local/sbin/landini-web-backup.sh actualizado.
+restorecon aplicado.
+Apache recargado luego de configtest OK.
+```
+
+Validación de limpieza posterior:
+
+```text
+No quedaron referencias operativas vivas a test-local.
+No quedaron referencias operativas vivas a test-local.landini.
+No quedaron referencias operativas vivas a /srv/web/sites/test-local.
+No quedaron referencias operativas vivas a prueba.
+No quedaron referencias operativas vivas a demo.
+Términos example, dummy o test en plantillas/comentarios de Apache/PHP o comandos legítimos como test -s/testparm no se consideran deuda operativa propia de Landini.
 ```
 
 Warning global de Apache corregido:
@@ -911,10 +967,10 @@ Contextos finales validados:
 ```text
 /srv/web                                      httpd_sys_content_t
 /srv/web/sites                                httpd_sys_content_t
-/srv/web/sites/test-local/current/public      httpd_sys_content_t
-/srv/web/sites/test-local/shared/storage      httpd_sys_rw_content_t
-/srv/web/sites/test-local/shared/uploads      httpd_sys_rw_content_t
-/srv/web/sites/test-local/shared/logs         httpd_log_t
+/srv/web/sites/local/current/public           httpd_sys_content_t
+/srv/web/sites/local/shared/storage           httpd_sys_rw_content_t
+/srv/web/sites/local/shared/uploads           httpd_sys_rw_content_t
+/srv/web/sites/local/shared/logs              httpd_log_t
 /srv/web/logs                                 httpd_log_t
 ```
 
@@ -1047,6 +1103,66 @@ Uso: backup usado para restore test válido
 Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_141105.log
 ```
 
+Backup posterior a migración `local.landini`:
+
+```text
+Comando validado: sudo /usr/local/sbin/landini-web-backup.sh
+Resultado: [OK] Backup web completo generado
+Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_150436
+Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_150436.log
+Tamaño: 668K
+Estado: backup posterior a migración, válido
+```
+
+Archivos principales presentes:
+
+```text
+db/mariadb_all_20260608_150436.sql.gz
+files/apache2_20260608_150436.tar.gz
+files/my.cnf_20260608_150436
+files/my.cnf.d_20260608_150436.tar.gz
+files/php8_20260608_150436.tar.gz
+files/srv_web_20260608_150436.tar.gz
+files/sysconfig_apache2_20260608_150436
+reports/estado_stack_web_20260608_150436.txt
+selinux/contexts_srv_web_20260608_150436.txt
+selinux/fcontext_srv_web_20260608_150436.txt
+```
+
+Validación fina del backup posterior:
+
+```text
+No se encontraron referencias antiguas en reportes.
+No se encontraron referencias antiguas en SELinux.
+No se encontraron referencias antiguas en configs planas.
+No se encontraron referencias antiguas en srv_web_20260608_150436.tar.gz.
+No se encontraron referencias antiguas en apache2_20260608_150436.tar.gz.
+```
+
+`srv_web_20260608_150436.tar.gz` contiene:
+
+```text
+web/sites/local/
+web/sites/local/current/
+web/sites/local/current/public/
+web/sites/local/current/public/index.php
+web/sites/local/shared/
+web/sites/local/shared/logs/
+web/sites/local/shared/logs/apache-error.log
+web/sites/local/shared/logs/apache-access.log
+web/sites/local/shared/uploads/
+web/sites/local/shared/config/
+web/sites/local/shared/storage/
+web/sites/local/backups/
+web/sites/local/releases/
+```
+
+`apache2_20260608_150436.tar.gz` contiene:
+
+```text
+apache2/vhosts.d/local-landini.conf
+```
+
 Restore test no destructivo validado:
 
 ```text
@@ -1138,6 +1254,7 @@ Backups web restantes:
 backup_20260608_140542
 backup_20260608_140709
 backup_20260608_141105
+backup_20260608_150436
 ```
 
 Restore-tests:
@@ -2373,4 +2490,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, stack web local validado con HTTP LAN controlado sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, stack web local validado con HTTP LAN controlado sobre local.landini sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.

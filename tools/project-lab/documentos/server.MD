@@ -1266,6 +1266,123 @@ Evaluar si Pictures/Photos Library.photoslibrary debe mantenerse incluida en Mac
 
 ---
 
+## Synergy operativo
+
+Synergy quedó operativo para evitar uso físico de teclado/mouse en el servidor.
+
+Servidor:
+
+```text
+Hostname: landini-server
+Sistema: openSUSE Tumbleweed
+Interfaz LAN activa: enp3s0
+Firewall activo: firewalld
+Zona activa: public
+```
+
+Proceso observado:
+
+```text
+/usr/bin/synergy
+/usr/bin/synergy-client -f --no-tray --debug INFO --name landini-server --enable-crypto --profile-dir /home/alejandro/.config/Synergy --sync-language 192.168.0.118:24800
+```
+
+Lectura operativa:
+
+```text
+landini-server actúa como cliente Synergy.
+MacBook 192.168.0.118 actúa como servidor Synergy.
+El cliente del servidor apunta a 192.168.0.118:24800.
+```
+
+Firewall en `landini-server`:
+
+```bash
+sudo firewall-cmd --zone=public --add-port=24800/tcp --permanent
+sudo firewall-cmd --reload
+```
+
+Validación:
+
+```bash
+sudo firewall-cmd --zone=public --list-ports
+```
+
+Salida:
+
+```text
+24800/tcp
+```
+
+Validación de zona:
+
+```bash
+sudo firewall-cmd --zone=public --list-all
+```
+
+Salida relevante:
+
+```text
+services: dhcpv6-client samba ssh
+ports: 24800/tcp
+```
+
+Nota técnica:
+
+```text
+La prueba desde Mac hacia 192.168.0.210:24800 devolvió Connection refused.
+Eso es coherente con que landini-server esté operando como cliente y no como servidor Synergy.
+El puerto relevante para el esquema actual es la MacBook 192.168.0.118:24800.
+```
+
+Bloqueo de actualización:
+
+```text
+Paquete instalado: synergy-1.20.1-1.x86_64
+```
+
+`zypper se -si synergy` mostró:
+
+```text
+i+ | synergy | paquete | 1.20.1-1 | x86_64 | (Paquetes del sistema)
+```
+
+No había locks previos.
+
+Se ejecutó:
+
+```bash
+sudo zypper addlock synergy
+```
+
+Validación posterior:
+
+```bash
+sudo zypper locks
+```
+
+Salida:
+
+```text
+1 | synergy | package | (cualquiera)
+```
+
+`zypper se -si synergy` mostró:
+
+```text
+il | synergy | paquete | 1.20.1-1 | x86_64 | (Paquetes del sistema)
+```
+
+Lectura:
+
+```text
+La l confirma que el paquete quedó bloqueado.
+Synergy no debe actualizarse automáticamente con zypper dup.
+La actualización de Synergy queda como acción manual, solo cuando se decida explícitamente.
+```
+
+---
+
 # Próximos pasos ordenados
 
 ## Paso 1 — SSD para servidor web
@@ -1338,4 +1455,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido y backups locales activos para landini-server, ThinkPad y MacBook**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, backups locales activos para landini-server, ThinkPad y MacBook, y Synergy operativo como cliente hacia MacBook**.

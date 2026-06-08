@@ -251,51 +251,208 @@ Validado post-reboot.
 
 ## 11. Discos
 
+Frente discos cerrado con base en evidencia post-reboot.
+
+Validación post-reboot:
+
+```text
+systemctl --failed --no-pager: 0 loaded units listed.
+/srv/nas montó automáticamente.
+/srv/web montó automáticamente.
+/srv/lab-disk no montó automáticamente, según noauto.
+```
+
+Alcance del cierre:
+
+```text
+Discos, particiones, filesystems, fstab y validación post-reboot.
+No configura exposición externa.
+No configura Apache, PHP, Laravel, DNS, router, certificados ni firewall externo.
+```
+
 ### SSD sistema
 
 ```text
-/dev/sda
-Modelo: Crucial CT240BX500SSD1
-Uso: sistema operativo
-SMART: sano
+Dispositivo actual observado: /dev/sda
+Modelo: CT240BX500SSD1
+Serial: 2044E4C1E043
+Uso: sistema operativo openSUSE
 ```
 
-### WD Green 2 TB
+Particiones:
 
 ```text
-Modelo: WDC WD20EZRX-00D8PB0
-Estado: NO APTO para datos importantes
+/dev/sda1 → /boot/efi
+/dev/sda2 → btrfs con /, /home, /srv, /var, /opt, /root, /usr/local, /.snapshots
 ```
 
-SMART malo:
+No fue tocado en este frente.
+
+### NAS principal
 
 ```text
-Reallocated_Sector_Ct: 1765
-Current_Pending_Sector: 180
-Offline_Uncorrectable: 133
-Power_On_Hours: 47618
+Disco actual observado: /dev/sdd
+Partición: /dev/sdd1
+Modelo: WDC WD10EARZ-00C5XB0
+Serial: WD-WX12DA3KUSAK
+Label: LANDINI_NAS
+UUID: 92818a4e-1c6b-4ace-a2df-f96485779017
+Filesystem: ext4
+Montaje: /srv/nas
+```
+
+fstab:
+
+```text
+UUID=92818a4e-1c6b-4ace-a2df-f96485779017  /srv/nas  ext4  defaults,nofail,x-systemd.device-timeout=10s  0  2
+```
+
+Estado post-reboot:
+
+```text
+/srv/nas /dev/sdd1 ext4 rw,relatime,seclabel
+```
+
+Espacio validado:
+
+```text
+916G total
+865G libres
+1% usado
+```
+
+No fue modificado en este frente.
+
+### Volumen web experimental
+
+```text
+Disco actual observado: /dev/sdb
+Partición: /dev/sdb1
+Modelo: R3SL240G
+Serial: E201607260021584
+by-id: ata-R3SL240G_E201607260021584
+Label: LANDINI_WEB
+UUID: 116fadde-dd7e-4734-a5c1-a9f7c3d844b0
+Filesystem: ext4
+Montaje: /srv/web
+```
+
+fstab:
+
+```text
+UUID=116fadde-dd7e-4734-a5c1-a9f7c3d844b0  /srv/web  ext4  defaults,nofail,x-systemd.device-timeout=10s  0  2
+```
+
+Estado post-reboot:
+
+```text
+/srv/web /dev/sdb1 ext4 rw,relatime,seclabel
+```
+
+Espacio validado:
+
+```text
+220G total
+208G libres
+1% usado
+```
+
+Uso definido:
+
+```text
+volumen web experimental
+app-base inicial
+landings HTML livianas
+staging o hosting liviano inicial
+```
+
+Restricción:
+
+```text
+No es SSD ideal definitivo.
+Debe migrarse o clonarse cuando se compre un SSD nuevo.
+No debe considerarse infraestructura comercial crítica sin backups y monitoreo.
+```
+
+SMART previo relevante:
+
+```text
+SMART general PASSED.
+Vida útil reportada alta.
+Señales de atención: sectores/eventos reasignados y errores previos.
 ```
 
 Decisión:
 
 ```text
-No usar para NAS.
-No usar para backups.
-No usar para staging.
-Solo laboratorio/descarte/lectura puntual read-only.
+Uso permitido como web liviano experimental hasta reemplazo futuro.
 ```
 
-### WD Blue 1 TB
+### HDD laboratorio no crítico
 
 ```text
-/dev/sdb
-Modelo: WDC WD10EARZ-00C5XB0
-Serial: WD-WX12DA3KUSAK
-SMART: PASSED
-Long test: Completed without error
+Disco actual observado: /dev/sdc
+Partición: /dev/sdc1
+Modelo: WDC WD20EZRX-00D8PB0
+Serial: WD-WMC4M0E18KMY
+by-id: ata-WDC_WD20EZRX-00D8PB0_WD-WMC4M0E18KMY
+Label: LANDINI_LAB
+UUID: bbf58f5c-10b0-4240-a2e1-0022a8e53359
+Filesystem: ext4
+Punto de montaje: /srv/lab-disk
 ```
 
-Aprobado para NAS inicial.
+fstab:
+
+```text
+UUID=bbf58f5c-10b0-4240-a2e1-0022a8e53359  /srv/lab-disk  ext4  defaults,noauto,nofail,x-systemd.device-timeout=5s  0  2
+```
+
+Estado post-reboot:
+
+```text
+No montó automáticamente.
+```
+
+Lectura correcta:
+
+```text
+df -hT /srv/lab-disk puede mostrar /srv cuando el volumen está desmontado, porque el punto existe dentro del filesystem base.
+```
+
+Uso definido:
+
+```text
+laboratorio
+pruebas
+descarte
+uso no crítico
+```
+
+Restricciones:
+
+```text
+No usar para datos importantes.
+No usar para backups.
+No usar para staging importante.
+No usar para hosting ni producción.
+No montar automáticamente.
+```
+
+SMART previo relevante:
+
+```text
+Reallocated_Sector_Ct: 1765
+Current_Pending_Sector: 180
+Offline_Uncorrectable: 133
+Power_On_Hours: 47620
+```
+
+Decisión:
+
+```text
+Disco degradado, solo laboratorio/no crítico.
+```
 
 ---
 
@@ -304,7 +461,7 @@ Aprobado para NAS inicial.
 Disco:
 
 ```text
-/dev/sdb1
+/dev/sdd1
 Filesystem: ext4
 Label: LANDINI_NAS
 UUID: 92818a4e-1c6b-4ace-a2df-f96485779017
@@ -320,14 +477,14 @@ UUID=92818a4e-1c6b-4ace-a2df-f96485779017  /srv/nas  ext4  defaults,nofail,x-sys
 Validado post-reboot:
 
 ```text
-/srv/nas /dev/sdb1 ext4 rw,relatime,seclabel
+/srv/nas /dev/sdd1 ext4 rw,relatime,seclabel
 ```
 
 Espacio:
 
 ```text
 916G total
-870G libres aprox.
+865G libres
 1% usado
 ```
 
@@ -460,12 +617,14 @@ Validado post-reboot:
 Después del reinicio final se validó:
 
 ```text
-systemctl --failed → 0 loaded units
+systemctl --failed --no-pager → 0 loaded units listed.
 sshd active/enabled
 firewalld active/enabled
 smb active/enabled
 nmb active/enabled
 /srv/nas montado
+/srv/web montado
+/srv/lab-disk no montado automáticamente, según noauto
 Samba accesible
 SELinux context correcto
 EFI random-seed corregido
@@ -476,6 +635,7 @@ Esto cierra la etapa:
 
 ```text
 Infraestructura LAN/NAS base: CERRADA
+Frente discos, particiones, filesystems, fstab y validación post-reboot: CERRADO
 ```
 
 ---
@@ -484,37 +644,50 @@ Infraestructura LAN/NAS base: CERRADA
 
 ## Servidor web público
 
-Se decidió que el servidor web será:
+Decisión conceptual:
 
 ```text
 público de acceso externo
 ```
 
-Y que se puede montar un segundo SSD de 240 GB dedicado.
+Estado actual del frente discos:
 
-Diseño recomendado:
+```text
+/srv/web existe como volumen web experimental.
+Monta automáticamente post-reboot.
+No hay en este cierre configuración de exposición externa.
+```
+
+Diseño vigente:
 
 ```text
 SSD sistema actual → /
-WD Blue 1 TB → /srv/nas
-SSD nuevo 240 GB → /srv/web
+NAS principal → /srv/nas
+Volumen web experimental → /srv/web
+HDD laboratorio degradado → /srv/lab-disk noauto
 ```
 
 Uso de `/srv/web`:
 
 ```text
-servidor web público
-sitios
-apps
-deployments
-logs
-runtime web
+volumen web experimental
+app-base inicial
+landings HTML livianas
+staging o hosting liviano inicial
 ```
 
 No mezclar:
 
 ```text
 NAS/backups ≠ runtime web público
+```
+
+Restricción:
+
+```text
+No afirmar hosting comercial activo.
+No afirmar Apache, PHP, Laravel, DNS, router, certificados o firewall externo configurados.
+La exposición externa queda para un frente posterior.
 ```
 
 ---
@@ -1578,16 +1751,23 @@ La actualización de Synergy queda como acción manual, solo cuando se decida ex
 
 ## Paso 1 — SSD para servidor web
 
-Pendiente conectar/auditar nuevo SSD 240 GB.
+Pendiente comprar SSD definitivo para reemplazar el volumen web experimental.
 
-Cuando esté instalado:
+Cuando exista el SSD nuevo:
 
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,UUID,MOUNTPOINTS,MODEL,SERIAL
 sudo smartctl -a /dev/sdX
 ```
 
-No formatear hasta identificar disco exacto.
+No formatear, migrar ni clonar hasta identificar disco exacto.
+
+Decisión actual:
+
+```text
+/srv/web puede usarse solo como web liviano experimental hasta reemplazo futuro.
+No considerar infraestructura comercial crítica sin backups y monitoreo.
+```
 
 ## Paso 2 — Tailscale
 
@@ -1629,6 +1809,7 @@ hardware
 sistema
 red
 SSH
+discos
 NAS
 Samba
 SELinux
@@ -1647,4 +1828,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, backups locales activos para landini-server, ThinkPad y MacBook, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, backups locales activos para landini-server, ThinkPad y MacBook, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.

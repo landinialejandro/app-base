@@ -718,1085 +718,263 @@ La exposición externa queda para un frente posterior.
 
 ## Servidor web local Landini
 
-Frente servidor web local cerrado y validado en `landini-server`.
+[WEB_LAN_ESTADO]
 
-Estado validado:
-
-```text
-Host: landini-server
-IP LAN: 192.168.0.210
-Volumen web: /srv/web
-Filesystem: ext4 con seclabel
-Montaje observado: /srv/web desde /dev/sdb1
-Tamaño aproximado: 220G
-HTTP funciona localmente y desde LAN controlada.
-No hay exposición pública configurada.
-```
-
-Stack instalado y operativo:
-
-```text
-Apache: instalado y operativo
-Binario Apache: /usr/sbin/httpd
-Servicio Apache: apache2.service
-Estado Apache: active / enabled
-
-PHP: 8.5.7
-PHP-FPM: instalado y operativo
-Servicio PHP-FPM: php-fpm.service
-Estado PHP-FPM: active / enabled
-PHP-FPM escucha en 127.0.0.1:9000
-
-Composer: 2.10.0
-
-MariaDB: instalado y operativo
-Versión MariaDB: 11.8.8
-Servicio MariaDB: mariadb.service
-Estado MariaDB: active / enabled
-MariaDB escucha solo en 127.0.0.1:3306
-```
-
-Firewall:
-
-```text
-Apache escucha en *:80.
-HTTP LAN quedó habilitado por rich rule restringida a 192.168.0.0/24.
-firewalld no tiene abierto http como servicio global.
-No se abrió https.
-Servicios firewalld permitidos: dhcpv6-client, samba, ssh.
-Puerto firewalld permitido: 24800/tcp.
-Rich rule: rule family="ipv4" source address="192.168.0.0/24" port port="80" protocol="tcp" accept
-```
-
-No configurado en este frente:
-
-```text
-exposición pública
-router
-DNS
-HTTPS/certbot
-certificados
-```
-
-Estructura base creada en `/srv/web`:
-
-```text
-/srv/web/apps
-/srv/web/sites
-/srv/web/shared
-/srv/web/logs
-/srv/web/tmp
-```
-
-Sitio base LAN:
-
-```text
-/srv/web/sites/local
-/srv/web/sites/local/backups
-/srv/web/sites/local/current
-/srv/web/sites/local/current/public
-/srv/web/sites/local/releases
-/srv/web/sites/local/shared
-/srv/web/sites/local/shared/storage
-/srv/web/sites/local/shared/uploads
-/srv/web/sites/local/shared/config
-/srv/web/sites/local/shared/logs
-```
-
-VirtualHost local:
-
-```text
-Nombre local: local.landini
-DocumentRoot: /srv/web/sites/local/current/public
-Archivo base: /srv/web/sites/local/current/public/index.php
-VirtualHost vigente: /etc/apache2/vhosts.d/local-landini.conf
-Backend PHP-FPM: SetHandler "proxy:fcgi://127.0.0.1:9000"
-```
-
-Default deny Apache:
-
-```text
-VHost: /etc/apache2/vhosts.d/000-landini-default-deny.conf
-ServerName interno: default.landini.invalid
-Función: bloquear hosts no declarados.
-Resultado validado: local.landini responde correctamente.
-Resultado validado: panel.landini responde correctamente.
-Resultado validado: host no declarado responde HTTP_CODE=403.
-```
-
-Primer servicio real LAN:
-
-```text
-Servicio: panel
-Host: panel.landini
-Ruta: /srv/web/sites/panel/current/public
-VHost: /etc/apache2/vhosts.d/panel-landini.conf
-Función actual: primer servicio real LAN validado.
-Estado: responde por Apache/PHP usando Host header.
-Exposición pública: no configurada.
-HTTPS: no configurado.
-DNS público: no configurado.
-Router/port forwarding: no configurado.
-```
-
-Publicación pública futura - no ejecutada:
-
-```text
-Estado actual: LAN validada, sin publicación pública vigente.
-Servidor: landini-server.
-IP LAN: 192.168.0.210/24.
-Gateway LAN: 192.168.0.1.
-Interfaz: enp3s0.
-OS: openSUSE Tumbleweed.
-Apache escucha en *:80.
-PHP-FPM escucha en 127.0.0.1:9000.
-MariaDB escucha en 127.0.0.1:3306.
-Servicios activos y habilitados: apache2, php-fpm, mariadb, firewalld.
-```
-
-Estado LAN validado:
-
-```text
-local.landini queda como health check LAN.
-panel.landini queda como primer servicio real LAN.
-Hosts no declarados quedan bloqueados por default deny.
-local.landini responde HTTP_CODE=200.
-panel.landini responde HTTP_CODE=200.
-no-declarado.landini responde HTTP_CODE=403.
-test-local.landini responde HTTP_CODE=403.
-MacBook resuelve por /etc/hosts local.landini y panel.landini hacia 192.168.0.210.
-Validación desde MacBook: local.landini OK, panel.landini OK, host no declarado 403, test-local.landini 403.
-No hay exposición pública vigente.
-```
-
-Firewall vigente para este punto:
-
-```text
-Zona activa: public.
-Interfaz: enp3s0.
-Servicios permitidos: dhcpv6-client, samba, ssh.
-Puerto permitido: 24800/tcp.
-HTTP permitido solo LAN mediante rich rule para 192.168.0.0/24 sobre puerto 80.
-Rich rule: rule family="ipv4" source address="192.168.0.0/24" port port="80" protocol="tcp" accept.
-No se agregó http como servicio global.
-No se agregó https.
-No se abrió puerto 443.
-No se configuró router.
-No se configuró DNS público.
-No se configuró certbot.
-```
-
-Apache vigente para este punto:
-
-```text
-Default vhost: /etc/apache2/vhosts.d/000-landini-default-deny.conf.
-Default ServerName: default.landini.invalid.
-Health check LAN: /etc/apache2/vhosts.d/local-landini.conf.
-Health check ServerName: local.landini.
-Primer servicio real LAN: /etc/apache2/vhosts.d/panel-landini.conf.
-Primer servicio real ServerName: panel.landini.
-```
-
-Elementos listos para futura publicación controlada:
-
-```text
-Apache funcionando.
-PHP-FPM funcionando.
-MariaDB local-only.
-Default deny activo.
-Servicios LAN validados.
-Backup restaurable validado.
-Scripts operativos incluidos en backup.
-Firewall sin apertura pública.
-Backup vigente: /srv/nas/landini/backups/landini-server/web/backup_20260608_155118.
-```
-
-Backup vigente para este punto:
-
-```text
-Incluye /srv/web.
-Incluye Apache.
-Incluye PHP.
-Incluye MariaDB config.
-Incluye dump MariaDB.
-Incluye SELinux.
-Incluye reporte sistema.
-Incluye scripts operativos Landini.
-Incluye usr/local/sbin/landini-web-backup.sh.
-Incluye usr/local/sbin/landini-web-service-create.sh.
-Incluye apache2/vhosts.d/000-landini-default-deny.conf.
-Incluye apache2/vhosts.d/local-landini.conf.
-Incluye apache2/vhosts.d/panel-landini.conf.
-Incluye web/sites/local/current/public/index.php.
-Incluye web/sites/panel/current/public/index.php.
-```
-
-Datos Apache/ACME a revisar cuando se defina publicación:
-
-```text
-Módulos Apache observados: ssl_module, socache_shmcb_module, proxy_module, proxy_fcgi_module.
-Módulos no observados en auditoría: rewrite_module, headers_module, http2_module.
-No registrar módulos no observados como problema; revisarlos según el tipo de publicación pública que se defina.
-No se detectó certbot.
-No se detectó lego.
-No se detectó acme.sh.
-No se detectó estructura activa de Let's Encrypt.
-No hay certificados públicos configurados.
-```
-
-Checklist pendiente antes de publicar:
-
-```text
-Dominio público concreto.
-Subdominio público inicial.
-Qué servicio será público primero.
-Qué servicios quedarán LAN-only.
-Política de publicación por servicio.
-Estrategia DNS.
-Estrategia HTTPS/ACME.
-Herramienta ACME a usar.
-Política de renovación de certificados.
-Logs y rotación para servicios públicos.
-Checklist de rollback.
-Validación externa posterior.
-```
-
-No tocar todavía:
-
-```text
-No router / port forwarding.
-No DNS público.
-No HTTPS.
-No certbot.
-No abrir puerto 443.
-No agregar http como servicio global de firewalld.
-No agregar https como servicio global de firewalld.
-No exponer SSH.
-No exponer Samba.
-No publicar local.landini.
-No usar local.landini como servicio real.
-```
-
-Fases futuras sugeridas, no ejecutadas:
-
-```text
-Fase 0: Estado actual LAN validado.
-Fase 1: Definir dominio, subdominios y política de exposición.
-Fase 2: Preparar vhost público sin abrir router.
-Fase 3: Preparar HTTPS/ACME en modo controlado.
-Fase 4: Abrir router solo HTTP/HTTPS cuando corresponda.
-Fase 5: Validación externa.
-Fase 6: Backup post-publicación.
-Fase 7: Documentación y commit.
-```
-
-Pruebas locales validadas:
-
-```bash
-curl -sS -H "Host: local.landini" http://127.0.0.1/
-curl -sS -H "Host: local.landini" http://192.168.0.210/
-```
-
-Respuesta validada:
-
-```text
-LANDINI WEB OK
-Sitio: local.landini
-PHP: 8.5.7
-```
-
-Validación local desde servidor:
-
-```bash
-curl -sS -H "Host: local.landini" http://127.0.0.1/
-```
-
-Respuesta validada:
-
-```text
-LANDINI WEB OK
-Sitio: local.landini
-PHP: 8.5.7
-Fecha: 2026-06-08T19:03:52+00:00
-```
-
-Validación LAN desde servidor contra IP LAN:
-
-```bash
-curl -sS -H "Host: local.landini" http://192.168.0.210/
-```
-
-Respuesta validada:
-
-```text
-LANDINI WEB OK
-Sitio: local.landini
-PHP: 8.5.7
-Fecha: 2026-06-08T19:03:52+00:00
-```
-
-Validación HTTP LAN desde MacBook:
-
-```bash
-curl -sS -H "Host: local.landini" http://192.168.0.210/
-```
-
-Respuesta validada:
-
-```text
-LANDINI WEB OK
-Sitio: local.landini
-PHP: 8.5.7
-```
-
-Lectura operativa:
-
-```text
-ThinkPad queda como entorno de desarrollo.
-landini-server debe tratarse conceptualmente como servidor tipo producción / infraestructura productiva.
-local.landini queda como health check LAN del servidor.
-/srv/web/sites/local queda como sitio vigente para health check LAN.
-/etc/apache2/vhosts.d/local-landini.conf queda como vhost vigente.
-local.landini responde usando Host header contra 192.168.0.210.
-Este cierre valida servicio HTTP interno LAN.
-No implica exposición pública.
-No implica DNS público.
-No implica HTTPS.
-No implica certbot.
-No implica publicación externa.
-No implica hosting productivo comercial todavía.
-```
-
-Criterio de uso de `local.landini`:
-
-```text
-local.landini no es sitio de desarrollo.
-local.landini no es staging.
-local.landini no es sitio de cliente.
-local.landini no es app real.
-local.landini no debe usarse como base operativa para nuevos servicios.
-local.landini confirma únicamente que Apache responde, PHP responde, /srv/web está montado y el servidor responde en LAN.
-```
-
-`local.landini` no debe alojar:
-
-```text
-app-base
-staging
-sitios de clientes
-landings productivas
-servicios reales
-pruebas funcionales
-aplicaciones temporales
-```
-
-Regla para servicios reales:
-
-```text
-Todo servicio real debe tener service-key propio.
-Todo servicio real debe tener ServerName propio.
-Todo servicio real debe tener ruta propia en /srv/web/sites/<service-key>/.
-Todo servicio real debe tener vhost propio en /etc/apache2/vhosts.d/<service-key>-landini.conf.
-Todo servicio real debe tener logs propios en /srv/web/sites/<service-key>/shared/logs/.
-Todo servicio real debe accederse mediante un servicio externo definido para ese fin.
-Todo servicio real debe tener backup posterior validado.
-No reutilizar local.landini como entrada de servicios reales.
-No crear servicio sin vhost explícito.
-No exponer servicio fuera de LAN hasta definir router, DNS público, HTTPS/certbot y política de publicación.
-No usar nombres test, prueba, demo, sample, example, dummy ni temporal como nombres operativos.
-local queda reservado para health check.
-```
-
-Estructura vigente para servicios reales:
-
-```text
-/srv/web/sites/<service-key>/
-|-- current/
-|   `-- public/
-|-- shared/
-|   |-- config/
-|   |-- logs/
-|   |-- storage/
-|   `-- uploads/
-|-- releases/
-`-- backups/
-```
-
-Herramienta operativa de alta de servicios:
-
-```text
-Script: /usr/local/sbin/landini-web-service-create.sh
-Función: crear servicios web reales con estructura, vhost, logs y validación Apache.
-Validación: sintaxis bash OK.
-Validación: --help OK.
-Validación: --dry-run OK.
-Validación: --dry-run no crea archivos reales.
-Validación: bloque final ajustado para ownership de sitio.
-Ownership esperado de sitios: /srv/web/sites/<service-key> → alejandro:www.
-Modo esperado de directorios de sitio: 770.
-Modo esperado de archivos de sitio: 660.
-Ownership esperado de VHosts Apache: root:root.
-Modo esperado de VHosts Apache: 644.
-```
-
-Criterio documental desde este punto:
-
-```text
-No documentar cada microacción.
-Documentar cierres de frente.
-Documentar cambios de criterio estructural.
-Documentar exposición de servicios.
-Documentar cambios de seguridad.
-Documentar cambios de backup/restore.
-Documentar incorporación de servicios reales.
-Documentar decisiones que eviten errores futuros.
-```
-
-Migración limpia a `local.landini`:
-
-```text
-Host anterior: test-local.landini
-Host nuevo: local.landini
-Sitio anterior: /srv/web/sites/test-local
-Sitio nuevo: /srv/web/sites/local
-VHost anterior: /etc/apache2/vhosts.d/test-local-landini.conf
-VHost nuevo: /etc/apache2/vhosts.d/local-landini.conf
-Respaldo operativo previo: /root/landini-rollback-local-host-20260608_150352
-Apache configtest: Syntax OK
-```
-
-Acciones validadas:
-
-```text
-/srv/web/sites/test-local renombrado a /srv/web/sites/local.
-/etc/apache2/vhosts.d/local-landini.conf creado.
-/etc/apache2/vhosts.d/test-local-landini.conf eliminado.
-Backups .bak activos del vhost anterior eliminados.
-Marcador del index local actualizado.
-/usr/local/sbin/landini-web-backup.sh actualizado.
-restorecon aplicado.
-Apache recargado luego de configtest OK.
-```
-
-Validación de limpieza posterior:
-
-```text
-No quedaron referencias operativas vivas a test-local.
-No quedaron referencias operativas vivas a test-local.landini.
-No quedaron referencias operativas vivas a /srv/web/sites/test-local.
-No quedaron referencias operativas vivas a prueba.
-No quedaron referencias operativas vivas a demo.
-Términos example, dummy o test en plantillas/comentarios de Apache/PHP o comandos legítimos como test -s/testparm no se consideran deuda operativa propia de Landini.
-```
-
-Warning global de Apache corregido:
-
-```text
-Archivo: /etc/apache2/conf.d/landini-servername.conf
-Contenido: ServerName landini-server.local
-```
-
-### SELinux para servidor web
-
-SELinux está activo:
-
-```text
-enabled / enforcing
-```
-
-Problema inicial:
-
-```text
-/srv/web quedó inicialmente como unlabeled_t.
-```
-
-Reglas persistentes registradas con `semanage fcontext`:
-
-```text
-/srv/web(/.*)?                                      httpd_sys_content_t
-/srv/web/logs(/.*)?                                 httpd_log_t
-/srv/web/sites/[^/]+/shared/logs(/.*)?              httpd_log_t
-/srv/web/sites/[^/]+/shared/storage(/.*)?           httpd_sys_rw_content_t
-/srv/web/sites/[^/]+/shared/uploads(/.*)?           httpd_sys_rw_content_t
-```
-
-Aplicación:
-
-```bash
-restorecon -Rv /srv/web
-```
-
-Contextos finales validados:
-
-```text
-/srv/web                                      httpd_sys_content_t
-/srv/web/sites                                httpd_sys_content_t
-/srv/web/sites/local/current/public           httpd_sys_content_t
-/srv/web/sites/local/shared/storage           httpd_sys_rw_content_t
-/srv/web/sites/local/shared/uploads           httpd_sys_rw_content_t
-/srv/web/sites/local/shared/logs              httpd_log_t
-/srv/web/logs                                 httpd_log_t
-```
-
-### MariaDB local
-
-MariaDB fue inicializado y habilitado.
-
-Hardening básico aplicado:
-
-```text
-eliminación de usuarios anónimos
-eliminación de base test
-eliminación de privilegios sobre test
-FLUSH PRIVILEGES
-```
-
-Usuarios finales observados:
-
-```text
-PUBLIC
-mariadb.sys@localhost
-mysql@localhost
-root@localhost
-```
-
-Bases finales observadas:
-
-```text
-information_schema
-mysql
-performance_schema
-sys
-```
-
-Regla operativa:
-
-```text
-MariaDB escucha solo en 127.0.0.1:3306.
-No hay base ni usuario de app-base documentados en este cierre.
-```
-
-### Backups web
-
-Auditoría no destructiva validada:
-
-```text
-/srv/nas montado correctamente.
-/srv/web montado correctamente.
-/srv/nas: 916G totales, 865G libres, 1% usado.
-/srv/web: 220G totales, 208G libres, 1% usado.
-Backups totales en /srv/nas/landini/backups: 4,8G.
-Backups web en /srv/nas/landini/backups/landini-server/web: 2,8M antes de limpieza.
-Logs en /srv/nas/landini/backups/_logs: 80K.
-```
-
-Backup manual válido de referencia:
-
-```text
-/srv/nas/landini/backups/landini-server/web/backup_20260608_140542
-Tamaño aproximado: 668K
-Estado: backup manual completo válido
-```
-
-Contenido validado:
-
-```text
-/srv/web
-/etc/apache2
-/etc/sysconfig/apache2
-/etc/php8
-/etc/my.cnf
-/etc/my.cnf.d
-dump completo MariaDB
-reglas SELinux /srv/web
-contextos SELinux
-reporte de estado
-```
-
-Backup parcial fallido:
-
-```text
-/srv/nas/landini/backups/landini-server/web/backup_20260608_140306
-Tamaño antes de limpieza: 132K
-Motivo: redirecciones > ejecutadas sin root en el primer intento de backup manual.
-No tomar como backup válido completo.
-Estado posterior: eliminado mediante limpieza controlada.
-```
-
-Script permanente:
-
-```text
-/usr/local/sbin/landini-web-backup.sh
-Permisos: root:root 750
-Incluye scripts operativos Landini desde /usr/local/sbin/landini-*.sh.
-Archivo generado dentro del backup: scripts/landini_sbin_<timestamp>.tar.gz.
-```
-
-Prueba manual válida:
-
-```text
-Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_140709
-Tamaño aproximado: 668K
-Estado: backup generado por script, válido
-Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_140709.log
-```
-
-Service y timer:
-
-```text
-Service: /etc/systemd/system/landini-web-backup.service
-Timer: /etc/systemd/system/landini-web-backup.timer
-Timer: active / enabled
-Ejecución por systemd: status=0/SUCCESS
-```
-
-Horario:
-
-```text
-OnCalendar=*-*-* 03:00:00
-Persistent=true
-RandomizedDelaySec=10m
-Próxima ejecución observada: Tue 2026-06-09 03:03:42 EDT
-```
-
-Backup generado por prueba systemd:
-
-```text
-Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_141105
-Tamaño aproximado: 668K
-Estado: backup generado por systemd, válido
-Uso: backup usado para restore test válido
-Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_141105.log
-```
-
-Backup posterior a migración `local.landini`:
-
-```text
-Comando validado: sudo /usr/local/sbin/landini-web-backup.sh
-Resultado: [OK] Backup web completo generado
-Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_150436
-Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_150436.log
-Tamaño: 668K
-Estado: backup posterior a migración, válido
-```
-
-Archivos principales presentes:
-
-```text
-db/mariadb_all_20260608_150436.sql.gz
-files/apache2_20260608_150436.tar.gz
-files/my.cnf_20260608_150436
-files/my.cnf.d_20260608_150436.tar.gz
-files/php8_20260608_150436.tar.gz
-files/srv_web_20260608_150436.tar.gz
-files/sysconfig_apache2_20260608_150436
-reports/estado_stack_web_20260608_150436.txt
-selinux/contexts_srv_web_20260608_150436.txt
-selinux/fcontext_srv_web_20260608_150436.txt
-```
-
-Validación fina del backup posterior:
-
-```text
-No se encontraron referencias antiguas en reportes.
-No se encontraron referencias antiguas en SELinux.
-No se encontraron referencias antiguas en configs planas.
-No se encontraron referencias antiguas en srv_web_20260608_150436.tar.gz.
-No se encontraron referencias antiguas en apache2_20260608_150436.tar.gz.
-```
-
-`srv_web_20260608_150436.tar.gz` contiene:
-
-```text
-web/sites/local/
-web/sites/local/current/
-web/sites/local/current/public/
-web/sites/local/current/public/index.php
-web/sites/local/shared/
-web/sites/local/shared/logs/
-web/sites/local/shared/logs/apache-error.log
-web/sites/local/shared/logs/apache-access.log
-web/sites/local/shared/uploads/
-web/sites/local/shared/config/
-web/sites/local/shared/storage/
-web/sites/local/backups/
-web/sites/local/releases/
-```
-
-`apache2_20260608_150436.tar.gz` contiene:
-
-```text
-apache2/vhosts.d/local-landini.conf
-```
-
-Backup final validado de base web productiva LAN:
-
-```text
-Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_155118
-Estado: backup final validado del frente base web productiva LAN.
-```
-
-Incluye scripts:
-
 ```text
-usr/local/sbin/landini-web-backup.sh
-usr/local/sbin/landini-web-service-create.sh
+host = landini-server
+ip_lan = 192.168.0.210/24
+gateway_lan = 192.168.0.1
+interface = enp3s0
+os = openSUSE Tumbleweed
+web_volume = /srv/web
+web_fs = ext4,seclabel
+web_size = 220G aprox.
+role_landini_server = infraestructura tipo producción / servidor LAN-NAS-Web
+role_thinkpad = desarrollo
+public_exposure = false
 ```
 
-Incluye vhosts:
+[STACK_WEB]
 
 ```text
-apache2/vhosts.d/000-landini-default-deny.conf
-apache2/vhosts.d/local-landini.conf
-apache2/vhosts.d/panel-landini.conf
+apache_bin = /usr/sbin/httpd
+apache_service = apache2.service
+apache_state = active/enabled
+apache_listen = *:80
+php = 8.5.7
+php_fpm_service = php-fpm.service
+php_fpm_state = active/enabled
+php_fpm_listen = 127.0.0.1:9000
+composer = 2.10.0
+mariadb = 11.8.8
+mariadb_service = mariadb.service
+mariadb_state = active/enabled
+mariadb_listen = 127.0.0.1:3306
+mariadb_bases = information_schema,mysql,performance_schema,sys
+mariadb_users = PUBLIC,mariadb.sys@localhost,mysql@localhost,root@localhost
+app_base_db = no documentada en este cierre
 ```
 
-Incluye sitios:
+[WEB_FIREWALL]
 
 ```text
-web/sites/local/current/public/index.php
-web/sites/panel/current/public/index.php
+firewalld_zone = public
+firewalld_interface = enp3s0
+services_allowed = dhcpv6-client,samba,ssh
+ports_allowed = 24800/tcp
+http_lan = rich_rule 192.168.0.0/24 tcp/80 accept
+http_global_service = false
+https_global_service = false
+port_443_open = false
+router = no_configurado
+dns_publico = no_configurado
+certbot = no_configurado
+certificados_publicos = false
 ```
 
-Restore test no destructivo validado:
+[WEB_PATHS]
 
 ```text
-Backup validado: /srv/nas/landini/backups/landini-server/web/backup_20260608_141105
-Restore test: /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648
-Reporte: /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648/reporte_restore_test_20260608_142648.txt
-Tamaño del restore test: 688K
-Resultado: exitoso
+base_dirs = /srv/web/apps,/srv/web/sites,/srv/web/shared,/srv/web/logs,/srv/web/tmp
+service_layout = /srv/web/sites/<service-key>/{current/public,shared/{config,logs,storage,uploads},releases,backups}
+local_site = /srv/web/sites/local
+panel_site = /srv/web/sites/panel
 ```
 
-Validaciones realizadas:
+[VHOSTS_VIGENTES]
 
 ```text
-detección del último backup completo válido
-validación de integridad gzip -t sobre srv_web_20260608_141105.tar.gz
-validación de integridad gzip -t sobre apache2_20260608_141105.tar.gz
-validación de integridad gzip -t sobre php8_20260608_141105.tar.gz
-validación de integridad gzip -t sobre mariadb_all_20260608_141105.sql.gz
-extracción de /srv/web en zona temporal
-extracción de configuración Apache en zona temporal
-extracción de configuración PHP en zona temporal
-copia de my.cnf
-copia de reglas SELinux respaldadas
-copia de contextos SELinux respaldados
-validación de archivos esperados restaurados
-validación de dump MariaDB legible
-ejecución de php sobre el index.php restaurado
-generación de reporte de restore test
+/etc/apache2/vhosts.d/000-landini-default-deny.conf = ServerName default.landini.invalid -> hosts no declarados -> 403
+/etc/apache2/vhosts.d/local-landini.conf = ServerName local.landini -> /srv/web/sites/local/current/public -> health_check_lan
+/etc/apache2/vhosts.d/panel-landini.conf = ServerName panel.landini -> /srv/web/sites/panel/current/public -> servicio_real_lan
+php_backend = SetHandler "proxy:fcgi://127.0.0.1:9000"
+server_name_global = /etc/apache2/conf.d/landini-servername.conf -> ServerName landini-server.local
 ```
 
-Salida validada del `index.php` restaurado:
+[VALIDACION_WEB_LAN]
 
 ```text
-LANDINI WEB OK
-Sitio: test-local
-PHP: 8.5.7
-Fecha: 2026-06-08T18:26:58+00:00
+local.landini = HTTP_CODE 200
+panel.landini = HTTP_CODE 200
+no-declarado.landini = HTTP_CODE 403
+test-local.landini = HTTP_CODE 403
+macbook_hosts = 192.168.0.210 local.landini; 192.168.0.210 panel.landini
+validacion_macbook = local.landini OK; panel.landini OK; host_no_declarado 403; test-local.landini 403
 ```
 
-Lectura técnica:
+[LOCAL_LANDINI_CONTRATO]
 
 ```text
-El backup web fue generado correctamente.
-El backup web quedó validado como íntegro.
-El backup web quedó validado como extraíble.
-El backup web quedó validado como inspeccionable.
-El backup web quedó validado como reutilizable como base de restauración.
-El backup web es apto para reconstruir la base mínima del sitio de prueba.
-El dump MariaDB quedó validado como legible.
+local.landini = health_check_lan
+no_es = desarrollo,staging,sitio_cliente,app_real,servicio_real,landing_productiva,prueba_funcional,app_temporal
+confirma = Apache responde,PHP responde,/srv/web montado,servidor responde en LAN
+uso_para_servicios_reales = prohibido
 ```
 
-Primer intento fallido:
+[SERVICE_PANEL]
 
 ```text
-Restore test: restore_test_20260608_142509
-Motivo: el usuario normal no tenía permisos para crear /srv/nas/landini/backups/landini-server/web/restore-tests.
-Consecuencia: la prueba falló en cascada por permisos.
-No debe considerarse válida, aunque el script inicial imprimió un [OK] final incorrecto.
-Estado al auditar: no existe.
-Residuo para limpiar: no quedó.
+service_key = panel
+server_name = panel.landini
+site_dir = /srv/web/sites/panel
+vhost = /etc/apache2/vhosts.d/panel-landini.conf
+owner = alejandro:www
+dirs = 770
+files = 660
+status = validated_lan
+public_exposure = false
+https = false
+dns_publico = false
+router_port_forwarding = false
 ```
 
-Corrección aplicada:
+[SERVICIOS_REALES_REGLA]
 
 ```text
-La validación se rehizo ejecutando la zona de restore como root con sudo bash -c y set -euo pipefail.
-Restore test válido: restore_test_20260608_142648
+service_key = obligatorio
+ServerName = propio
+site_dir = /srv/web/sites/<service-key>/
+vhost = /etc/apache2/vhosts.d/<service-key>-landini.conf
+logs = /srv/web/sites/<service-key>/shared/logs/
+backup_posterior_validado = obligatorio
+local = reservado_health_check
+prohibido_nombres_operativos = test,prueba,demo,sample,example,dummy,temporal
+prohibido_sin_vhost_explicito = true
+exposicion_fuera_lan = prohibida hasta definir router,DNS_publico,HTTPS_ACME,politica_publicacion
 ```
 
-Criterio vigente:
+[HERRAMIENTAS_WEB]
 
 ```text
-No considerar un backup como cerrado solo por generarse.
-Debe poder extraerse, inspeccionarse y verificarse.
+/usr/local/sbin/landini-web-service-create.sh = alta controlada de servicios web reales; estructura; vhost; logs; validación Apache
+landini-web-service-create_validado = bash_syntax_OK,--help_OK,--dry-run_OK,--dry-run_no_crea_archivos,ownership_sitio_ajustado
+/usr/local/sbin/landini-web-backup.sh = backup web; incluye /srv/web,Apache,PHP,MariaDB config,dump MariaDB,SELinux,reportes,scripts landini-*.sh
+landini-web-backup_timer = landini-web-backup.timer active/enabled; OnCalendar=*-*-* 03:00:00; Persistent=true; RandomizedDelaySec=10m
+orden_timers = web_backup antes de landini-backup-server.timer
 ```
 
-Limpieza controlada ejecutada:
+[SELINUX_WEB]
 
 ```text
-Artefacto eliminado: /srv/nas/landini/backups/landini-server/web/backup_20260608_140306
-Verificación previa: OK.
-Ruta exacta permitida: OK.
-Resultado: artefacto fallido eliminado correctamente.
+selinux = enabled/enforcing
+/srv/web(/.*)? = httpd_sys_content_t
+/srv/web/logs(/.*)? = httpd_log_t
+/srv/web/sites/[^/]+/shared/logs(/.*)? = httpd_log_t
+/srv/web/sites/[^/]+/shared/storage(/.*)? = httpd_sys_rw_content_t
+/srv/web/sites/[^/]+/shared/uploads(/.*)? = httpd_sys_rw_content_t
+restorecon = aplicado
+contextos_validados = /srv/web,/srv/web/sites,/srv/web/sites/local/current/public,/srv/web/sites/local/shared/storage,/srv/web/sites/local/shared/uploads,/srv/web/sites/local/shared/logs,/srv/web/logs
 ```
 
-Backups web restantes:
+[MIGRACION_LOCAL_HOST]
 
 ```text
-backup_20260608_140542
-backup_20260608_140709
-backup_20260608_141105
-backup_20260608_150436
-backup_20260608_155118
+from = test-local.landini
+to = local.landini
+old_site = /srv/web/sites/test-local
+new_site = /srv/web/sites/local
+old_vhost = /etc/apache2/vhosts.d/test-local-landini.conf
+new_vhost = /etc/apache2/vhosts.d/local-landini.conf
+rollback_ref = /root/landini-rollback-local-host-20260608_150352
+apache_configtest = Syntax OK
+old_vhost_removed = true
+live_refs_test_local = false
+test-local.landini = default_deny_403
+backup_after_migration = /srv/nas/landini/backups/landini-server/web/backup_20260608_150436
 ```
 
-Restore-tests:
+[BACKUP_WEB_VIGENTE]
 
 ```text
-restore_test_20260608_142509: no existe; no quedó residuo para limpiar.
-restore_test_20260608_142648: restore test válido conservado.
+backup_final = /srv/nas/landini/backups/landini-server/web/backup_20260608_155118
+status = validado_base_web_productiva_LAN
+incluye = /srv/web,Apache,PHP,MariaDB_config,dump_MariaDB,SELinux,reporte_sistema,scripts_operativos_Landini
+incluye_scripts = usr/local/sbin/landini-web-backup.sh,usr/local/sbin/landini-web-service-create.sh
+incluye_vhosts = apache2/vhosts.d/000-landini-default-deny.conf,apache2/vhosts.d/local-landini.conf,apache2/vhosts.d/panel-landini.conf
+incluye_sites = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php
+backups_validos_previos = backup_20260608_140542,backup_20260608_140709,backup_20260608_141105,backup_20260608_150436
+backup_fallido_eliminado = backup_20260608_140306
+logs_conservados = landini-web-backup_20260608_140709.log,landini-web-backup_20260608_141105.log
 ```
 
-Logs web backup conservados:
+[RESTORE_TEST_WEB]
 
 ```text
-/srv/nas/landini/backups/_logs/landini-web-backup_20260608_140709.log
-/srv/nas/landini/backups/_logs/landini-web-backup_20260608_141105.log
+backup_validado = /srv/nas/landini/backups/landini-server/web/backup_20260608_141105
+restore_test_valido = /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648
+reporte = /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648/reporte_restore_test_20260608_142648.txt
+resultado = exitoso
+tamano = 688K
+validado = gzip_t_srv_web,apache2,php8,mariadb_dump; extraccion_srv_web; extraccion_apache; extraccion_php; my.cnf; SELinux_fcontext; SELinux_contexts; archivos_esperados; dump_MariaDB_legible; php_index_restaurado; reporte_generado
+salida_index_restaurado = LANDINI WEB OK; Sitio: test-local; PHP: 8.5.7; Fecha: 2026-06-08T18:26:58+00:00
+primer_intento_fallido = restore_test_20260608_142509; causa=permisos usuario normal en restore-tests; residuo=false; valido=false
+criterio = backup no cierra por generarse; debe extraerse,inspeccionarse,verificarse
 ```
 
-Política inicial:
+[POLITICA_INICIAL_BACKUP_WEB]
 
 ```text
-Backups web diarios: conservar inicialmente 14 diarios.
-Backups web manuales validados: conservar mientras el stack esté en fase de armado inicial; luego conservar solo los marcados como hito.
-Restore-tests: conservar el último restore test válido.
-Reportes de restore test: conservar.
-Restore-tests fallidos: eliminar si no aportan diagnóstico pendiente.
-Logs web backup: conservar inicialmente 30 días.
-Rotación de logs web backup: no automatizar todavía mientras el volumen sea bajo.
-Backups fallidos/parciales: no considerarlos backups válidos.
-Backups fallidos/parciales: conservar solo si se necesita diagnóstico inmediato.
-Backups fallidos/parciales: una vez documentado el motivo, eliminarlos mediante limpieza controlada.
+backups_diarios = conservar 14 iniciales
+backups_manuales_validados = conservar en fase armado inicial; luego solo hitos
+restore_tests = conservar ultimo valido
+reportes_restore_test = conservar
+restore_tests_fallidos = eliminar si no aportan diagnostico pendiente
+logs_web_backup = conservar 30 dias iniciales
+rotacion_logs = no automatizada mientras volumen bajo
+backups_fallidos_parciales = no validos; conservar solo diagnostico inmediato; eliminar con limpieza controlada luego de documentar motivo
 ```
 
-Relación con timers existentes:
+[PUBLICACION_PUBLICA_FUTURA]
 
 ```text
-03:00 aprox. landini-web-backup.timer
-03:30 aprox. landini-backup-server.timer
-04:00 aprox. landini-backup-thinkpad-home.timer
-04:30 aprox. landini-backup-macbook-home.timer
+Publicación pública futura = no_ejecutada
+estado_actual = LAN_validada; sin_exposicion_publica
+ready = Apache_funcionando,PHP_FPM_funcionando,MariaDB_local_only,default_deny_activo,servicios_LAN_validados,backup_restaurable_validado,scripts_operativos_en_backup,firewall_sin_apertura_publica
+apache_modulos_observados = ssl_module,socache_shmcb_module,proxy_module,proxy_fcgi_module
+apache_modulos_no_observados = rewrite_module,headers_module,http2_module
+nota_modulos_no_observados = revisar segun tipo_publicacion; no registrar como problema
+acme_detectado = certbot:false,lego:false,acme.sh:false,lets_encrypt_activo:false,certificados_publicos:false
+pendiente = dominio_publico,subdominio_inicial,servicio_publico_inicial,servicios_LAN_only,politica_publicacion_por_servicio,DNS,HTTPS_ACME,herramienta_ACME,renovacion_certificados,logs_rotacion,rollback,validacion_externa
+No tocar todavía = router,port_forwarding,DNS_publico,HTTPS,certbot,puerto_443,http_global_firewalld,https_global_firewalld,exponer_SSH,exponer_Samba,publicar_local.landini,usar_local.landini_como_servicio_real
+fases_no_ejecutadas = 0_estado_LAN_validado;1_definir_dominio_subdominios_politica;2_preparar_vhost_publico_sin_router;3_preparar_HTTPS_ACME_controlado;4_abrir_router_solo_HTTP_HTTPS_si_corresponde;5_validacion_externa;6_backup_post_publicacion;7_documentacion_y_commit
 ```
 
-Criterio:
+[HOSTING_CRITERIO]
 
 ```text
-Generar backup web antes del backup general del servidor.
+idea = vender servicios de hosting de internet
+criterio = no vender hosting generico masivo
+orientacion = hosting gestionado / presencia web / sistemas alojados Landini
+posible_nombre = Landini Web Gestionada; Landini Hosting Gestionado; app-base + hosting administrado + mantenimiento + backups
+no_vender_inicialmente = cPanel_libre,correo_propio,FTP_abierto,SSH_clientes,hosting_compartido_codigo_desconocido,SLA_datacenter
 ```
 
-### Límites actuales
+[ACCESO_REMOTO_PUBLICACION]
 
 ```text
-No abrir https en firewalld todavía.
-No abrir http como servicio global.
-No configurar router todavía.
-No configurar DNS todavía.
-No instalar/configurar certbot todavía.
-No afirmar exposición pública.
-No afirmar hosting comercial activo.
+administracion_privada = Tailscale
+publicacion_web_publica = Cloudflare Tunnel
+router_puertos_primera_opcion = no
+exponer_SSH = no
+exponer_Samba = no
+DMZ = no
 ```
 
-Pendientes antes de exposición externa:
+[LIMITES_WEB_ACTUALES]
 
 ```text
-definir dominio
-definir política de VirtualHosts
-definir política de certificados
-definir estrategia de logs
-resolver nombres LAN cómodos si corresponde
-definir estructura inicial de sitios/apps antes de exposición externa
-decidir si se mantiene o deshabilita Postfix instalado automáticamente
-definir política para apps alojadas, una base y un usuario DB por servicio
-definir procedimiento de alta de sitio/app
-definir procedimiento de despliegue de app-base como servicio alojado, no como raíz especial del servidor
+no_abrir_https_firewalld = true
+no_abrir_http_global = true
+no_router = true
+no_DNS_publico = true
+no_certbot = true
+no_exposicion_publica = true
+no_hosting_comercial_activo = true
+pendiente_antes_exposicion = dominio,politica_vhosts,politica_certificados,estrategia_logs,nombres_LAN_comodos,estructura_sitios_apps,postfix,DB_por_servicio,alta_sitio_app,deploy_app_base_como_servicio_alojado_no_raiz_especial
+criterio_documental = no documentar microacciones; documentar cierres,cambios_estructurales,exposicion,seguridad,backup_restore,servicios_reales,decisiones_preventivas
 ```
 
 ---
-
-## Hosting como servicio
-
-Apareció una idea estratégica fuerte:
-
-```text
-vender servicios de hosting de internet
-```
-
-Recomendación conceptual:
-
-```text
-No vender hosting genérico masivo.
-Vender hosting gestionado / presencia web / sistemas alojados Landini.
-```
-
-Enfoque posible:
-
-```text
-Landini Web Gestionada
-Landini Hosting Gestionado
-app-base + hosting administrado + mantenimiento + backups
-```
-
-No vender inicialmente:
-
-```text
-cPanel libre
-correo propio
-FTP abierto
-SSH a clientes
-hosting compartido para código desconocido
-SLA tipo datacenter
-```
-
----
-
-## Acceso remoto seguro
-
-Para administración privada:
-
-```text
-Tailscale
-```
-
-Para publicación web pública:
-
-```text
-Cloudflare Tunnel
-```
-
-Lectura recomendada:
-
-```text
-Tailscale = administración privada.
-Cloudflare Tunnel = publicación web pública.
-```
-
-Regla vigente:
-
-```text
-No abrir puertos del router como primera opción.
-No exponer SSH.
-No exponer Samba.
-No DMZ.
-```
-
----
-
-# Backups — cierre operativo validado
-
-Estado general:
-
-```text
-NAS local: /srv/nas
-Raíz de backups: /srv/nas/landini/backups
-Restic: instalado
-smartmontools: instalado
-rsync: instalado
-SELinux: activo
-/srv/nas: samba_share_t
-Samba: operativo para share landini
-Espacio NAS observado: 916G total, 4,8G usados, 865G disponibles, 1% uso
-```
-
-Al momento de la configuración, el NAS estaba disponible con amplio espacio libre.
-
-Regla:
-
-```text
-NAS local no reemplaza copia offsite.
-No registrar contraseñas ni secretos.
-Las password files existen y quedan fuera de este documento.
-```
-
-## Estado global de timers Landini
-
-Validado con:
-
-```bash
-systemctl list-timers --all | grep landini
-```
-
-Timers activos:
-
-```text
-landini-web-backup.timer
-Service: landini-web-backup.service
-Próxima ejecución observada: Tue 2026-06-09 03:03:42 EDT
-Uso: backup diario web local antes del backup general del servidor
-
-landini-backup-server.timer
-Service: landini-backup-server.service
-Próxima ejecución observada: Tue 2026-06-09 03:33:41 EDT
-Uso: backup diario servidor
-
-landini-backup-thinkpad-home.timer
-Service: landini-backup-thinkpad-home.service
-Próxima ejecución observada: Tue 2026-06-09 04:06:45 EDT
-Uso: backup diario ThinkPad
-
-landini-backup-macbook-home.timer
-Service: landini-backup-macbook-home.service
-Próxima ejecución observada: Tue 2026-06-09 04:34:06 EDT
-Uso: backup diario MacBook selectivo
-
-landini-restic-maintenance.timer
-Service: landini-restic-maintenance.service
-Próxima ejecución observada: Sun 2026-06-14 04:40:34 EDT
-Uso: mantenimiento semanal repo servidor
-
-landini-restic-maintenance-thinkpad.timer
-Service: landini-restic-maintenance-thinkpad.service
-Próxima ejecución observada: Sun 2026-06-14 05:16:26 EDT
-Uso: mantenimiento semanal repo ThinkPad
-
-landini-restic-maintenance-macbook.timer
-Service: landini-restic-maintenance-macbook.service
-Próxima ejecución observada: Sun 2026-06-14 05:54:06 EDT
-Uso: mantenimiento semanal repo MacBook
-```
-
-Systemd units existentes validadas:
-
-```text
-/etc/systemd/system/landini-web-backup.service
-/etc/systemd/system/landini-backup-macbook-home.service
-/etc/systemd/system/landini-backup-server.service
-/etc/systemd/system/landini-backup-thinkpad-home.service
-/etc/systemd/system/landini-restic-maintenance-macbook.service
-/etc/systemd/system/landini-restic-maintenance.service
-/etc/systemd/system/landini-restic-maintenance-thinkpad.service
-/etc/systemd/system/landini-web-backup.timer
-/etc/systemd/system/landini-backup-macbook-home.timer
-/etc/systemd/system/landini-backup-server.timer
-/etc/systemd/system/landini-backup-thinkpad-home.timer
-/etc/systemd/system/landini-restic-maintenance-macbook.timer
-/etc/systemd/system/landini-restic-maintenance-thinkpad.timer
-/etc/systemd/system/landini-restic-maintenance.timer
-```
-
-Scripts operativos validados:
-
-```text
-/usr/local/sbin/landini-web-backup.sh                         -rwxr-x---  root:root
-/usr/local/sbin/landini-backup-macbook-home.sh              3,7K  -rwxr-x---  root:root
-/usr/local/sbin/landini-backup-server.sh                    2,7K  -rwxr-x---  root:root
-/usr/local/sbin/landini-backup-thinkpad-home.sh             3,4K  -rwxr-x---  root:root
-/usr/local/sbin/landini-restic-maintenance-macbook.sh       1,4K  -rwxr-x---  root:root
-/usr/local/sbin/landini-restic-maintenance.sh               1,4K  -rwxr-x---  root:root
-/usr/local/sbin/landini-restic-maintenance-thinkpad.sh      1,4K  -rwxr-x---  root:root
-```
 
 ## Backup landini-server
 
@@ -2784,6 +1962,21 @@ pendientes
 
 ---
 
-# Estado resumido en una frase
+# Estado consolidado
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, base web productiva LAN validada con HTTP LAN controlado, default deny Apache, local.landini limitado a health check LAN, panel.landini como primer servicio real LAN sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.
+```text
+landini-server = LAN/NAS/Web operativo
+SELinux = enforcing
+firewalld = active
+SSH = hardened
+Samba = LAN
+NAS = mounted
+WEB = mounted
+HTTP = LAN_only
+default_deny = active
+local.landini = health_check
+panel.landini = service_lan
+backup = active_local + web_restore_validated + offsite_selective
+Synergy = client_to_MacBook
+public_exposure = false
+```

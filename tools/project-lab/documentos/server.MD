@@ -213,6 +213,30 @@ ssh
 samba
 ```
 
+Puerto permitido:
+
+```text
+24800/tcp
+```
+
+HTTP LAN controlado:
+
+```text
+Zona activa: public
+Interfaz activa: enp3s0
+IP LAN servidor: 192.168.0.210/24
+Rich rule permanente: rule family="ipv4" source address="192.168.0.0/24" port port="80" protocol="tcp" accept
+```
+
+Lectura:
+
+```text
+HTTP queda habilitado solo para la red 192.168.0.0/24.
+No se agregó http como servicio global.
+No se agregó https.
+No se configuró router, DNS público, certbot ni exposición pública.
+```
+
 Se limpió la zona `docker` fantasma. Actualmente no aparece zona docker activa.
 
 ---
@@ -705,7 +729,7 @@ Volumen web: /srv/web
 Filesystem: ext4 con seclabel
 Montaje observado: /srv/web desde /dev/sdb1
 Tamaño aproximado: 220G
-HTTP funciona localmente.
+HTTP funciona localmente y desde LAN controlada.
 No hay exposición pública configurada.
 ```
 
@@ -736,12 +760,12 @@ Firewall:
 
 ```text
 Apache escucha en *:80.
-firewalld no tiene abierto el servicio http.
-HTTP queda cerrado hacia LAN/Internet por firewalld.
-No se abrió http.
+HTTP LAN quedó habilitado por rich rule restringida a 192.168.0.0/24.
+firewalld no tiene abierto http como servicio global.
 No se abrió https.
 Servicios firewalld permitidos: dhcpv6-client, samba, ssh.
 Puerto firewalld permitido: 24800/tcp.
+Rich rule: rule family="ipv4" source address="192.168.0.0/24" port port="80" protocol="tcp" accept
 ```
 
 No configurado en este frente:
@@ -791,6 +815,7 @@ Pruebas locales validadas:
 ```bash
 curl -H 'Host: test-local.landini' http://127.0.0.1/
 curl -H 'Host: test-local.landini' http://localhost/
+curl -sS -H "Host: test-local.landini" http://192.168.0.210/
 ```
 
 Respuesta validada:
@@ -799,6 +824,49 @@ Respuesta validada:
 LANDINI WEB OK
 Sitio: test-local
 PHP: 8.5.7
+```
+
+Validación HTTP LAN desde servidor:
+
+```bash
+curl -sS -H "Host: test-local.landini" http://192.168.0.210/
+```
+
+Respuesta validada:
+
+```text
+LANDINI WEB OK
+Sitio: test-local
+PHP: 8.5.7
+Fecha: 2026-06-08T18:50:42+00:00
+```
+
+Validación HTTP LAN desde MacBook:
+
+```bash
+curl -sS -H "Host: test-local.landini" http://192.168.0.210/
+```
+
+Respuesta validada:
+
+```text
+LANDINI WEB OK
+Sitio: test-local
+PHP: 8.5.7
+Fecha: 2026-06-08T18:51:00+00:00
+```
+
+Lectura operativa:
+
+```text
+test-local.landini responde desde MacBook usando Host header contra 192.168.0.210.
+Este cierre valida servicio HTTP interno LAN.
+No implica exposición pública.
+No implica DNS público.
+No implica HTTPS.
+No implica certbot.
+No implica publicación externa.
+No implica hosting productivo comercial todavía.
 ```
 
 Warning global de Apache corregido:
@@ -1119,7 +1187,8 @@ Generar backup web antes del backup general del servidor.
 ### Límites actuales
 
 ```text
-No abrir http/https en firewalld todavía.
+No abrir https en firewalld todavía.
+No abrir http como servicio global.
 No configurar router todavía.
 No configurar DNS todavía.
 No instalar/configurar certbot todavía.
@@ -1134,6 +1203,8 @@ definir dominio
 definir política de VirtualHosts
 definir política de certificados
 definir estrategia de logs
+resolver nombres LAN cómodos si corresponde
+definir estructura inicial de sitios/apps antes de exposición externa
 decidir si se mantiene o deshabilita Postfix instalado automáticamente
 definir política para apps alojadas, una base y un usuario DB por servicio
 definir procedimiento de alta de sitio/app
@@ -2302,4 +2373,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, stack web local validado sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, stack web local validado con HTTP LAN controlado sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.

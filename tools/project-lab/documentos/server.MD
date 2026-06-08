@@ -686,8 +686,390 @@ Restricción:
 
 ```text
 No afirmar hosting comercial activo.
-No afirmar Apache, PHP, Laravel, DNS, router, certificados o firewall externo configurados.
+No afirmar DNS, router, certificados o firewall externo configurados.
 La exposición externa queda para un frente posterior.
+```
+
+---
+
+## Servidor web local Landini
+
+Frente servidor web local cerrado y validado en `landini-server`.
+
+Estado validado:
+
+```text
+Host: landini-server
+IP LAN: 192.168.0.210
+Volumen web: /srv/web
+Filesystem: ext4 con seclabel
+Montaje observado: /srv/web desde /dev/sdb1
+Tamaño aproximado: 220G
+HTTP funciona localmente.
+No hay exposición pública configurada.
+```
+
+Stack instalado y operativo:
+
+```text
+Apache: instalado y operativo
+Binario Apache: /usr/sbin/httpd
+Servicio Apache: apache2.service
+Estado Apache: active / enabled
+
+PHP: 8.5.7
+PHP-FPM: instalado y operativo
+Servicio PHP-FPM: php-fpm.service
+Estado PHP-FPM: active / enabled
+PHP-FPM escucha en 127.0.0.1:9000
+
+Composer: 2.10.0
+
+MariaDB: instalado y operativo
+Versión MariaDB: 11.8.8
+Servicio MariaDB: mariadb.service
+Estado MariaDB: active / enabled
+MariaDB escucha solo en 127.0.0.1:3306
+```
+
+Firewall:
+
+```text
+Apache escucha en *:80.
+firewalld no tiene abierto el servicio http.
+HTTP queda cerrado hacia LAN/Internet por firewalld.
+No se abrió http.
+No se abrió https.
+```
+
+No configurado en este frente:
+
+```text
+exposición pública
+router
+DNS
+HTTPS/certbot
+certificados
+```
+
+Estructura base creada en `/srv/web`:
+
+```text
+/srv/web/apps
+/srv/web/sites
+/srv/web/shared
+/srv/web/logs
+/srv/web/tmp
+```
+
+Sitio de prueba:
+
+```text
+/srv/web/sites/test-local/current/public
+/srv/web/sites/test-local/shared/storage
+/srv/web/sites/test-local/shared/uploads
+/srv/web/sites/test-local/shared/config
+/srv/web/sites/test-local/shared/logs
+/srv/web/sites/test-local/releases
+/srv/web/sites/test-local/backups
+```
+
+VirtualHost local:
+
+```text
+Nombre local: test-local.landini
+DocumentRoot: /srv/web/sites/test-local/current/public
+Archivo de prueba: /srv/web/sites/test-local/current/public/index.php
+VirtualHost: /etc/apache2/vhosts.d/test-local-landini.conf
+Backend PHP-FPM: SetHandler "proxy:fcgi://127.0.0.1:9000"
+```
+
+Pruebas locales validadas:
+
+```bash
+curl -H 'Host: test-local.landini' http://127.0.0.1/
+curl -H 'Host: test-local.landini' http://localhost/
+```
+
+Respuesta validada:
+
+```text
+LANDINI WEB OK
+Sitio: test-local
+PHP: 8.5.7
+```
+
+Warning global de Apache corregido:
+
+```text
+Archivo: /etc/apache2/conf.d/landini-servername.conf
+Contenido: ServerName landini-server.local
+```
+
+### SELinux para servidor web
+
+SELinux está activo:
+
+```text
+enabled / enforcing
+```
+
+Problema inicial:
+
+```text
+/srv/web quedó inicialmente como unlabeled_t.
+```
+
+Reglas persistentes registradas con `semanage fcontext`:
+
+```text
+/srv/web(/.*)?                                      httpd_sys_content_t
+/srv/web/logs(/.*)?                                 httpd_log_t
+/srv/web/sites/[^/]+/shared/logs(/.*)?              httpd_log_t
+/srv/web/sites/[^/]+/shared/storage(/.*)?           httpd_sys_rw_content_t
+/srv/web/sites/[^/]+/shared/uploads(/.*)?           httpd_sys_rw_content_t
+```
+
+Aplicación:
+
+```bash
+restorecon -Rv /srv/web
+```
+
+Contextos finales validados:
+
+```text
+/srv/web                                      httpd_sys_content_t
+/srv/web/sites                                httpd_sys_content_t
+/srv/web/sites/test-local/current/public      httpd_sys_content_t
+/srv/web/sites/test-local/shared/storage      httpd_sys_rw_content_t
+/srv/web/sites/test-local/shared/uploads      httpd_sys_rw_content_t
+/srv/web/sites/test-local/shared/logs         httpd_log_t
+/srv/web/logs                                 httpd_log_t
+```
+
+### MariaDB local
+
+MariaDB fue inicializado y habilitado.
+
+Hardening básico aplicado:
+
+```text
+eliminación de usuarios anónimos
+eliminación de base test
+eliminación de privilegios sobre test
+FLUSH PRIVILEGES
+```
+
+Usuarios finales observados:
+
+```text
+PUBLIC
+mariadb.sys@localhost
+mysql@localhost
+root@localhost
+```
+
+Bases finales observadas:
+
+```text
+information_schema
+mysql
+performance_schema
+sys
+```
+
+Regla operativa:
+
+```text
+MariaDB escucha solo en 127.0.0.1:3306.
+No hay base ni usuario de app-base documentados en este cierre.
+```
+
+### Backups web
+
+Backup manual válido de referencia:
+
+```text
+/srv/nas/landini/backups/landini-server/web/backup_20260608_140542
+Tamaño aproximado: 668K
+```
+
+Contenido validado:
+
+```text
+/srv/web
+/etc/apache2
+/etc/sysconfig/apache2
+/etc/php8
+/etc/my.cnf
+/etc/my.cnf.d
+dump completo MariaDB
+reglas SELinux /srv/web
+contextos SELinux
+reporte de estado
+```
+
+Backup parcial fallido:
+
+```text
+/srv/nas/landini/backups/landini-server/web/backup_20260608_140306
+Motivo: redirecciones > ejecutadas sin root en el primer intento de backup manual.
+No tomar como backup válido completo.
+```
+
+Script permanente:
+
+```text
+/usr/local/sbin/landini-web-backup.sh
+Permisos: root:root 750
+```
+
+Prueba manual válida:
+
+```text
+Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_140709
+Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_140709.log
+```
+
+Service y timer:
+
+```text
+Service: /etc/systemd/system/landini-web-backup.service
+Timer: /etc/systemd/system/landini-web-backup.timer
+Timer: active / enabled
+Ejecución por systemd: status=0/SUCCESS
+```
+
+Horario:
+
+```text
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+RandomizedDelaySec=10m
+Próxima ejecución observada: Tue 2026-06-09 03:03:42 EDT
+```
+
+Backup generado por prueba systemd:
+
+```text
+Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_141105
+Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_141105.log
+```
+
+Restore test no destructivo validado:
+
+```text
+Backup validado: /srv/nas/landini/backups/landini-server/web/backup_20260608_141105
+Restore test: /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648
+Reporte: /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648/reporte_restore_test_20260608_142648.txt
+Tamaño del restore test: 688K
+Resultado: exitoso
+```
+
+Validaciones realizadas:
+
+```text
+detección del último backup completo válido
+validación de integridad gzip -t sobre srv_web_20260608_141105.tar.gz
+validación de integridad gzip -t sobre apache2_20260608_141105.tar.gz
+validación de integridad gzip -t sobre php8_20260608_141105.tar.gz
+validación de integridad gzip -t sobre mariadb_all_20260608_141105.sql.gz
+extracción de /srv/web en zona temporal
+extracción de configuración Apache en zona temporal
+extracción de configuración PHP en zona temporal
+copia de my.cnf
+copia de reglas SELinux respaldadas
+copia de contextos SELinux respaldados
+validación de archivos esperados restaurados
+validación de dump MariaDB legible
+ejecución de php sobre el index.php restaurado
+generación de reporte de restore test
+```
+
+Salida validada del `index.php` restaurado:
+
+```text
+LANDINI WEB OK
+Sitio: test-local
+PHP: 8.5.7
+Fecha: 2026-06-08T18:26:58+00:00
+```
+
+Lectura técnica:
+
+```text
+El backup web fue generado correctamente.
+El backup web quedó validado como íntegro.
+El backup web quedó validado como extraíble.
+El backup web quedó validado como inspeccionable.
+El backup web quedó validado como reutilizable como base de restauración.
+El backup web es apto para reconstruir la base mínima del sitio de prueba.
+El dump MariaDB quedó validado como legible.
+```
+
+Primer intento fallido:
+
+```text
+Restore test: restore_test_20260608_142509
+Motivo: el usuario normal no tenía permisos para crear /srv/nas/landini/backups/landini-server/web/restore-tests.
+Consecuencia: la prueba falló en cascada por permisos.
+No debe considerarse válida, aunque el script inicial imprimió un [OK] final incorrecto.
+```
+
+Corrección aplicada:
+
+```text
+La validación se rehizo ejecutando la zona de restore como root con sudo bash -c y set -euo pipefail.
+Restore test válido: restore_test_20260608_142648
+```
+
+Criterio vigente:
+
+```text
+No considerar un backup como cerrado solo por generarse.
+Debe poder extraerse, inspeccionarse y verificarse.
+```
+
+Relación con timers existentes:
+
+```text
+03:00 aprox. landini-web-backup.timer
+03:30 aprox. landini-backup-server.timer
+04:00 aprox. landini-backup-thinkpad-home.timer
+04:30 aprox. landini-backup-macbook-home.timer
+```
+
+Criterio:
+
+```text
+Generar backup web antes del backup general del servidor.
+```
+
+### Límites actuales
+
+```text
+No abrir http/https en firewalld todavía.
+No configurar router todavía.
+No configurar DNS todavía.
+No instalar/configurar certbot todavía.
+No afirmar exposición pública.
+No afirmar hosting comercial activo.
+```
+
+Pendientes antes de exposición externa:
+
+```text
+definir dominio
+definir política de VirtualHosts
+definir política de certificados
+definir estrategia de logs
+definir rotación/retención de backups web
+definir política de retención de restore-tests web
+decidir si se mantiene o deshabilita Postfix instalado automáticamente
+definir política para apps alojadas, una base y un usuario DB por servicio
+definir procedimiento de alta de sitio/app
+definir procedimiento de despliegue de app-base como servicio alojado, no como raíz especial del servidor
 ```
 
 ---
@@ -797,6 +1179,11 @@ systemctl list-timers --all | grep landini
 Timers activos:
 
 ```text
+landini-web-backup.timer
+Service: landini-web-backup.service
+Próxima ejecución observada: Tue 2026-06-09 03:03:42 EDT
+Uso: backup diario web local antes del backup general del servidor
+
 landini-backup-server.timer
 Service: landini-backup-server.service
 Próxima ejecución observada: Mon 2026-06-08 03:38:56 EDT
@@ -831,12 +1218,14 @@ Uso: mantenimiento semanal repo MacBook
 Systemd units existentes validadas:
 
 ```text
+/etc/systemd/system/landini-web-backup.service
 /etc/systemd/system/landini-backup-macbook-home.service
 /etc/systemd/system/landini-backup-server.service
 /etc/systemd/system/landini-backup-thinkpad-home.service
 /etc/systemd/system/landini-restic-maintenance-macbook.service
 /etc/systemd/system/landini-restic-maintenance.service
 /etc/systemd/system/landini-restic-maintenance-thinkpad.service
+/etc/systemd/system/landini-web-backup.timer
 /etc/systemd/system/landini-backup-macbook-home.timer
 /etc/systemd/system/landini-backup-server.timer
 /etc/systemd/system/landini-backup-thinkpad-home.timer
@@ -848,6 +1237,7 @@ Systemd units existentes validadas:
 Scripts operativos validados:
 
 ```text
+/usr/local/sbin/landini-web-backup.sh                         -rwxr-x---  root:root
 /usr/local/sbin/landini-backup-macbook-home.sh              3,7K  -rwxr-x---  root:root
 /usr/local/sbin/landini-backup-server.sh                    2,7K  -rwxr-x---  root:root
 /usr/local/sbin/landini-backup-thinkpad-home.sh             3,4K  -rwxr-x---  root:root
@@ -1391,6 +1781,7 @@ Permission denied en du sin sudo no invalida backups; snapshots y restic check y
 Backups diarios:
 
 ```text
+web local: activo
 landini-server: activo
 ThinkPad: activo
 MacBook: activo
@@ -1415,6 +1806,7 @@ MacBook: validado
 Restore tests:
 
 ```text
+web local: realizado y validado de forma no destructiva desde backup_20260608_141105 hacia restore_test_20260608_142648
 landini-server: realizado y validado restaurando /etc/hostname
 ThinkPad: realizado y validado restaurando .bashrc desde staging-home
 MacBook: realizado y validado restaurando .zshrc desde snapshot latest resuelto a e8990720 hacia /tmp en landini-server
@@ -1786,6 +2178,7 @@ Pendiente:
 ```text
 SMART periódico
 espacio en disco
+estado apache2/php-fpm/mariadb
 estado servicios
 estado Samba
 estado túneles futuros
@@ -1819,6 +2212,8 @@ KDE/theme
 backups
 offsite OneDrive
 servidor web público
+servidor web local
+backups web
 acceso remoto seguro
 monitoreo
 pendientes
@@ -1828,4 +2223,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, backups locales activos para landini-server, ThinkPad y MacBook, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, stack web local validado sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.

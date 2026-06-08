@@ -740,6 +740,8 @@ firewalld no tiene abierto el servicio http.
 HTTP queda cerrado hacia LAN/Internet por firewalld.
 No se abrió http.
 No se abrió https.
+Servicios firewalld permitidos: dhcpv6-client, samba, ssh.
+Puerto firewalld permitido: 24800/tcp.
 ```
 
 No configurado en este frente:
@@ -888,11 +890,24 @@ No hay base ni usuario de app-base documentados en este cierre.
 
 ### Backups web
 
+Auditoría no destructiva validada:
+
+```text
+/srv/nas montado correctamente.
+/srv/web montado correctamente.
+/srv/nas: 916G totales, 865G libres, 1% usado.
+/srv/web: 220G totales, 208G libres, 1% usado.
+Backups totales en /srv/nas/landini/backups: 4,8G.
+Backups web en /srv/nas/landini/backups/landini-server/web: 2,8M antes de limpieza.
+Logs en /srv/nas/landini/backups/_logs: 80K.
+```
+
 Backup manual válido de referencia:
 
 ```text
 /srv/nas/landini/backups/landini-server/web/backup_20260608_140542
 Tamaño aproximado: 668K
+Estado: backup manual completo válido
 ```
 
 Contenido validado:
@@ -914,8 +929,10 @@ Backup parcial fallido:
 
 ```text
 /srv/nas/landini/backups/landini-server/web/backup_20260608_140306
+Tamaño antes de limpieza: 132K
 Motivo: redirecciones > ejecutadas sin root en el primer intento de backup manual.
 No tomar como backup válido completo.
+Estado posterior: eliminado mediante limpieza controlada.
 ```
 
 Script permanente:
@@ -929,6 +946,8 @@ Prueba manual válida:
 
 ```text
 Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_140709
+Tamaño aproximado: 668K
+Estado: backup generado por script, válido
 Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_140709.log
 ```
 
@@ -954,6 +973,9 @@ Backup generado por prueba systemd:
 
 ```text
 Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_141105
+Tamaño aproximado: 668K
+Estado: backup generado por systemd, válido
+Uso: backup usado para restore test válido
 Log: /srv/nas/landini/backups/_logs/landini-web-backup_20260608_141105.log
 ```
 
@@ -1015,6 +1037,8 @@ Restore test: restore_test_20260608_142509
 Motivo: el usuario normal no tenía permisos para crear /srv/nas/landini/backups/landini-server/web/restore-tests.
 Consecuencia: la prueba falló en cascada por permisos.
 No debe considerarse válida, aunque el script inicial imprimió un [OK] final incorrecto.
+Estado al auditar: no existe.
+Residuo para limpiar: no quedó.
 ```
 
 Corrección aplicada:
@@ -1029,6 +1053,52 @@ Criterio vigente:
 ```text
 No considerar un backup como cerrado solo por generarse.
 Debe poder extraerse, inspeccionarse y verificarse.
+```
+
+Limpieza controlada ejecutada:
+
+```text
+Artefacto eliminado: /srv/nas/landini/backups/landini-server/web/backup_20260608_140306
+Verificación previa: OK.
+Ruta exacta permitida: OK.
+Resultado: artefacto fallido eliminado correctamente.
+```
+
+Backups web restantes:
+
+```text
+backup_20260608_140542
+backup_20260608_140709
+backup_20260608_141105
+```
+
+Restore-tests:
+
+```text
+restore_test_20260608_142509: no existe; no quedó residuo para limpiar.
+restore_test_20260608_142648: restore test válido conservado.
+```
+
+Logs web backup conservados:
+
+```text
+/srv/nas/landini/backups/_logs/landini-web-backup_20260608_140709.log
+/srv/nas/landini/backups/_logs/landini-web-backup_20260608_141105.log
+```
+
+Política inicial:
+
+```text
+Backups web diarios: conservar inicialmente 14 diarios.
+Backups web manuales validados: conservar mientras el stack esté en fase de armado inicial; luego conservar solo los marcados como hito.
+Restore-tests: conservar el último restore test válido.
+Reportes de restore test: conservar.
+Restore-tests fallidos: eliminar si no aportan diagnóstico pendiente.
+Logs web backup: conservar inicialmente 30 días.
+Rotación de logs web backup: no automatizar todavía mientras el volumen sea bajo.
+Backups fallidos/parciales: no considerarlos backups válidos.
+Backups fallidos/parciales: conservar solo si se necesita diagnóstico inmediato.
+Backups fallidos/parciales: una vez documentado el motivo, eliminarlos mediante limpieza controlada.
 ```
 
 Relación con timers existentes:
@@ -1064,8 +1134,6 @@ definir dominio
 definir política de VirtualHosts
 definir política de certificados
 definir estrategia de logs
-definir rotación/retención de backups web
-definir política de retención de restore-tests web
 decidir si se mantiene o deshabilita Postfix instalado automáticamente
 definir política para apps alojadas, una base y un usuario DB por servicio
 definir procedimiento de alta de sitio/app
@@ -1186,17 +1254,17 @@ Uso: backup diario web local antes del backup general del servidor
 
 landini-backup-server.timer
 Service: landini-backup-server.service
-Próxima ejecución observada: Mon 2026-06-08 03:38:56 EDT
+Próxima ejecución observada: Tue 2026-06-09 03:33:41 EDT
 Uso: backup diario servidor
 
 landini-backup-thinkpad-home.timer
 Service: landini-backup-thinkpad-home.service
-Próxima ejecución observada: Mon 2026-06-08 04:09:58 EDT
+Próxima ejecución observada: Tue 2026-06-09 04:06:45 EDT
 Uso: backup diario ThinkPad
 
 landini-backup-macbook-home.timer
 Service: landini-backup-macbook-home.service
-Próxima ejecución observada: Mon 2026-06-08 04:37:15 EDT
+Próxima ejecución observada: Tue 2026-06-09 04:34:06 EDT
 Uso: backup diario MacBook selectivo
 
 landini-restic-maintenance.timer
@@ -1732,6 +1800,8 @@ Logs observados:
 
 ```text
 Directorio: /srv/nas/landini/backups/_logs
+landini-web-backup_20260608_140709.log
+landini-web-backup_20260608_141105.log
 landini-backup-macbook-home-20260607_174114.log
 landini-backup-server-20260607_154019.log
 landini-backup-thinkpad-home-20260607_162445.log
@@ -1751,20 +1821,29 @@ Espacio NAS validado:
 
 ```text
 Comando: df -hT /srv/nas
-Filesystem: /dev/sdb1
-Type: ext4
 Size: 916G
-Used: 4,8G
 Avail: 865G
 Use%: 1%
 Mount: /srv/nas
 ```
 
+Espacio web validado:
+
+```text
+Comando: df -hT /srv/web
+Size: 220G
+Avail: 208G
+Use%: 1%
+Mount: /srv/web
+```
+
 Medición visible sin sudo:
 
 ```text
+/srv/nas/landini/backups: 4,8G
 /srv/nas/landini/backups/landini-server: 212K visible, incompleto por permission denied en repo/reportes root
-/srv/nas/landini/backups/_logs: 44K
+/srv/nas/landini/backups/landini-server/web: 2,8M antes de limpieza
+/srv/nas/landini/backups/_logs: 80K
 /srv/nas/landini/backups/macbook: 44M visible
 /srv/nas/landini/backups/thinkpad: 2,9G visible
 ```

@@ -1255,13 +1255,204 @@ Definir backup específico de app-base runtime/data si corresponde:
 - storage privado
 - archivos tenant
 - dumps
-Definir backup offsite:
-- disco externo rotativo
-- nube futura
-- otro servidor
 Guardar contraseñas Restic fuera del servidor.
 Evaluar permisos de logs si se quieren consultar cómodamente por Samba.
 Evaluar si Pictures/Photos Library.photoslibrary debe mantenerse incluida en MacBook si crece mucho en el futuro.
+```
+
+---
+
+## Offsite backup OneDrive
+
+Frente offsite cerrado con copia selectiva semanal vía `rclone`.
+
+Lectura doctrinal:
+
+```text
+OneDrive funciona como offsite backup selectivo semanal.
+NAS local sigue siendo el backup principal.
+Repos Restic locales siguen siendo la base de recuperación principal.
+OneDrive no reemplaza restore tests.
+OneDrive no reemplaza backup local.
+OneDrive no guarda por ahora repos Restic completos.
+La copia remota vigente es Landini/offsite/friday.
+El contenido remoto se actualiza por rclone sync desde offsite-selection.
+La automatización queda programada los viernes a las 12:00.
+El timer es infraestructura de resguardo, no sistema SaaS app-base.
+```
+
+Remote rclone configurado:
+
+```text
+onedrive-landini:
+```
+
+Validación de lectura:
+
+```text
+rclone listremotes mostró onedrive-landini:
+rclone lsd onedrive-landini: listó correctamente la raíz de OneDrive.
+```
+
+Prueba mínima de escritura/borrado:
+
+```text
+Archivo temporal local: /tmp/landini-rclone-test.txt
+Destino remoto: onedrive-landini:Landini/_test
+Validación remota: 48 landini-rclone-test.txt
+Resultado: [OK] Prueba mínima rclone OneDrive finalizada
+```
+
+El archivo remoto de prueba fue eliminado y el archivo local fue limpiado.
+
+Script:
+
+```text
+/usr/local/sbin/landini-offsite-onedrive-friday.sh
+```
+
+Lectura del script:
+
+```text
+Origen selectivo: /srv/nas/landini/offsite-selection
+Destino remoto: onedrive-landini:Landini/offsite/friday
+Logs: /srv/nas/landini/backups/_logs/offsite_onedrive_friday_*.log
+Método: rclone sync
+```
+
+El script prepara la selección local y copia contenido seleccionado desde:
+
+```text
+/srv/nas/landini/documentos
+/srv/nas/landini/compartido
+/srv/nas/landini/backups/_logs
+```
+
+Reglas operativas del script:
+
+```text
+No sube repos Restic completos.
+No reemplaza backup local.
+No borra datos reales fuera de offsite-selection.
+```
+
+Corrección aplicada al script:
+
+```bash
+export RCLONE_CONFIG="/home/alejandro/.config/rclone/rclone.conf"
+```
+
+Motivo:
+
+```text
+El script corre con sudo.
+Sin esa variable, rclone buscaba /root/.config/rclone/rclone.conf.
+```
+
+Error real observado:
+
+```text
+Config file "/root/.config/rclone/rclone.conf" not found
+didn't find section in config file ("onedrive-landini")
+```
+
+Validación:
+
+```bash
+sudo RCLONE_CONFIG="/home/alejandro/.config/rclone/rclone.conf" rclone listremotes
+```
+
+Salida:
+
+```text
+onedrive-landini:
+```
+
+Ejecución manual validada:
+
+```bash
+sudo /usr/local/sbin/landini-offsite-onedrive-friday.sh
+rclone lsf onedrive-landini:Landini/offsite/friday --recursive | sort
+```
+
+Resultado remoto validado:
+
+```text
+backups_logs/
+compartido/
+documentos/
+archivos reales dentro de backups_logs
+compartido/prueba_nas.txt
+```
+
+Service systemd:
+
+```text
+/etc/systemd/system/landini-offsite-onedrive-friday.service
+```
+
+Contenido funcional:
+
+```text
+Ejecuta: /usr/local/sbin/landini-offsite-onedrive-friday.sh
+Tipo: oneshot
+Espera red: network-online.target
+```
+
+Timer systemd:
+
+```text
+/etc/systemd/system/landini-offsite-onedrive-friday.timer
+```
+
+Frecuencia:
+
+```text
+Viernes 12:00
+OnCalendar=Fri 12:00
+Persistent=true
+```
+
+Validación por systemd:
+
+```text
+Service: landini-offsite-onedrive-friday.service
+Estado: inactive (dead) luego de ejecutar
+Resultado: code=exited, status=0/SUCCESS
+TriggeredBy: landini-offsite-onedrive-friday.timer
+```
+
+Log de ejecución validado por systemd:
+
+```text
+/srv/nas/landini/backups/_logs/offsite_onedrive_friday_20260608_113243.log
+```
+
+Validación remota posterior a ejecución systemd:
+
+```bash
+rclone lsf onedrive-landini:Landini/offsite/friday --recursive | sort
+```
+
+Resultado incluyó:
+
+```text
+backups_logs/
+backups_logs/landini-backup-macbook-home-20260607_174114.log
+backups_logs/landini-backup-macbook-home-20260608_101858.log
+backups_logs/landini-backup-server-20260607_154019.log
+backups_logs/landini-backup-server-20260608_102002.log
+backups_logs/landini-backup-thinkpad-home-20260607_162445.log
+backups_logs/landini-backup-thinkpad-home-20260608_102701.log
+backups_logs/landini-restic-maintenance-20260607_154843.log
+backups_logs/landini-restic-maintenance-macbook-20260607_175119.log
+backups_logs/landini-restic-maintenance-thinkpad-20260607_162917.log
+backups_logs/offsite_onedrive_friday_20260608_112328.log
+backups_logs/offsite_onedrive_friday_20260608_112808.log
+backups_logs/offsite_onedrive_friday_20260608_113243.log
+compartido/
+compartido/prueba_nas.txt
+documentos/
 ```
 
 ---
@@ -1445,6 +1636,7 @@ firewall
 EFI
 KDE/theme
 backups
+offsite OneDrive
 servidor web público
 acceso remoto seguro
 monitoreo
@@ -1455,4 +1647,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, backups locales activos para landini-server, ThinkPad y MacBook, y Synergy operativo como cliente hacia MacBook**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, backups locales activos para landini-server, ThinkPad y MacBook, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.

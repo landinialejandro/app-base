@@ -839,6 +839,157 @@ DNS público: no configurado.
 Router/port forwarding: no configurado.
 ```
 
+Publicación pública futura - no ejecutada:
+
+```text
+Estado actual: LAN validada, sin publicación pública vigente.
+Servidor: landini-server.
+IP LAN: 192.168.0.210/24.
+Gateway LAN: 192.168.0.1.
+Interfaz: enp3s0.
+OS: openSUSE Tumbleweed.
+Apache escucha en *:80.
+PHP-FPM escucha en 127.0.0.1:9000.
+MariaDB escucha en 127.0.0.1:3306.
+Servicios activos y habilitados: apache2, php-fpm, mariadb, firewalld.
+```
+
+Estado LAN validado:
+
+```text
+local.landini queda como health check LAN.
+panel.landini queda como primer servicio real LAN.
+Hosts no declarados quedan bloqueados por default deny.
+local.landini responde HTTP_CODE=200.
+panel.landini responde HTTP_CODE=200.
+no-declarado.landini responde HTTP_CODE=403.
+test-local.landini responde HTTP_CODE=403.
+MacBook resuelve por /etc/hosts local.landini y panel.landini hacia 192.168.0.210.
+Validación desde MacBook: local.landini OK, panel.landini OK, host no declarado 403, test-local.landini 403.
+No hay exposición pública vigente.
+```
+
+Firewall vigente para este punto:
+
+```text
+Zona activa: public.
+Interfaz: enp3s0.
+Servicios permitidos: dhcpv6-client, samba, ssh.
+Puerto permitido: 24800/tcp.
+HTTP permitido solo LAN mediante rich rule para 192.168.0.0/24 sobre puerto 80.
+Rich rule: rule family="ipv4" source address="192.168.0.0/24" port port="80" protocol="tcp" accept.
+No se agregó http como servicio global.
+No se agregó https.
+No se abrió puerto 443.
+No se configuró router.
+No se configuró DNS público.
+No se configuró certbot.
+```
+
+Apache vigente para este punto:
+
+```text
+Default vhost: /etc/apache2/vhosts.d/000-landini-default-deny.conf.
+Default ServerName: default.landini.invalid.
+Health check LAN: /etc/apache2/vhosts.d/local-landini.conf.
+Health check ServerName: local.landini.
+Primer servicio real LAN: /etc/apache2/vhosts.d/panel-landini.conf.
+Primer servicio real ServerName: panel.landini.
+```
+
+Elementos listos para futura publicación controlada:
+
+```text
+Apache funcionando.
+PHP-FPM funcionando.
+MariaDB local-only.
+Default deny activo.
+Servicios LAN validados.
+Backup restaurable validado.
+Scripts operativos incluidos en backup.
+Firewall sin apertura pública.
+Backup vigente: /srv/nas/landini/backups/landini-server/web/backup_20260608_155118.
+```
+
+Backup vigente para este punto:
+
+```text
+Incluye /srv/web.
+Incluye Apache.
+Incluye PHP.
+Incluye MariaDB config.
+Incluye dump MariaDB.
+Incluye SELinux.
+Incluye reporte sistema.
+Incluye scripts operativos Landini.
+Incluye usr/local/sbin/landini-web-backup.sh.
+Incluye usr/local/sbin/landini-web-service-create.sh.
+Incluye apache2/vhosts.d/000-landini-default-deny.conf.
+Incluye apache2/vhosts.d/local-landini.conf.
+Incluye apache2/vhosts.d/panel-landini.conf.
+Incluye web/sites/local/current/public/index.php.
+Incluye web/sites/panel/current/public/index.php.
+```
+
+Datos Apache/ACME a revisar cuando se defina publicación:
+
+```text
+Módulos Apache observados: ssl_module, socache_shmcb_module, proxy_module, proxy_fcgi_module.
+Módulos no observados en auditoría: rewrite_module, headers_module, http2_module.
+No registrar módulos no observados como problema; revisarlos según el tipo de publicación pública que se defina.
+No se detectó certbot.
+No se detectó lego.
+No se detectó acme.sh.
+No se detectó estructura activa de Let's Encrypt.
+No hay certificados públicos configurados.
+```
+
+Checklist pendiente antes de publicar:
+
+```text
+Dominio público concreto.
+Subdominio público inicial.
+Qué servicio será público primero.
+Qué servicios quedarán LAN-only.
+Política de publicación por servicio.
+Estrategia DNS.
+Estrategia HTTPS/ACME.
+Herramienta ACME a usar.
+Política de renovación de certificados.
+Logs y rotación para servicios públicos.
+Checklist de rollback.
+Validación externa posterior.
+```
+
+No tocar todavía:
+
+```text
+No router / port forwarding.
+No DNS público.
+No HTTPS.
+No certbot.
+No abrir puerto 443.
+No agregar http como servicio global de firewalld.
+No agregar https como servicio global de firewalld.
+No exponer SSH.
+No exponer Samba.
+No publicar local.landini.
+No usar local.landini como servicio real.
+```
+
+Fases futuras sugeridas, no ejecutadas:
+
+```text
+Fase 0: Estado actual LAN validado.
+Fase 1: Definir dominio, subdominios y política de exposición.
+Fase 2: Preparar vhost público sin abrir router.
+Fase 3: Preparar HTTPS/ACME en modo controlado.
+Fase 4: Abrir router solo HTTP/HTTPS cuando corresponda.
+Fase 5: Validación externa.
+Fase 6: Backup post-publicación.
+Fase 7: Documentación y commit.
+```
+
 Pruebas locales validadas:
 
 ```bash

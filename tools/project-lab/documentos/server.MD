@@ -813,6 +813,32 @@ VirtualHost vigente: /etc/apache2/vhosts.d/local-landini.conf
 Backend PHP-FPM: SetHandler "proxy:fcgi://127.0.0.1:9000"
 ```
 
+Default deny Apache:
+
+```text
+VHost: /etc/apache2/vhosts.d/000-landini-default-deny.conf
+ServerName interno: default.landini.invalid
+Función: bloquear hosts no declarados.
+Resultado validado: local.landini responde correctamente.
+Resultado validado: panel.landini responde correctamente.
+Resultado validado: host no declarado responde HTTP_CODE=403.
+```
+
+Primer servicio real LAN:
+
+```text
+Servicio: panel
+Host: panel.landini
+Ruta: /srv/web/sites/panel/current/public
+VHost: /etc/apache2/vhosts.d/panel-landini.conf
+Función actual: primer servicio real LAN validado.
+Estado: responde por Apache/PHP usando Host header.
+Exposición pública: no configurada.
+HTTPS: no configurado.
+DNS público: no configurado.
+Router/port forwarding: no configurado.
+```
+
 Pruebas locales validadas:
 
 ```bash
@@ -875,8 +901,10 @@ PHP: 8.5.7
 Lectura operativa:
 
 ```text
-local.landini queda como host LAN base.
-/srv/web/sites/local queda como sitio base vigente.
+ThinkPad queda como entorno de desarrollo.
+landini-server debe tratarse conceptualmente como servidor tipo producción / infraestructura productiva.
+local.landini queda como health check LAN del servidor.
+/srv/web/sites/local queda como sitio vigente para health check LAN.
 /etc/apache2/vhosts.d/local-landini.conf queda como vhost vigente.
 local.landini responde usando Host header contra 192.168.0.210.
 Este cierre valida servicio HTTP interno LAN.
@@ -886,6 +914,91 @@ No implica HTTPS.
 No implica certbot.
 No implica publicación externa.
 No implica hosting productivo comercial todavía.
+```
+
+Criterio de uso de `local.landini`:
+
+```text
+local.landini no es sitio de desarrollo.
+local.landini no es staging.
+local.landini no es sitio de cliente.
+local.landini no es app real.
+local.landini no debe usarse como base operativa para nuevos servicios.
+local.landini confirma únicamente que Apache responde, PHP responde, /srv/web está montado y el servidor responde en LAN.
+```
+
+`local.landini` no debe alojar:
+
+```text
+app-base
+staging
+sitios de clientes
+landings productivas
+servicios reales
+pruebas funcionales
+aplicaciones temporales
+```
+
+Regla para servicios reales:
+
+```text
+Todo servicio real debe tener service-key propio.
+Todo servicio real debe tener ServerName propio.
+Todo servicio real debe tener ruta propia en /srv/web/sites/<service-key>/.
+Todo servicio real debe tener vhost propio en /etc/apache2/vhosts.d/<service-key>-landini.conf.
+Todo servicio real debe tener logs propios en /srv/web/sites/<service-key>/shared/logs/.
+Todo servicio real debe accederse mediante un servicio externo definido para ese fin.
+Todo servicio real debe tener backup posterior validado.
+No reutilizar local.landini como entrada de servicios reales.
+No crear servicio sin vhost explícito.
+No exponer servicio fuera de LAN hasta definir router, DNS público, HTTPS/certbot y política de publicación.
+No usar nombres test, prueba, demo, sample, example, dummy ni temporal como nombres operativos.
+local queda reservado para health check.
+```
+
+Estructura vigente para servicios reales:
+
+```text
+/srv/web/sites/<service-key>/
+|-- current/
+|   `-- public/
+|-- shared/
+|   |-- config/
+|   |-- logs/
+|   |-- storage/
+|   `-- uploads/
+|-- releases/
+`-- backups/
+```
+
+Herramienta operativa de alta de servicios:
+
+```text
+Script: /usr/local/sbin/landini-web-service-create.sh
+Función: crear servicios web reales con estructura, vhost, logs y validación Apache.
+Validación: sintaxis bash OK.
+Validación: --help OK.
+Validación: --dry-run OK.
+Validación: --dry-run no crea archivos reales.
+Validación: bloque final ajustado para ownership de sitio.
+Ownership esperado de sitios: /srv/web/sites/<service-key> → alejandro:www.
+Modo esperado de directorios de sitio: 770.
+Modo esperado de archivos de sitio: 660.
+Ownership esperado de VHosts Apache: root:root.
+Modo esperado de VHosts Apache: 644.
+```
+
+Criterio documental desde este punto:
+
+```text
+No documentar cada microacción.
+Documentar cierres de frente.
+Documentar cambios de criterio estructural.
+Documentar exposición de servicios.
+Documentar cambios de seguridad.
+Documentar cambios de backup/restore.
+Documentar incorporación de servicios reales.
+Documentar decisiones que eviten errores futuros.
 ```
 
 Migración limpia a `local.landini`:
@@ -1064,6 +1177,8 @@ Script permanente:
 ```text
 /usr/local/sbin/landini-web-backup.sh
 Permisos: root:root 750
+Incluye scripts operativos Landini desde /usr/local/sbin/landini-*.sh.
+Archivo generado dentro del backup: scripts/landini_sbin_<timestamp>.tar.gz.
 ```
 
 Prueba manual válida:
@@ -1163,6 +1278,35 @@ web/sites/local/releases/
 apache2/vhosts.d/local-landini.conf
 ```
 
+Backup final validado de base web productiva LAN:
+
+```text
+Backup: /srv/nas/landini/backups/landini-server/web/backup_20260608_155118
+Estado: backup final validado del frente base web productiva LAN.
+```
+
+Incluye scripts:
+
+```text
+usr/local/sbin/landini-web-backup.sh
+usr/local/sbin/landini-web-service-create.sh
+```
+
+Incluye vhosts:
+
+```text
+apache2/vhosts.d/000-landini-default-deny.conf
+apache2/vhosts.d/local-landini.conf
+apache2/vhosts.d/panel-landini.conf
+```
+
+Incluye sitios:
+
+```text
+web/sites/local/current/public/index.php
+web/sites/panel/current/public/index.php
+```
+
 Restore test no destructivo validado:
 
 ```text
@@ -1255,6 +1399,7 @@ backup_20260608_140542
 backup_20260608_140709
 backup_20260608_141105
 backup_20260608_150436
+backup_20260608_155118
 ```
 
 Restore-tests:
@@ -2490,4 +2635,4 @@ pendientes
 
 # Estado resumido en una frase
 
-`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, stack web local validado con HTTP LAN controlado sobre local.landini sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.
+`landini-server` ya quedó como **servidor LAN/NAS operativo, seguro en red local, con discos y montajes validados post-reboot, Samba funcional desde MacBook, SELinux enforcing, firewall activo, SSH endurecido, base web productiva LAN validada con HTTP LAN controlado, default deny Apache, local.landini limitado a health check LAN, panel.landini como primer servicio real LAN sin exposición pública, backups locales activos para landini-server, ThinkPad, MacBook y web, restore test web no destructivo validado, offsite backup selectivo semanal en OneDrive y Synergy operativo como cliente hacia MacBook**.

@@ -956,14 +956,33 @@ PHP-FPM = no_publicar
 primer_publicable_futuro = staging-landini
 ServerName = staging.landini.com.ar
 tipo = landing_html_minima
-estado = planificado_no_implementado
+estado = implementado_local_no_publico
+exposicion_publica = false
 site_dir = /srv/web/sites/staging-landini/
-document_root = /srv/web/sites/staging-landini/public/
+document_root = /srv/web/sites/staging-landini/current/public/
 shared_dir = /srv/web/sites/staging-landini/shared/
 logs_dir = /srv/web/sites/staging-landini/shared/logs/
 vhost_file = /etc/apache2/vhosts.d/staging-landini.conf
 access_log = /srv/web/sites/staging-landini/shared/logs/access.log
 error_log = /srv/web/sites/staging-landini/shared/logs/error.log
+landing_file = /srv/web/sites/staging-landini/current/public/index.html
+patron_real = /srv/web/sites/<service-key>/current/public + shared/logs + shared/config + shared/storage + shared/uploads + releases + backups
+document_root_no_usado = /srv/web/sites/staging-landini/public/
+
+[STAGING_LANDINI_FASE_1]
+estado = cerrada
+alcance = preparacion_local_no_publica
+implementacion = LAN_Host_header
+publicacion_publica = false
+pre_auditoria = Apache_configtest_Syntax_OK,Apache_*:80,PHP-FPM_127.0.0.1:9000,MariaDB_127.0.0.1:3306,firewalld_sin_http_global_sin_https_global,443_no_escucha,local.landini_200,panel.landini_200,staging.landini.com.ar_pre_implementacion_403,hosts_no_declarados_403
+precheck_detiene = [ERROR] Ya existe /srv/web/sites/staging-landini. Detener para revisar.
+estructura_parcial_detectada = /srv/web/sites/staging-landini,/srv/web/sites/staging-landini/backups,/srv/web/sites/staging-landini/backups/prechange_20260609_085902
+estructura_parcial_sin = index.html,current/public,shared/logs,vhost_staging
+backup_parcial_preexistente = conservado
+validacion_servidor = Apache_configtest_Syntax_OK,staging.landini.com.ar_200,local.landini_200,panel.landini_200,no-declarado.landini_403
+contenido_validado = STAGING LANDINI OK; Servicio staging-landini preparado localmente.
+validacion_macbook = curl --resolve staging.landini.com.ar:80:192.168.0.210 -> HTTP_CODE=200
+seguridad_conservada = router_no_tocado,DNS_no_tocado,DonWeb_no_tocado,firewalld_publico_no_ampliado,http_global_firewalld_false,https_global_firewalld_false,443_no_abierto,HTTPS_no_configurado,certbot_no_instalado,app_base_no_publicada,Project_Lab_no_publicado,Samba_no_publicado_publicamente,SSH_no_expuesto_publicamente_por_esta_fase,exposicion_publica_false
 
 [PROHIBIDO]
 no_modificar = landini.com.ar_raiz
@@ -986,8 +1005,8 @@ riesgo_pendiente = IP_LAN_dinamica_debe_estabilizarse_antes_de_port_forwarding
 
 [FASES]
 FASE_0_POLITICA = definida_no_implementada
-FASE_1_PREPARACION_LOCAL_NO_PUBLICA = preparar_vhost_estructura_logs_sin_router_ni_DNS
-FASE_2_VALIDACION_LAN = validar_Host_header_default_deny_local_panel
+FASE_1_PREPARACION_LOCAL_NO_PUBLICA = cerrada_implementada_local_no_publica
+FASE_2_VALIDACION_LAN = no_implementada_como_fase; validaciones_LAN_basicas_hechas_en_FASE_1
 FASE_3_DECISION_DNS_ROUTER = decision_explicita_usuario
 FASE_4_PUBLICACION_CONTROLADA = abrir_solo_lo_aprobado
 FASE_5_VALIDACION_POST = validar_exposicion_minima_y_no_exposicion_indebida

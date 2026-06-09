@@ -732,7 +732,7 @@ web_fs = ext4,seclabel
 web_size = 220G aprox.
 role_landini_server = infraestructura tipo producción / servidor LAN-NAS-Web
 role_thinkpad = desarrollo
-public_exposure = false
+public_exposure = solo_staging.landini.com.ar_HTTP_301_y_HTTPS_200
 ```
 
 [STACK_WEB]
@@ -741,7 +741,7 @@ public_exposure = false
 apache_bin = /usr/sbin/httpd
 apache_service = apache2.service
 apache_state = active/enabled
-apache_listen = *:80
+apache_listen = *:80,*:443
 php = 8.5.7
 php_fpm_service = php-fpm.service
 php_fpm_state = active/enabled
@@ -764,13 +764,13 @@ firewalld_interface = enp3s0
 services_allowed = dhcpv6-client,samba,ssh
 ports_allowed = 24800/tcp
 http_lan = rich_rule 192.168.0.0/24 tcp/80 accept
-http_global_service = false
-https_global_service = false
-port_443_open = false
-router = no_configurado
-dns_publico = no_configurado
-certbot = no_configurado
-certificados_publicos = false
+http_global_service = true
+https_global_service = true
+port_443_open = true
+router = WAN_TCP_80_y_443 -> 192.168.0.210
+dns_publico = staging.landini.com.ar A 152.171.194.12
+certbot = instalado 5.6.0
+certificados_publicos = solo staging.landini.com.ar
 ```
 
 [WEB_PATHS]
@@ -786,8 +786,11 @@ panel_site = /srv/web/sites/panel
 
 ```text
 /etc/apache2/vhosts.d/000-landini-default-deny.conf = ServerName default.landini.invalid -> hosts no declarados -> 403
+/etc/apache2/vhosts.d/000-landini-default-deny-ssl.conf = default deny HTTPS -> hosts no declarados -> 403
 /etc/apache2/vhosts.d/local-landini.conf = ServerName local.landini -> /srv/web/sites/local/current/public -> health_check_lan
 /etc/apache2/vhosts.d/panel-landini.conf = ServerName panel.landini -> /srv/web/sites/panel/current/public -> servicio_real_lan
+/etc/apache2/vhosts.d/staging-landini.conf = ServerName staging.landini.com.ar -> HTTP 301 a HTTPS
+/etc/apache2/vhosts.d/staging-landini-ssl.conf = ServerName staging.landini.com.ar -> HTTPS publico validado
 php_backend = SetHandler "proxy:fcgi://127.0.0.1:9000"
 server_name_global = /etc/apache2/conf.d/landini-servername.conf -> ServerName landini-server.local
 ```
@@ -928,13 +931,13 @@ backups_fallidos_parciales = no validos; conservar solo diagnostico inmediato; e
 [PUBLICACION_PUBLICA_FUTURA]
 
 ```text
-estado = publicacion_HTTP_controlada_staging_validada
+estado = publicacion_HTTPS_staging_validada
 frente = infraestructura_Landini_publicacion_publica_futura
 regla_maxima = NO_SE_ASUME; NO_SE_SUPONE
 objetivo = definir criterios seguros para futura publicacion publica de servicios Landini
-alcance_validado = publicar_solo_staging.landini.com.ar_por_HTTP_80
-no_alcance_vigente = no_HTTPS,no_443,no_certbot,no_app-base,no_Project_Lab,no_local.landini,no_panel.landini,no_SSH,no_Samba,no_MariaDB,no_PHP-FPM
-public_exposure = staging.landini.com.ar_HTTP_only
+alcance_validado = publicar_solo_staging.landini.com.ar_por_HTTP_80_y_HTTPS_443
+no_alcance_vigente = no_app-base,no_Project_Lab,no_local.landini,no_panel.landini,no_SSH,no_Samba,no_MariaDB,no_PHP-FPM,no_certificados_para_otros_hosts
+public_exposure = staging.landini.com.ar_HTTPS
 
 [DOMINIOS]
 dominio_publico_base = landini.com.ar
@@ -945,8 +948,8 @@ staging_actual = A 152.171.194.12
 staging_anterior = CNAME landini.com.ar
 www_staging_actual = sin_registro_visible
 www_staging_anterior = CNAME landini.com.ar
-staging_validado = HTTP_CODE_200_REMOTE_IP_152.171.194.12
-landini_server_expuesto = solo_staging_HTTP_80
+staging_validado = HTTPS_CODE_200_REMOTE_IP_152.171.194.12
+landini_server_expuesto = solo_staging_HTTP_80_y_HTTPS_443
 no_tocado_DNS = landini.com.ar,www.landini.com.ar,MX,TXT_SPF_DKIM_DMARC,mail,app,spv2,ftp,AAAA_raiz
 
 [LAN_ONLY]
@@ -962,15 +965,18 @@ PHP-FPM = no_publicar
 primer_publicable_futuro = staging-landini
 ServerName = staging.landini.com.ar
 tipo = landing_html_minima
-estado = publicado_HTTP_controlado
-exposicion_publica = true_HTTP_80_staging_only
+estado = publicado_HTTPS_controlado
+exposicion_publica = true_HTTP_80_redirect_y_HTTPS_443_staging_only
 site_dir = /srv/web/sites/staging-landini/
 document_root = /srv/web/sites/staging-landini/current/public/
 shared_dir = /srv/web/sites/staging-landini/shared/
 logs_dir = /srv/web/sites/staging-landini/shared/logs/
-vhost_file = /etc/apache2/vhosts.d/staging-landini.conf
+vhost_http = /etc/apache2/vhosts.d/staging-landini.conf
+vhost_https = /etc/apache2/vhosts.d/staging-landini-ssl.conf
 access_log = /srv/web/sites/staging-landini/shared/logs/access.log
 error_log = /srv/web/sites/staging-landini/shared/logs/error.log
+ssl_access_log = /srv/web/sites/staging-landini/shared/logs/ssl-access.log
+ssl_error_log = /srv/web/sites/staging-landini/shared/logs/ssl-error.log
 landing_file = /srv/web/sites/staging-landini/current/public/index.html
 patron_real = /srv/web/sites/<service-key>/current/public + shared/logs + shared/config + shared/storage + shared/uploads + releases + backups
 document_root_no_usado = /srv/web/sites/staging-landini/public/
@@ -994,11 +1000,11 @@ seguridad_conservada = router_no_tocado,DNS_no_tocado,DonWeb_no_tocado,firewalld
 FASE_2_PUBLICACION_HTTP_CONTROLADA_STAGING = OK
 FASE_2D_DNS_CONTROLADO_STAGING = OK
 estado = publicado_HTTP_80_desde_internet
-HTTPS = pendiente
-443 = no_abierto
-certbot = no_instalado
+HTTPS = cerrado_en_FASE_3
+443 = cerrado_en_FASE_3
+certbot = cerrado_en_FASE_3
 router = Technicolor DPC3848VE DOCSIS 3.0 Gateway; Gateway_Mode=Router
-router_port_forwarding = WAN_TCP_80 -> 192.168.0.210_TCP_80
+router_port_forwarding = WAN_TCP_80 -> 192.168.0.210_TCP_80; WAN_TCP_443 -> 192.168.0.210_TCP_443
 router_DHCP_reserva = MAC_50:46:5d:a0:32:15 -> 192.168.0.210
 tcpdump_externo = 181.238.73.148.* > 192.168.0.210.80 GET / HTTP/1.1; 192.168.0.210.80 > 181.238.73.148.* HTTP/1.1 200 OK
 validacion_externa_host_header = no-declarado.landini_403,local.landini_403,panel.landini_403,staging.landini.com.ar_200
@@ -1008,11 +1014,45 @@ publicado = staging.landini.com.ar_HTTP_80
 no_publicado = app-base,Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
 default_deny_publico = hosts_no_declarados_403
 
+[STAGING_LANDINI_FASE_3_HTTPS_PUBLICA]
+FASE_3A_CAMINO_TCP_443 = OK
+FASE_3B_CERTBOT_CERTIFICADO = OK
+FASE_3D_VHOST_HTTPS_STAGING = OK
+FASE_3E_DEFAULT_DENY_HTTPS = OK
+renovacion_automatica_certbot = OK
+redirect_HTTP_a_HTTPS_solo_staging = OK
+validacion_externa_red_real = OK
+certbot_version = 5.6.0
+certificado = /etc/letsencrypt/live/staging.landini.com.ar/fullchain.pem
+private_key = /etc/letsencrypt/live/staging.landini.com.ar/privkey.pem
+certificado_hosts = staging.landini.com.ar
+certificado_no_emitido_para = www,landini.com.ar,app,local.landini,panel.landini
+certificado_expira = 2026-09-07 18:37:28+00:00
+certificado_estado_auditoria = VALID: 89 days
+certificado_key_type = ECDSA
+certbot_timer = certbot-renew.timer enabled active(waiting); Trigger=Wed 2026-06-10 04:12:50 EDT
+certbot_timer_unit = /usr/lib/systemd/system/certbot-renew.timer; OnCalendar=daily; RandomizedDelaySec=6hours; Persistent=true
+certbot_service = /usr/lib/systemd/system/certbot-renew.service; ExecStart=/usr/bin/certbot renew $PRE_HOOK $POST_HOOK $RENEW_HOOK $CERTBOT_ARGS
+certbot_sysconfig = /etc/sysconfig/certbot PRE_HOOK="" POST_HOOK="" RENEW_HOOK="" CERTBOT_ARGS=""
+certbot_hooks_visibles = ninguno_en_/etc/letsencrypt/renewal-hooks
+apache_ssl = APACHE_SERVER_FLAGS="SSL"; apache_corriendo_con_-DSSL
+apache_listen = *:80,*:443
+apache_modulos = ssl_module,socache_shmcb_module,rewrite_module
+apache_configtest = Syntax OK
+vhost_http_staging = /etc/apache2/vhosts.d/staging-landini.conf; Redirect permanent "/" "https://staging.landini.com.ar/"
+vhost_http_staging_backup_previo = /etc/apache2/vhosts.d/staging-landini.conf.bak.YYYYMMDD_HHMMSS
+vhost_https_staging = /etc/apache2/vhosts.d/staging-landini-ssl.conf
+default_deny_http = /etc/apache2/vhosts.d/000-landini-default-deny.conf
+default_deny_https = /etc/apache2/vhosts.d/000-landini-default-deny-ssl.conf
+validacion_local = staging_HTTP_301_redirect_https,staging_HTTPS_200,no-declarado_HTTP_403,no-declarado_HTTPS_403
+validacion_externa_mac = origen_181.238.73.83; staging_HTTP_301_redirect_https; staging_HTTPS_200_SSL_VERIFY_0; no-declarado_HTTP_403; no-declarado_HTTPS_403; local_HTTP_403; local_HTTPS_403; panel_HTTP_403; panel_HTTPS_403
+nota_mac_date = date -Is fallo_por_BSD_macOS; no_afecta_validacion_red_HTTP_HTTPS
+
 [PROHIBIDO]
 no_modificar = landini.com.ar_raiz
 no_apuntar = otros_hosts_a_landini-server_sin_decision_explicita
-no_abrir = DMZ,443,http_global_firewalld,https_global_firewalld
-no_instalar = certbot
+no_abrir = DMZ,puertos_adicionales
+no_emitir_certificados = www,raiz,app,local,panel
 no_exponer = SSH,Samba,local.landini,panel.landini,app-base,Project_Lab,backups,dumps,.env,credenciales
 
 [AUDITORIA_RED_VALIDADA]
@@ -1026,16 +1066,20 @@ landini_server_lan_ip = 192.168.0.210
 landini_server_lan_ip_tipo = DHCP_reservada_en_router
 landini_server_dhcp_reserva = MAC_50:46:5d:a0:32:15 -> 192.168.0.210
 gateway_lan = 192.168.0.1
-riesgo_pendiente = HTTPS_443_certbot_pendiente
+riesgo_pendiente = no_publicar_servicios_adicionales_sin_decision_explicita
 
 [FASES]
 FASE_0_POLITICA = definida_no_implementada
 FASE_1_PREPARACION_LOCAL_NO_PUBLICA = cerrada_implementada_local_no_publica
 FASE_2_PUBLICACION_HTTP_CONTROLADA_STAGING = OK
 FASE_2D_DNS_CONTROLADO_STAGING = OK
-FASE_3_HTTPS_443_CERTBOT = pendiente_decision_usuario
-FASE_4_VALIDACION_POST_HTTPS = pendiente_decision_usuario
-FASE_5_BACKUP_POST_PUBLICACION_HTTPS = pendiente_decision_usuario
+FASE_3A_CAMINO_TCP_443 = OK
+FASE_3B_CERTBOT_CERTIFICADO = OK
+FASE_3D_VHOST_HTTPS_STAGING = OK
+FASE_3E_DEFAULT_DENY_HTTPS = OK
+RENOVACION_AUTOMATICA_CERTBOT = OK
+REDIRECT_HTTP_HTTPS_STAGING = OK
+VALIDACION_EXTERNA_FINAL = OK
 
 [VALIDACION_PUBLICACION_HTTP]
 estado = FASE_2_HTTP_y_FASE_2D_DNS_validadas
@@ -1043,7 +1087,16 @@ DNS = staging.landini.com.ar_A_152.171.194.12,CNAME_vacio,AAAA_vacio,www.staging
 HTTP = http://staging.landini.com.ar -> HTTP_CODE_200_REMOTE_IP_152.171.194.12
 vhosts_publicos = staging.landini.com.ar_200,no-declarado.landini_403,local.landini_403,panel.landini_403
 no_tocado = landini.com.ar,www.landini.com.ar,MX,TXT_SPF_DKIM_DMARC,mail,app,spv2,ftp,AAAA_raiz
-pendiente = HTTPS,443,certbot,validacion_post_HTTPS
+pendiente = reemplazada_por_validacion_HTTPS
+
+[VALIDACION_PUBLICACION_HTTPS]
+estado = HTTPS_staging_validado_desde_red_externa_real
+HTTP_staging = 301 -> https://staging.landini.com.ar/
+HTTPS_staging = 200 REMOTE_IP=152.171.194.12 SSL_VERIFY=0
+aislamiento_HTTP = no-declarado_403,local_403,panel_403
+aislamiento_HTTPS = no-declarado_403,local_403,panel_403
+default_deny_HTTP_HTTPS = vigente
+no_expuesto = app-base,Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
 
 [ROLLBACK]
 rollback_DNS = volver_staging.landini.com.ar_a_DonWeb/public_html/staging
@@ -1053,7 +1106,6 @@ rollback_apache = deshabilitar_staging-landini.conf,recargar_Apache,validar_defa
 rollback_archivos = no_tocar_local.landini,no_tocar_panel.landini,no_mezclar_servicios
 
 [PENDIENTE_DECISION_USUARIO]
-politica_HTTPS_ACME = pendiente_decision_usuario
 subdominios_reservados_adicionales = pendiente_decision_usuario
 rol_futuro_panel_publico = pendiente_decision_usuario
 politica_staging_final = pendiente_decision_usuario
@@ -1074,8 +1126,9 @@ no_vender_inicialmente = cPanel_libre,correo_propio,FTP_abierto,SSH_clientes,hos
 
 ```text
 administracion_privada = Tailscale
-publicacion_web_publica = Cloudflare Tunnel
-router_puertos_primera_opcion = no
+publicacion_web_publica = staging.landini.com.ar_por_router_TCP_80_443
+Cloudflare_Tunnel = no_usado_en_cierre_staging
+router_puertos_staging = WAN_TCP_80_y_443 -> 192.168.0.210
 exponer_SSH = no
 exponer_Samba = no
 DMZ = no
@@ -1084,14 +1137,15 @@ DMZ = no
 [LIMITES_WEB_ACTUALES]
 
 ```text
-no_abrir_https_firewalld = true
-no_abrir_http_global = true
-no_router = true
-no_DNS_publico = true
-no_certbot = true
-no_exposicion_publica = true
+publicacion_actual = solo_staging.landini.com.ar_HTTP_301_y_HTTPS_200
+http_global_firewalld = true
+https_global_firewalld = true
+router_publicacion = solo_TCP_80_443_a_192.168.0.210
+DNS_publico = solo_staging.landini.com.ar_A_152.171.194.12
+certbot = instalado_renovacion_timer_activa
+no_abrir_adicional = DMZ,puertos_extra,hosts_extra,certificados_extra
 no_hosting_comercial_activo = true
-pendiente_antes_exposicion = dominio,politica_vhosts,politica_certificados,estrategia_logs,nombres_LAN_comodos,estructura_sitios_apps,postfix,DB_por_servicio,alta_sitio_app,deploy_app_base_como_servicio_alojado_no_raiz_especial
+pendiente_antes_nuevos_servicios = politica_vhosts,estrategia_logs,nombres_LAN_comodos,estructura_sitios_apps,postfix,DB_por_servicio,alta_sitio_app,deploy_app_base_como_servicio_alojado_no_raiz_especial
 criterio_documental = no documentar microacciones; documentar cierres,cambios_estructurales,exposicion,seguridad,backup_restore,servicios_reales,decisiones_preventivas
 ```
 
@@ -2027,11 +2081,13 @@ No considerar infraestructura comercial crítica sin backups y monitoreo.
 
 Pendiente configurar para administración privada.
 
-## Paso 3 — Cloudflare Tunnel
+## Paso 3 — Publicación web pública
 
-Pendiente para publicación web pública.
-
-Requiere decidir dominio/hostname.
+```text
+staging.landini.com.ar = publicado por router TCP/80 y TCP/443
+Cloudflare_Tunnel = no usado en cierre staging
+otros_hosts = pendiente_decision_usuario
+```
 
 ## Paso 4 — Monitoreo básico
 
@@ -2093,11 +2149,12 @@ SSH = hardened
 Samba = LAN
 NAS = mounted
 WEB = mounted
-HTTP = LAN_only
+HTTP = staging.landini.com.ar_publico_301_a_HTTPS + LAN
+HTTPS = staging.landini.com.ar_publico
 default_deny = active
 local.landini = health_check
 panel.landini = service_lan
 backup = active_local + web_restore_validated + offsite_selective
 Synergy = client_to_MacBook
-public_exposure = false
+public_exposure = solo_staging.landini.com.ar_HTTP_301_y_HTTPS_200
 ```

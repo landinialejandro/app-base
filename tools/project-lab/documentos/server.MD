@@ -927,16 +927,94 @@ backups_fallidos_parciales = no validos; conservar solo diagnostico inmediato; e
 [PUBLICACION_PUBLICA_FUTURA]
 
 ```text
-Publicación pública futura = no_ejecutada
-estado_actual = LAN_validada; sin_exposicion_publica
-ready = Apache_funcionando,PHP_FPM_funcionando,MariaDB_local_only,default_deny_activo,servicios_LAN_validados,backup_restaurable_validado,scripts_operativos_en_backup,firewall_sin_apertura_publica
-apache_modulos_observados = ssl_module,socache_shmcb_module,proxy_module,proxy_fcgi_module
-apache_modulos_no_observados = rewrite_module,headers_module,http2_module
-nota_modulos_no_observados = revisar segun tipo_publicacion; no registrar como problema
-acme_detectado = certbot:false,lego:false,acme.sh:false,lets_encrypt_activo:false,certificados_publicos:false
-pendiente = dominio_publico,subdominio_inicial,servicio_publico_inicial,servicios_LAN_only,politica_publicacion_por_servicio,DNS,HTTPS_ACME,herramienta_ACME,renovacion_certificados,logs_rotacion,rollback,validacion_externa
-No tocar todavía = router,port_forwarding,DNS_publico,HTTPS,certbot,puerto_443,http_global_firewalld,https_global_firewalld,exponer_SSH,exponer_Samba,publicar_local.landini,usar_local.landini_como_servicio_real
-fases_no_ejecutadas = 0_estado_LAN_validado;1_definir_dominio_subdominios_politica;2_preparar_vhost_publico_sin_router;3_preparar_HTTPS_ACME_controlado;4_abrir_router_solo_HTTP_HTTPS_si_corresponde;5_validacion_externa;6_backup_post_publicacion;7_documentacion_y_commit
+estado = politica_definida_no_implementada
+frente = infraestructura_Landini_publicacion_publica_futura
+regla_maxima = NO_SE_ASUME; NO_SE_SUPONE
+objetivo = definir criterios seguros para futura publicacion publica de servicios Landini
+no_alcance = no_ejecutar_cambios,no_tocar_router,no_tocar_DNS_productivo,no_abrir_puertos,no_instalar_HTTPS,no_exponer_servicios,no_publicar_app-base,no_publicar_panel
+public_exposure = false
+
+[DOMINIOS]
+dominio_publico_base = landini.com.ar
+registrador = NIC Argentina
+proveedor_actual = DonWeb
+subdominio_temporal_controlado = staging.landini.com.ar
+staging_actual = DonWeb/public_html/staging
+staging_validado = STAGING OK
+landini_server_expuesto = false
+
+[LAN_ONLY]
+local.landini = health_check_lan
+panel.landini = servicio_real_lan
+Project_Lab = LAN/local_only
+SSH = no_publicar
+Samba = no_publicar
+MariaDB = no_publicar
+PHP-FPM = no_publicar
+
+[PUBLICABLES]
+primer_publicable_futuro = staging-landini
+ServerName = staging.landini.com.ar
+tipo = landing_html_minima
+estado = planificado_no_implementado
+site_dir = /srv/web/sites/staging-landini/
+document_root = /srv/web/sites/staging-landini/public/
+shared_dir = /srv/web/sites/staging-landini/shared/
+logs_dir = /srv/web/sites/staging-landini/shared/logs/
+vhost_file = /etc/apache2/vhosts.d/staging-landini.conf
+access_log = /srv/web/sites/staging-landini/shared/logs/access.log
+error_log = /srv/web/sites/staging-landini/shared/logs/error.log
+
+[PROHIBIDO]
+no_modificar = landini.com.ar_raiz
+no_apuntar = staging.landini.com.ar_a_landini-server_todavia
+no_abrir = router,DMZ,443,http_global_firewalld,https_global_firewalld
+no_instalar = certbot
+no_exponer = SSH,Samba,local.landini,panel.landini,app-base,Project_Lab,backups,dumps,.env,credenciales
+
+[AUDITORIA_RED_VALIDADA]
+ip_publica_externa = 152.171.194.12
+router_modelo = Technicolor DPC3848VE
+router_gateway_mode = Router
+router_wan_ip = 152.171.194.12
+CGNAT = no_detectado
+doble_NAT = no_detectado_con_datos_actuales
+landini_server_lan_ip = 192.168.0.210
+landini_server_lan_ip_tipo = dynamic_DHCP
+gateway_lan = 192.168.0.1
+riesgo_pendiente = IP_LAN_dinamica_debe_estabilizarse_antes_de_port_forwarding
+
+[FASES]
+FASE_0_POLITICA = definida_no_implementada
+FASE_1_PREPARACION_LOCAL_NO_PUBLICA = preparar_vhost_estructura_logs_sin_router_ni_DNS
+FASE_2_VALIDACION_LAN = validar_Host_header_default_deny_local_panel
+FASE_3_DECISION_DNS_ROUTER = decision_explicita_usuario
+FASE_4_PUBLICACION_CONTROLADA = abrir_solo_lo_aprobado
+FASE_5_VALIDACION_POST = validar_exposicion_minima_y_no_exposicion_indebida
+FASE_6_HTTPS = pendiente_decision_usuario
+
+[VALIDACION_PRE_PUBLICACION]
+requerido = captura_DonWeb_actual,confirmar_IP_publica_actual,estabilizar_IP_LAN_landini_server,backup_web_pre_publicacion,vhost_propio_staging_landini,DocumentRoot_propio,logs_propios,Apache_configtest_OK,validar_staging_por_LAN_con_Host_header,validar_local.landini_200_LAN,validar_panel.landini_200_LAN,validar_host_no_declarado_403,validar_default_deny_activo,router_cerrado,DNS_staging_aun_en_DonWeb,SSH_no_expuesto,Samba_no_expuesto
+
+[VALIDACION_POST_PUBLICACION]
+requerido = staging.landini.com.ar_resuelve_a_destino_aprobado,staging.landini.com.ar_responde_vhost_correcto,landini.com.ar_raiz_no_alterado,www_landini_com_ar_no_alterado,MX_TXT_correo_no_alterados,default_deny_sigue_activo,hosts_no_declarados_no_muestran_servicio_real,local.landini_no_publico,panel.landini_no_publico,SSH_no_expuesto,Samba_no_expuesto,MariaDB_no_expuesto,PHP-FPM_no_expuesto,no_directory_listing,no_archivos_sensibles,logs_propios_funcionan,backup_web_post_publicacion
+
+[ROLLBACK]
+rollback_DNS = volver_staging.landini.com.ar_a_DonWeb/public_html/staging
+rollback_router = eliminar_port_forwarding_creado,confirmar_DMZ_false,confirmar_SSH_Samba_sin_forward
+rollback_firewall = volver_estado_seguro,http_global_false,https_global_false,conservar_rich_rule_HTTP_LAN
+rollback_apache = deshabilitar_staging-landini.conf,recargar_Apache,validar_default_deny_local_panel
+rollback_archivos = no_tocar_local.landini,no_tocar_panel.landini,no_mezclar_servicios
+
+[PENDIENTE_DECISION_USUARIO]
+publicar_staging_landini_en_landini_server = pendiente_decision_usuario
+mantener_staging_en_DonWeb = pendiente_decision_usuario
+politica_HTTPS_ACME = pendiente_decision_usuario
+IP_LAN_fija_o_reserva_DHCP = pendiente_decision_usuario
+subdominios_reservados_adicionales = pendiente_decision_usuario
+rol_futuro_panel_publico = pendiente_decision_usuario
+politica_staging_final = pendiente_decision_usuario
+politica_hosting_clientes = pendiente_decision_usuario
 ```
 
 [HOSTING_CRITERIO]

@@ -852,8 +852,9 @@ exposicion_fuera_lan = prohibida hasta definir router,DNS_publico,HTTPS_ACME,pol
 ```text
 /usr/local/sbin/landini-web-service-create.sh = alta controlada de servicios web reales; estructura; vhost; logs; validación Apache
 landini-web-service-create_validado = bash_syntax_OK,--help_OK,--dry-run_OK,--dry-run_no_crea_archivos,ownership_sitio_ajustado
-/usr/local/sbin/landini-web-backup.sh = backup web; incluye /srv/web,Apache,PHP,MariaDB config,dump MariaDB,SELinux,reportes,scripts landini-*.sh
-landini-web-backup_timer = landini-web-backup.timer active/enabled; OnCalendar=*-*-* 03:00:00; Persistent=true; RandomizedDelaySec=10m
+/usr/local/sbin/landini-web-backup.sh = backup web; set -euo pipefail; umask 077; incluye /srv/web,Apache,PHP,MariaDB config,dump MariaDB,SELinux,reportes,scripts landini-*.sh,Let’s Encrypt/Certbot
+landini-web-backup_validacion_letsencrypt = test -s "$BACKUP_DIR/files/letsencrypt_$TS.tar.gz"
+landini-web-backup_timer = landini-web-backup.timer active(waiting); proxima=2026-06-10 03:07:34 -03
 orden_timers = web_backup antes de landini-backup-server.timer
 ```
 
@@ -890,13 +891,15 @@ backup_after_migration = /srv/nas/landini/backups/landini-server/web/backup_2026
 [BACKUP_WEB_VIGENTE]
 
 ```text
-backup_final = /srv/nas/landini/backups/landini-server/web/backup_20260608_155118
-status = validado_base_web_productiva_LAN
-incluye = /srv/web,Apache,PHP,MariaDB_config,dump_MariaDB,SELinux,reporte_sistema,scripts_operativos_Landini
+backup_final = /srv/nas/landini/backups/landini-server/web/backup_20260609_173316
+status = validado_publicacion_HTTPS_staging
+incluye = /srv/web,Apache,PHP,MariaDB_config,dump_MariaDB,SELinux,reporte_sistema,scripts_operativos_Landini,Let’s_Encrypt_Certbot
+incluye_archivos = srv_web_20260609_173316.tar.gz,apache2_20260609_173316.tar.gz,letsencrypt_20260609_173316.tar.gz,php8_20260609_173316.tar.gz,mariadb_all_20260609_173316.sql.gz,landini_sbin_20260609_173316.tar.gz,estado_stack_web_20260609_173316.txt
 incluye_scripts = usr/local/sbin/landini-web-backup.sh,usr/local/sbin/landini-web-service-create.sh
-incluye_vhosts = apache2/vhosts.d/000-landini-default-deny.conf,apache2/vhosts.d/local-landini.conf,apache2/vhosts.d/panel-landini.conf
-incluye_sites = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php
-backups_validos_previos = backup_20260608_140542,backup_20260608_140709,backup_20260608_141105,backup_20260608_150436
+incluye_vhosts = apache2/vhosts.d/000-landini-default-deny.conf,apache2/vhosts.d/000-landini-default-deny-ssl.conf,apache2/vhosts.d/local-landini.conf,apache2/vhosts.d/panel-landini.conf,apache2/vhosts.d/staging-landini.conf,apache2/vhosts.d/staging-landini-ssl.conf
+incluye_sites = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php,web/sites/staging-landini/current/public/index.html
+validacion = [OK] letsencrypt presente en último backup web; [OK] Backup web completo generado
+backups_validos_previos = backup_20260608_140542,backup_20260608_140709,backup_20260608_141105,backup_20260608_150436,backup_20260608_155118
 backup_fallido_eliminado = backup_20260608_140306
 logs_conservados = landini-web-backup_20260608_140709.log,landini-web-backup_20260608_141105.log
 ```
@@ -904,13 +907,14 @@ logs_conservados = landini-web-backup_20260608_140709.log,landini-web-backup_202
 [RESTORE_TEST_WEB]
 
 ```text
-backup_validado = /srv/nas/landini/backups/landini-server/web/backup_20260608_141105
-restore_test_valido = /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648
-reporte = /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260608_142648/reporte_restore_test_20260608_142648.txt
-resultado = exitoso
-tamano = 688K
-validado = gzip_t_srv_web,apache2,php8,mariadb_dump; extraccion_srv_web; extraccion_apache; extraccion_php; my.cnf; SELinux_fcontext; SELinux_contexts; archivos_esperados; dump_MariaDB_legible; php_index_restaurado; reporte_generado
-salida_index_restaurado = LANDINI WEB OK; Sitio: test-local; PHP: 8.5.7; Fecha: 2026-06-08T18:26:58+00:00
+backup_validado = /srv/nas/landini/backups/landini-server/web/backup_20260609_173316
+restore_test_valido = /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260609_173650
+resultado = [OK] Restore-test no destructivo completado
+checks = cert_info_20260609_173650.txt,mariadb_dump_head_20260609_173650.txt,script_restore_20260609_173650.txt,vhosts_restore_20260609_173650.txt,renewal_public_view_20260609_173650.txt,files_backup_20260609_173650.txt
+validado = /srv/web,Apache,PHP,MariaDB_dump,scripts_operativos,vhosts,Let’s_Encrypt_Certbot,certificado_recuperable_openssl_x509
+letsencrypt_validado = live/staging.landini.com.ar,archive/staging.landini.com.ar,renewal/staging.landini.com.ar.conf,symlinks_cert.pem_chain.pem_fullchain.pem_privkey.pem,privkey1.pem_rw-------_root_root
+seguridad_claves = no imprimir ni exponer claves privadas; respaldar/restaurar con permisos restrictivos
+historico_previo = restore_test_20260608_142648 sobre backup_20260608_141105
 primer_intento_fallido = restore_test_20260608_142509; causa=permisos usuario normal en restore-tests; residuo=false; valido=false
 criterio = backup no cierra por generarse; debe extraerse,inspeccionarse,verificarse
 ```
@@ -926,6 +930,27 @@ restore_tests_fallidos = eliminar si no aportan diagnostico pendiente
 logs_web_backup = conservar 30 dias iniciales
 rotacion_logs = no automatizada mientras volumen bajo
 backups_fallidos_parciales = no validos; conservar solo diagnostico inmediato; eliminar con limpieza controlada luego de documentar motivo
+```
+
+[ESTADO_CONSOLIDADO_PUBLICACION_HTTPS_BACKUP_WEB]
+
+```text
+staging.landini.com.ar = publicado HTTPS validado
+servidor = landini-server 192.168.0.210
+ip_publica = 152.171.194.12
+HTTP_staging = 301 -> https://staging.landini.com.ar/
+HTTPS_staging = 200
+apache_configtest = Syntax OK
+vhosts_activos = *:443 default.landini.invalid,*:443 staging.landini.com.ar,*:80 default.landini.invalid,*:80 local.landini,*:80 panel.landini,*:80 staging.landini.com.ar
+aislamiento_publico = hosts_no_declarados_HTTP_403_HTTPS_403,local.landini_HTTP_403_HTTPS_403,panel.landini_HTTP_403_HTTPS_403
+certificado = Let’s_Encrypt staging.landini.com.ar; issuer="Let's Encrypt, CN=YE1"; notBefore="Jun  9 18:37:29 2026 GMT"; notAfter="Sep  7 18:37:28 2026 GMT"
+certbot_renovacion = certbot-renew.timer active(waiting); proxima=2026-06-10 02:08:39 -03
+backup_web_vigente = /srv/nas/landini/backups/landini-server/web/backup_20260609_173316
+restore_test_vigente = /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260609_173650
+backup_web_cubre = Apache,PHP,MariaDB,/srv/web,scripts_operativos_Landini,SELinux,Let’s_Encrypt_Certbot
+restore_test = no_destructivo; certificado_recuperable; dump_MariaDB_legible; vhosts_y_scripts_inspeccionables
+claves_privadas = respaldar_y_restaurar_con_permisos_restrictivos; no_imprimir; no_exponer
+no_publicado = app-base,Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
 ```
 
 [PUBLICACION_PUBLICA_FUTURA]
@@ -1027,10 +1052,13 @@ certificado = /etc/letsencrypt/live/staging.landini.com.ar/fullchain.pem
 private_key = /etc/letsencrypt/live/staging.landini.com.ar/privkey.pem
 certificado_hosts = staging.landini.com.ar
 certificado_no_emitido_para = www,landini.com.ar,app,local.landini,panel.landini
+certificado_issuer = Let's Encrypt, CN=YE1
+certificado_notBefore = Jun  9 18:37:29 2026 GMT
 certificado_expira = 2026-09-07 18:37:28+00:00
+certificado_notAfter = Sep  7 18:37:28 2026 GMT
 certificado_estado_auditoria = VALID: 89 days
 certificado_key_type = ECDSA
-certbot_timer = certbot-renew.timer enabled active(waiting); Trigger=Wed 2026-06-10 04:12:50 EDT
+certbot_timer = certbot-renew.timer enabled active(waiting); proxima=2026-06-10 02:08:39 -03
 certbot_timer_unit = /usr/lib/systemd/system/certbot-renew.timer; OnCalendar=daily; RandomizedDelaySec=6hours; Persistent=true
 certbot_service = /usr/lib/systemd/system/certbot-renew.service; ExecStart=/usr/bin/certbot renew $PRE_HOOK $POST_HOOK $RENEW_HOOK $CERTBOT_ARGS
 certbot_sysconfig = /etc/sysconfig/certbot PRE_HOOK="" POST_HOOK="" RENEW_HOOK="" CERTBOT_ARGS=""
@@ -1186,6 +1214,8 @@ Logs: /srv/nas/landini/backups/_logs/
 Snapshots validados:
 
 ```text
+visibles_para_landini-server = 2026-06-07 manual system-config; 2026-06-07 scheduled system-config; 2026-06-08 scheduled system-config; 2026-06-09 scheduled system-config
+
 f5778f6c
 Time: 2026-06-07 15:35:28
 Host: landini-server
@@ -1722,7 +1752,7 @@ MacBook: validado
 Restore tests:
 
 ```text
-web local: realizado y validado de forma no destructiva desde backup_20260608_141105 hacia restore_test_20260608_142648
+web local: realizado y validado de forma no destructiva desde backup_20260609_173316 hacia restore_test_20260609_173650
 landini-server: realizado y validado restaurando /etc/hostname
 ThinkPad: realizado y validado restaurando .bashrc desde staging-home
 MacBook: realizado y validado restaurando .zshrc desde snapshot latest resuelto a e8990720 hacia /tmp en landini-server

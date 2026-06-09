@@ -234,7 +234,8 @@ Lectura:
 HTTP queda habilitado solo para la red 192.168.0.0/24.
 No se agregó http como servicio global.
 No se agregó https.
-No se configuró router, DNS público, certbot ni exposición pública.
+En este cierre LAN inicial no se configuró router, DNS público, certbot ni exposición pública.
+Estado vigente de publicación staging: ver [PUBLICACION_PUBLICA_FUTURA].
 ```
 
 Se limpió la zona `docker` fantasma. Actualmente no aparece zona docker activa.
@@ -927,21 +928,26 @@ backups_fallidos_parciales = no validos; conservar solo diagnostico inmediato; e
 [PUBLICACION_PUBLICA_FUTURA]
 
 ```text
-estado = politica_definida_no_implementada
+estado = publicacion_HTTP_controlada_staging_validada
 frente = infraestructura_Landini_publicacion_publica_futura
 regla_maxima = NO_SE_ASUME; NO_SE_SUPONE
 objetivo = definir criterios seguros para futura publicacion publica de servicios Landini
-no_alcance = no_ejecutar_cambios,no_tocar_router,no_tocar_DNS_productivo,no_abrir_puertos,no_instalar_HTTPS,no_exponer_servicios,no_publicar_app-base,no_publicar_panel
-public_exposure = false
+alcance_validado = publicar_solo_staging.landini.com.ar_por_HTTP_80
+no_alcance_vigente = no_HTTPS,no_443,no_certbot,no_app-base,no_Project_Lab,no_local.landini,no_panel.landini,no_SSH,no_Samba,no_MariaDB,no_PHP-FPM
+public_exposure = staging.landini.com.ar_HTTP_only
 
 [DOMINIOS]
 dominio_publico_base = landini.com.ar
 registrador = NIC Argentina
 proveedor_actual = DonWeb
 subdominio_temporal_controlado = staging.landini.com.ar
-staging_actual = DonWeb/public_html/staging
-staging_validado = STAGING OK
-landini_server_expuesto = false
+staging_actual = A 152.171.194.12
+staging_anterior = CNAME landini.com.ar
+www_staging_actual = sin_registro_visible
+www_staging_anterior = CNAME landini.com.ar
+staging_validado = HTTP_CODE_200_REMOTE_IP_152.171.194.12
+landini_server_expuesto = solo_staging_HTTP_80
+no_tocado_DNS = landini.com.ar,www.landini.com.ar,MX,TXT_SPF_DKIM_DMARC,mail,app,spv2,ftp,AAAA_raiz
 
 [LAN_ONLY]
 local.landini = health_check_lan
@@ -956,8 +962,8 @@ PHP-FPM = no_publicar
 primer_publicable_futuro = staging-landini
 ServerName = staging.landini.com.ar
 tipo = landing_html_minima
-estado = implementado_local_no_publico
-exposicion_publica = false
+estado = publicado_HTTP_controlado
+exposicion_publica = true_HTTP_80_staging_only
 site_dir = /srv/web/sites/staging-landini/
 document_root = /srv/web/sites/staging-landini/current/public/
 shared_dir = /srv/web/sites/staging-landini/shared/
@@ -984,39 +990,60 @@ contenido_validado = STAGING LANDINI OK; Servicio staging-landini preparado loca
 validacion_macbook = curl --resolve staging.landini.com.ar:80:192.168.0.210 -> HTTP_CODE=200
 seguridad_conservada = router_no_tocado,DNS_no_tocado,DonWeb_no_tocado,firewalld_publico_no_ampliado,http_global_firewalld_false,https_global_firewalld_false,443_no_abierto,HTTPS_no_configurado,certbot_no_instalado,app_base_no_publicada,Project_Lab_no_publicado,Samba_no_publicado_publicamente,SSH_no_expuesto_publicamente_por_esta_fase,exposicion_publica_false
 
+[STAGING_LANDINI_FASE_2_HTTP_PUBLICA]
+FASE_2_PUBLICACION_HTTP_CONTROLADA_STAGING = OK
+FASE_2D_DNS_CONTROLADO_STAGING = OK
+estado = publicado_HTTP_80_desde_internet
+HTTPS = pendiente
+443 = no_abierto
+certbot = no_instalado
+router = Technicolor DPC3848VE DOCSIS 3.0 Gateway; Gateway_Mode=Router
+router_port_forwarding = WAN_TCP_80 -> 192.168.0.210_TCP_80
+router_DHCP_reserva = MAC_50:46:5d:a0:32:15 -> 192.168.0.210
+tcpdump_externo = 181.238.73.148.* > 192.168.0.210.80 GET / HTTP/1.1; 192.168.0.210.80 > 181.238.73.148.* HTTP/1.1 200 OK
+validacion_externa_host_header = no-declarado.landini_403,local.landini_403,panel.landini_403,staging.landini.com.ar_200
+validacion_DNS = staging.landini.com.ar_A_152.171.194.12; staging_CNAME_vacio; staging_AAAA_vacio; www.staging.landini.com.ar_vacio
+validacion_HTTP_DNS = staging DNS HTTP_CODE=200 REMOTE_IP=152.171.194.12 ERROR=
+publicado = staging.landini.com.ar_HTTP_80
+no_publicado = app-base,Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
+default_deny_publico = hosts_no_declarados_403
+
 [PROHIBIDO]
 no_modificar = landini.com.ar_raiz
-no_apuntar = staging.landini.com.ar_a_landini-server_todavia
-no_abrir = router,DMZ,443,http_global_firewalld,https_global_firewalld
+no_apuntar = otros_hosts_a_landini-server_sin_decision_explicita
+no_abrir = DMZ,443,http_global_firewalld,https_global_firewalld
 no_instalar = certbot
 no_exponer = SSH,Samba,local.landini,panel.landini,app-base,Project_Lab,backups,dumps,.env,credenciales
 
 [AUDITORIA_RED_VALIDADA]
 ip_publica_externa = 152.171.194.12
-router_modelo = Technicolor DPC3848VE
+router_modelo = Technicolor DPC3848VE DOCSIS 3.0 Gateway
 router_gateway_mode = Router
 router_wan_ip = 152.171.194.12
 CGNAT = no_detectado
 doble_NAT = no_detectado_con_datos_actuales
 landini_server_lan_ip = 192.168.0.210
-landini_server_lan_ip_tipo = dynamic_DHCP
+landini_server_lan_ip_tipo = DHCP_reservada_en_router
+landini_server_dhcp_reserva = MAC_50:46:5d:a0:32:15 -> 192.168.0.210
 gateway_lan = 192.168.0.1
-riesgo_pendiente = IP_LAN_dinamica_debe_estabilizarse_antes_de_port_forwarding
+riesgo_pendiente = HTTPS_443_certbot_pendiente
 
 [FASES]
 FASE_0_POLITICA = definida_no_implementada
 FASE_1_PREPARACION_LOCAL_NO_PUBLICA = cerrada_implementada_local_no_publica
-FASE_2_VALIDACION_LAN = no_implementada_como_fase; validaciones_LAN_basicas_hechas_en_FASE_1
-FASE_3_DECISION_DNS_ROUTER = decision_explicita_usuario
-FASE_4_PUBLICACION_CONTROLADA = abrir_solo_lo_aprobado
-FASE_5_VALIDACION_POST = validar_exposicion_minima_y_no_exposicion_indebida
-FASE_6_HTTPS = pendiente_decision_usuario
+FASE_2_PUBLICACION_HTTP_CONTROLADA_STAGING = OK
+FASE_2D_DNS_CONTROLADO_STAGING = OK
+FASE_3_HTTPS_443_CERTBOT = pendiente_decision_usuario
+FASE_4_VALIDACION_POST_HTTPS = pendiente_decision_usuario
+FASE_5_BACKUP_POST_PUBLICACION_HTTPS = pendiente_decision_usuario
 
-[VALIDACION_PRE_PUBLICACION]
-requerido = captura_DonWeb_actual,confirmar_IP_publica_actual,estabilizar_IP_LAN_landini_server,backup_web_pre_publicacion,vhost_propio_staging_landini,DocumentRoot_propio,logs_propios,Apache_configtest_OK,validar_staging_por_LAN_con_Host_header,validar_local.landini_200_LAN,validar_panel.landini_200_LAN,validar_host_no_declarado_403,validar_default_deny_activo,router_cerrado,DNS_staging_aun_en_DonWeb,SSH_no_expuesto,Samba_no_expuesto
-
-[VALIDACION_POST_PUBLICACION]
-requerido = staging.landini.com.ar_resuelve_a_destino_aprobado,staging.landini.com.ar_responde_vhost_correcto,landini.com.ar_raiz_no_alterado,www_landini_com_ar_no_alterado,MX_TXT_correo_no_alterados,default_deny_sigue_activo,hosts_no_declarados_no_muestran_servicio_real,local.landini_no_publico,panel.landini_no_publico,SSH_no_expuesto,Samba_no_expuesto,MariaDB_no_expuesto,PHP-FPM_no_expuesto,no_directory_listing,no_archivos_sensibles,logs_propios_funcionan,backup_web_post_publicacion
+[VALIDACION_PUBLICACION_HTTP]
+estado = FASE_2_HTTP_y_FASE_2D_DNS_validadas
+DNS = staging.landini.com.ar_A_152.171.194.12,CNAME_vacio,AAAA_vacio,www.staging_vacio
+HTTP = http://staging.landini.com.ar -> HTTP_CODE_200_REMOTE_IP_152.171.194.12
+vhosts_publicos = staging.landini.com.ar_200,no-declarado.landini_403,local.landini_403,panel.landini_403
+no_tocado = landini.com.ar,www.landini.com.ar,MX,TXT_SPF_DKIM_DMARC,mail,app,spv2,ftp,AAAA_raiz
+pendiente = HTTPS,443,certbot,validacion_post_HTTPS
 
 [ROLLBACK]
 rollback_DNS = volver_staging.landini.com.ar_a_DonWeb/public_html/staging
@@ -1026,10 +1053,7 @@ rollback_apache = deshabilitar_staging-landini.conf,recargar_Apache,validar_defa
 rollback_archivos = no_tocar_local.landini,no_tocar_panel.landini,no_mezclar_servicios
 
 [PENDIENTE_DECISION_USUARIO]
-publicar_staging_landini_en_landini_server = pendiente_decision_usuario
-mantener_staging_en_DonWeb = pendiente_decision_usuario
 politica_HTTPS_ACME = pendiente_decision_usuario
-IP_LAN_fija_o_reserva_DHCP = pendiente_decision_usuario
 subdominios_reservados_adicionales = pendiente_decision_usuario
 rol_futuro_panel_publico = pendiente_decision_usuario
 politica_staging_final = pendiente_decision_usuario

@@ -52,8 +52,8 @@ Notas:
 
 ```text
 OS: openSUSE Tumbleweed
-Snapshot observado: 20260603
-Kernel observado: Linux 7.0.10-2-default
+Snapshot observado: 20260609
+Kernel observado: Linux 7.0.11-1-default
 Root filesystem: Btrfs
 Snapper: activo
 firewalld: activo
@@ -65,6 +65,9 @@ Servicios críticos post-reboot:
 ```text
 sshd      active / enabled
 firewalld active / enabled
+apache2   active / enabled
+php-fpm   active / enabled
+mariadb   active / enabled
 smb       active / enabled
 nmb       active / enabled
 ```
@@ -90,8 +93,9 @@ Reglas vigentes:
 
 ```text
 No DMZ.
-No port forwarding por ahora.
+Port forwarding vigente solo para publicación web controlada y WireGuard.
 No abrir SSH ni Samba a internet.
+No activar forwarding IP para LAN completa sin decisión explícita.
 ```
 
 ---
@@ -217,6 +221,7 @@ Puerto permitido:
 
 ```text
 24800/tcp
+51820/udp
 ```
 
 HTTP LAN controlado:
@@ -762,7 +767,7 @@ app_base_db = no documentada en este cierre
 firewalld_zone = public
 firewalld_interface = enp3s0
 services_allowed = dhcpv6-client,samba,ssh
-ports_allowed = 24800/tcp
+ports_allowed = 24800/tcp,51820/udp
 http_lan = rich_rule 192.168.0.0/24 tcp/80 accept
 http_global_service = true
 https_global_service = true
@@ -1153,13 +1158,85 @@ no_vender_inicialmente = cPanel_libre,correo_propio,FTP_abierto,SSH_clientes,hos
 [ACCESO_REMOTO_PUBLICACION]
 
 ```text
-administracion_privada = Tailscale
+administracion_privada = WireGuard
 publicacion_web_publica = staging.landini.com.ar_por_router_TCP_80_443
 Cloudflare_Tunnel = no_usado_en_cierre_staging
 router_puertos_staging = WAN_TCP_80_y_443 -> 192.168.0.210
 exponer_SSH = no
 exponer_Samba = no
 DMZ = no
+```
+
+[WIREGUARD_VPN_PRIVADA_MAC]
+
+```text
+titulo = WireGuard / VPN privada Mac -> landini-server
+estado = operativo_validado
+servidor = landini-server
+objetivo = administrar landini-server por VPN privada sin exponer SSH a internet
+diseño = acceso_solo_al_servidor_por_10.44.0.1; no_LAN_completa
+sistema_validado = openSUSE_Tumbleweed_20260609; kernel_Linux_7.0.11-1-default
+upgrade_previo = zypper_dup_aplicado; reinicio_aplicado
+systemctl_failed = 0
+servicios_post_upgrade = sshd,firewalld,apache2,php-fpm,mariadb,smb,nmb active/enabled
+apache_post_upgrade = Syntax_OK
+vhosts_vigentes = staging.landini.com.ar_HTTPS; local.landini_HTTP_LAN; panel.landini_HTTP_LAN; default.landini.invalid_default_deny
+validacion_staging = LOCAL_HTTP_STAGING_CODE_301; LOCAL_HTTPS_STAGING_CODE_200; LOCAL_HTTPS_LOGIN_CODE_200; LAN_HTTPS_STAGING_CODE_200
+public_https_staging_desde_servidor = CODE_000_timeout; lectura_probable_hairpin_NAT; no_falla_local_Apache_app
+wireguard_tools = wireguard-tools-1.0.20260223-1.2.x86_64
+binarios = /usr/bin/wg,/usr/bin/wg-quick
+modulo_kernel = /usr/lib/modules/7.0.11-1-default/kernel/drivers/net/wireguard/wireguard.ko.zst
+servicio = wg-quick@wg0 active/enabled
+interfaz_servidor = wg0
+vpn_servidor = 10.44.0.1/24
+vpn_mac = 10.44.0.2/32
+puerto_servidor = 51820/udp
+firewalld_public_ports = 24800/tcp,51820/udp
+router_technicolor = WAN_UDP_51820 -> 192.168.0.210_UDP_51820
+ssh_router = no_abierto
+samba_router = no_abierto
+ip_forward = 0_durante_diseno
+forwarding_LAN_completa = no_activado
+endpoint_WAN = staging.landini.com.ar:51820
+endpoint_LAN = 192.168.0.210:51820
+allowedIPs_cliente = 10.44.0.1/32
+ssh_vpn = alejandro@10.44.0.1 con clave ~/.ssh/landini_server
+validacion_ssh_vpn = ping_10.44.0.1_4de4_0_loss; SSH_OK; last_login_origen_10.44.0.2
+mac_config_base = ~/.wireguard/mac-alejandro.conf
+mac_config_runtime = ~/.wireguard/wglandini.conf
+mac_config_prueba_lan = ~/.wireguard/wg0.conf
+mac_script = ~/bin/landini-vpn-ssh
+uso_lan = ~/bin/landini-vpn-ssh lan
+uso_wan = ~/bin/landini-vpn-ssh wan
+script_funcion = genera_config_runtime,ajusta_endpoint,valida_sudo,limpia_tuneles_rutas_previas,levanta_WireGuard,espera_10.44.0.1,entra_por_SSH,baja_WireGuard_al_salir
+comportamiento_final = modo_LAN_funciona; modo_WAN_funciona; exit_SSH_baja_tunel
+archivos_servidor = /etc/wireguard/wg0.conf,/etc/wireguard/server_private.key,/etc/wireguard/server_public.key,/root/wireguard-clients/mac-alejandro.conf,/root/wireguard-clients/mac-alejandro_private.key,/root/wireguard-clients/mac-alejandro_public.key
+permisos = /etc/wireguard_root_only; /root/wireguard-clients_root_only
+secreto_documental = no_documentar_claves; no_documentar_configs_completas; no_documentar_passwords
+lecciones = no_usar_exec_ssh_si_se_necesita_trap_cleanup; salir_con_codigo_SSH_para_no_reconectar; copiar_config_sin_contaminar_con_prompt_sudo; usar_nombre_interfaz_macOS_valido_wglandini
+```
+
+Rollback operativo:
+
+```bash
+# Mac
+sudo wg-quick down ~/.wireguard/wglandini.conf 2>/dev/null || true
+sudo route -n delete 10.44.0.1 2>/dev/null || true
+
+# Servidor
+sudo systemctl disable --now wg-quick@wg0
+sudo firewall-cmd --remove-port=51820/udp
+sudo firewall-cmd --permanent --remove-port=51820/udp
+sudo ip link delete wg0 2>/dev/null || true
+
+# Router
+# eliminar port forward UDP 51820 -> 192.168.0.210:51820
+```
+
+Regla de rollback:
+
+```text
+No borrar claves ni configs automáticamente sin decisión explícita.
 ```
 
 [LIMITES_WEB_ACTUALES]
@@ -2107,9 +2184,18 @@ Decisión actual:
 No considerar infraestructura comercial crítica sin backups y monitoreo.
 ```
 
-## Paso 2 — Tailscale
+## Paso 2 — WireGuard
 
-Pendiente configurar para administración privada.
+WireGuard quedó operativo para administración privada Mac -> landini-server.
+
+Estado:
+
+```text
+acceso_privado_validado = alejandro@10.44.0.1_por_VPN
+SSH_WAN_directo = no_expuesto
+Samba_WAN = no_expuesto
+LAN_completa_por_VPN = no_habilitada
+```
 
 ## Paso 3 — Publicación web pública
 

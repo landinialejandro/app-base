@@ -935,16 +935,24 @@ backup_after_migration = /srv/nas/landini/backups/landini-server/web/backup_2026
 [BACKUP_WEB_VIGENTE]
 
 ```text
-backup_final = /srv/nas/landini/backups/landini-server/web/backup_20260609_173316
-status = validado_publicacion_HTTPS_staging
-incluye = /srv/web,Apache,PHP,MariaDB_config,dump_MariaDB,SELinux,reporte_sistema,scripts_operativos_Landini,Let’s_Encrypt_Certbot
-incluye_archivos = srv_web_20260609_173316.tar.gz,apache2_20260609_173316.tar.gz,letsencrypt_20260609_173316.tar.gz,php8_20260609_173316.tar.gz,mariadb_all_20260609_173316.sql.gz,landini_sbin_20260609_173316.tar.gz,estado_stack_web_20260609_173316.txt
-incluye_scripts = usr/local/sbin/landini-web-backup.sh,usr/local/sbin/landini-web-service-create.sh
-incluye_vhosts = apache2/vhosts.d/000-landini-default-deny.conf,apache2/vhosts.d/000-landini-default-deny-ssl.conf,apache2/vhosts.d/local-landini.conf,apache2/vhosts.d/panel-landini.conf,apache2/vhosts.d/staging-landini.conf,apache2/vhosts.d/staging-landini-ssl.conf
-incluye_sites = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php,web/sites/staging-landini/current/public/index.html
+backup_final = /srv/nas/landini/backups/landini-server/web/backup_20260611_123208
+status = generado_y_contenido_srv_web_validado
+generado_por = landini-web-backup.service status=0/SUCCESS
+incluye_validado = /srv/web,Apache,PHP,dump_MariaDB,Let’s_Encrypt_Certbot
+incluye_archivos = files/srv_web_20260611_123208.tar.gz,files/apache2_20260611_123208.tar.gz,files/php8_20260611_123208.tar.gz,db/mariadb_all_20260611_123208.sql.gz,files/letsencrypt_20260611_123208.tar.gz
+incluye_sites_actual = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php,web/sites/staging-landini/current/public/index.php
+staging_laravel_markers_validados = web/sites/staging-landini/current/composer.json,web/sites/staging-landini/current/public/index.php,web/sites/staging-landini/current/vendor/
+staging_public_assets_validados = web/sites/staging-landini/current/public/.htaccess,web/sites/staging-landini/current/public/build/manifest.json,web/sites/staging-landini/current/public/css/,web/sites/staging-landini/current/public/js/
+staging_app_symlink_backup = web/sites/staging-landini/app -> /srv/web/sites/staging-landini/current
+tar_prefix = web/
 backup_vigente_previo = anterior_a_normalizacion_laravel_current_real
-requiere_backup_web_post_normalizacion = true
-validacion = [OK] letsencrypt presente en último backup web; [OK] Backup web completo generado
+backup_vigente_previo_path = /srv/nas/landini/backups/landini-server/web/backup_20260609_173316
+backup_vigente_previo_superado_por = backup_20260611_123208
+backup_post_normalizacion_laravel_current_real = /srv/nas/landini/backups/landini-server/web/backup_20260611_123208
+backup_post_normalizacion_estado = generado_y_contenido_srv_web_validado
+backup_post_normalizacion_restore_test = pendiente
+incluye_sites_previo = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php,web/sites/staging-landini/current/public/index.html
+validacion_previa = [OK] letsencrypt presente en backup web previo; [OK] Backup web completo generado
 backups_validos_previos = backup_20260608_140542,backup_20260608_140709,backup_20260608_141105,backup_20260608_150436,backup_20260608_155118
 backup_fallido_eliminado = backup_20260608_140306
 logs_conservados = landini-web-backup_20260608_140709.log,landini-web-backup_20260608_141105.log

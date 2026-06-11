@@ -935,22 +935,29 @@ backup_after_migration = /srv/nas/landini/backups/landini-server/web/backup_2026
 [BACKUP_WEB_VIGENTE]
 
 ```text
-backup_final = /srv/nas/landini/backups/landini-server/web/backup_20260611_123208
-status = generado_y_contenido_srv_web_validado
+backup_final = /srv/nas/landini/backups/landini-server/web/backup_20260611_141637
+status = post_deploy_app_base_staging_generado_y_validado
 generado_por = landini-web-backup.service status=0/SUCCESS
-incluye_validado = /srv/web,Apache,PHP,dump_MariaDB,Let’s_Encrypt_Certbot
-incluye_archivos = files/srv_web_20260611_123208.tar.gz,files/apache2_20260611_123208.tar.gz,files/php8_20260611_123208.tar.gz,db/mariadb_all_20260611_123208.sql.gz,files/letsencrypt_20260611_123208.tar.gz
+fecha_validacion = 2026-06-11T14:16:37-03:00
+ExecStart = /usr/local/sbin/landini-web-backup.sh
+LAST_BACKUP = /srv/nas/landini/backups/landini-server/web/backup_20260611_141637
+incluye_validado = /srv/web,Apache,PHP,MariaDB_config,dump_MariaDB,Let’s_Encrypt_Certbot,reportes,SELinux,scripts
+incluye_archivos = files/srv_web_20260611_141637.tar.gz,files/apache2_20260611_141637.tar.gz,files/php8_20260611_141637.tar.gz,files/letsencrypt_20260611_141637.tar.gz,files/my.cnf.d_20260611_141637.tar.gz,files/my.cnf_20260611_141637,db/mariadb_all_20260611_141637.sql.gz,reports/estado_stack_web_20260611_141637.txt,selinux/contexts_srv_web_20260611_141637.txt,selinux/fcontext_srv_web_20260611_141637.txt,scripts/landini_sbin_20260611_141637.tar.gz
 incluye_sites_actual = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php,web/sites/staging-landini/current/public/index.php
-staging_laravel_markers_validados = web/sites/staging-landini/current/composer.json,web/sites/staging-landini/current/public/index.php,web/sites/staging-landini/current/vendor/
+staging_laravel_markers_validados = web/sites/staging-landini/current/composer.json,web/sites/staging-landini/current/vendor/autoload.php,web/sites/staging-landini/current/artisan,web/sites/staging-landini/current/public/index.php,web/sites/staging-landini/current/.env
+staging_laravel_dirs_validados = web/sites/staging-landini/current/app/,web/sites/staging-landini/current/routes/,web/sites/staging-landini/current/vendor/,web/sites/staging-landini/current/public/
 staging_public_assets_validados = web/sites/staging-landini/current/public/.htaccess,web/sites/staging-landini/current/public/build/manifest.json,web/sites/staging-landini/current/public/css/,web/sites/staging-landini/current/public/js/
 staging_app_symlink_backup = web/sites/staging-landini/app -> /srv/web/sites/staging-landini/current
 tar_prefix = web/
+validacion_backup = estructura_base_presente_OK,paquetes_reales_presentes_OK,integridad_gzip_tar_OK
+lectura_documental = deploy_app_base_staging_OK,runtime_laravel_validado_OK,http_https_validado_OK,default_deny_validado_OK,backup_post_deploy_OK,backup_integridad_tar_gzip_OK,backup_contiene_runtime_app_base_OK,restore_test_post_deploy_pendiente_no_declarado
 backup_vigente_previo = anterior_a_normalizacion_laravel_current_real
 backup_vigente_previo_path = /srv/nas/landini/backups/landini-server/web/backup_20260609_173316
-backup_vigente_previo_superado_por = backup_20260611_123208
+backup_vigente_previo_superado_por = backup_20260611_141637
 backup_post_normalizacion_laravel_current_real = /srv/nas/landini/backups/landini-server/web/backup_20260611_123208
-backup_post_normalizacion_estado = generado_y_contenido_srv_web_validado
-backup_post_normalizacion_restore_test = pendiente
+backup_post_normalizacion_estado = superado_por_backup_post_deploy_20260611_141637
+backup_post_deploy_app_base_staging = /srv/nas/landini/backups/landini-server/web/backup_20260611_141637
+backup_post_deploy_restore_test = pendiente
 incluye_sites_previo = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php,web/sites/staging-landini/current/public/index.html
 validacion_previa = [OK] letsencrypt presente en backup web previo; [OK] Backup web completo generado
 backups_validos_previos = backup_20260608_140542,backup_20260608_140709,backup_20260608_141105,backup_20260608_150436,backup_20260608_155118
@@ -999,12 +1006,14 @@ vhosts_activos = *:443 default.landini.invalid,*:443 staging.landini.com.ar,*:80
 aislamiento_publico = hosts_no_declarados_HTTP_403_HTTPS_403,local.landini_HTTP_403_HTTPS_403,panel.landini_HTTP_403_HTTPS_403
 certificado = Let’s_Encrypt staging.landini.com.ar; issuer="Let's Encrypt, CN=YE1"; notBefore="Jun  9 18:37:29 2026 GMT"; notAfter="Sep  7 18:37:28 2026 GMT"
 certbot_renovacion = certbot-renew.timer active(waiting); proxima=2026-06-10 02:08:39 -03
-backup_web_vigente = /srv/nas/landini/backups/landini-server/web/backup_20260609_173316
+backup_web_vigente = /srv/nas/landini/backups/landini-server/web/backup_20260611_141637
 restore_test_vigente = /srv/nas/landini/backups/landini-server/web/restore-tests/restore_test_20260609_173650
-backup_web_cubre = Apache,PHP,MariaDB,/srv/web,scripts_operativos_Landini,SELinux,Let’s_Encrypt_Certbot
+backup_web_cubre = Apache,PHP,MariaDB,/srv/web,scripts_operativos_Landini,SELinux,Let’s_Encrypt_Certbot,runtime_app_base_staging
 restore_test = no_destructivo; certificado_recuperable; dump_MariaDB_legible; vhosts_y_scripts_inspeccionables
 claves_privadas = respaldar_y_restaurar_con_permisos_restrictivos; no_imprimir; no_exponer
-no_publicado = app-base,Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
+app_base_staging = publicado_controlado_en_staging.landini.com.ar
+restore_test_post_deploy = pendiente_no_declarado
+no_publicado = Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
 ```
 
 [PUBLICACION_PUBLICA_FUTURA]
@@ -1014,8 +1023,8 @@ estado = publicacion_HTTPS_staging_validada
 frente = infraestructura_Landini_publicacion_publica_futura
 regla_maxima = NO_SE_ASUME; NO_SE_SUPONE
 objetivo = definir criterios seguros para futura publicacion publica de servicios Landini
-alcance_validado = publicar_solo_staging.landini.com.ar_por_HTTP_80_y_HTTPS_443
-no_alcance_vigente = no_app-base,no_Project_Lab,no_local.landini,no_panel.landini,no_SSH,no_Samba,no_MariaDB,no_PHP-FPM,no_certificados_para_otros_hosts
+alcance_validado = publicar_solo_staging.landini.com.ar_por_HTTP_80_y_HTTPS_443_con_app-base_staging
+no_alcance_vigente = no_Project_Lab,no_local.landini,no_panel.landini,no_SSH,no_Samba,no_MariaDB,no_PHP-FPM,no_certificados_para_otros_hosts
 public_exposure = staging.landini.com.ar_HTTPS
 
 [DOMINIOS]
@@ -1071,6 +1080,18 @@ curl_publico_desde_servidor = puede_timeout_por_hairpin_NAT; no_es_prueba_unica_
 apache_configtest = Syntax_OK
 permisos_laravel_revisados = chown_storage_bootstrap_cache_alejandro_www; chmod_dirs_2775; chmod_files_664; artisan_config_cache_route_view_clear_OK
 logs_antiguos_no_cerrados = warning_PCRE_JIT; errores_viejos_permisos_laravel_log
+validacion_post_deploy_fecha = 2026-06-11T14:12:07-03:00
+validacion_post_deploy_host = landini-server
+validacion_post_deploy_usuario = alejandro
+servicios_criticos_post_deploy = apache2_active_enabled,php-fpm_active_enabled,mariadb_active_enabled,firewalld_active_enabled,systemctl_failed_0_loaded_units_listed
+mounts_post_deploy = /srv/web:/dev/sdb1_ext4_rw_relatime_seclabel,/srv/nas:/dev/sdd1_ext4_rw_relatime_seclabel
+espacio_post_deploy = srv_web_220G_total_74M_usados_208G_libres_1p,srv_nas_916G_total_4.9G_usados_865G_libres_1p
+runtime_laravel_real = APP_DIR_/srv/web/sites/staging-landini/current,PHP_8.5.7,Composer_2.10.0,Laravel_Framework_13.13.0
+entorno_laravel_validado = APP_NAME_App_Base_Staging,APP_ENV_staging,APP_DEBUG_false,APP_URL_https://staging.landini.com.ar,DB_CONNECTION_mysql,DB_DATABASE_app_base_staging,DB_OK_1
+migraciones_post_deploy = migrate_status_migraciones_ejecutadas_batch_1
+caches_post_deploy = optimize_clear_OK,config_cache_OK,route_cache_OK,view_cache_OK
+permisos_post_deploy = storage_y_bootstrap_cache_alejandro_www_drwxrwsr-x
+selinux_post_deploy = storage_y_bootstrap_cache_httpd_sys_rw_content_t
 
 [STAGING_LANDINI_FASE_1]
 estado = cerrada
@@ -1190,7 +1211,17 @@ HTTPS_staging = 200 REMOTE_IP=152.171.194.12 SSL_VERIFY=0
 aislamiento_HTTP = no-declarado_403,local_403,panel_403
 aislamiento_HTTPS = no-declarado_403,local_403,panel_403
 default_deny_HTTP_HTTPS = vigente
-no_expuesto = app-base,Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
+no_expuesto = Project_Lab,local.landini,panel.landini,Samba,SSH,MariaDB,PHP-FPM
+validacion_post_deploy_fecha = 2026-06-11T14:15:20-03:00
+apache_configtest = Syntax_OK
+vhost_http_staging = staging-landini.conf; ServerName_staging.landini.com.ar; Redirect_permanent_/__https://staging.landini.com.ar/
+vhost_https_staging = staging-landini-ssl.conf; ServerName_staging.landini.com.ar; DocumentRoot_/srv/web/sites/staging-landini/current/public; SSLCertificateFile_fullchain.pem; SSLCertificateKeyFile_privkey.pem; Directory_current_public; SetHandler_proxy_fcgi_127.0.0.1_9000
+HTTPS_LOCAL_FORCED = CODE_200_REMOTE_IP_127.0.0.1_SSL_VERIFY_20_REDIRECT_vacio_ERROR_vacio
+HTTP_LOCAL_FORCED = CODE_301_REMOTE_IP_127.0.0.1_REDIRECT_https://staging.landini.com.ar/_ERROR_vacio
+HTTPS_NO_DECLARADO = CODE_403_REMOTE_IP_127.0.0.1_ERROR_vacio
+HTTP_NO_DECLARADO = CODE_403_REMOTE_IP_127.0.0.1_ERROR_vacio
+logs_historicos = permisos_previos,PCRE_JIT,symlink_403
+access_log_post_deploy_200 = 127.0.0.1_[11/Jun/2026:14:15:24_-0300]_GET_/_HTTP/1.1_200; 181.238.114.107_[11/Jun/2026:11:54:09_-0300]_GET_/_HTTP/1.1_200
 
 [ROLLBACK]
 rollback_DNS = volver_staging.landini.com.ar_a_DonWeb/public_html/staging
@@ -1311,7 +1342,7 @@ DNS_publico = solo_staging.landini.com.ar_A_152.171.194.12
 certbot = instalado_renovacion_timer_activa
 no_abrir_adicional = DMZ,puertos_extra,hosts_extra,certificados_extra
 no_hosting_comercial_activo = true
-pendiente_antes_nuevos_servicios = contrato_alta_servicio_web,politica_vhosts,estrategia_logs,nombres_LAN_comodos,politica_/srv/web/apps,postfix,DB_por_servicio,certificado_por_servicio,backup_restore_por_servicio,alta_sitio_app,deploy_app_base_como_servicio_alojado_no_raiz_especial
+pendiente_antes_nuevos_servicios = contrato_alta_servicio_web,politica_vhosts,estrategia_logs,nombres_LAN_comodos,politica_/srv/web/apps,postfix,DB_por_servicio,certificado_por_servicio,backup_restore_por_servicio,alta_sitio_app
 criterio_documental = no documentar microacciones; documentar cierres,cambios_estructurales,exposicion,seguridad,backup_restore,servicios_reales,decisiones_preventivas
 ```
 

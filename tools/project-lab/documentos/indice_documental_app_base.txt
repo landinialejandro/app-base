@@ -200,6 +200,7 @@ Documentos:
 
 guia_project_lab_proyecto_app_base
 codex_operativo_app_base
+deploy_app_base
 
 [MAPAS ESTRUCTURALES]
 
@@ -430,6 +431,27 @@ se formule, ejecute o audite una tarea para Codex sobre el workspace del proyect
 
 No debe usarse para:
 doctrina arquitectónica general, seguridad completa, reglas funcionales profundas de módulos o detalle interno del proveedor de IA.
+
+
+deploy_app_base
+
+Título:
+Deploy y actualización de app-base
+
+Familia:
+operativo técnico
+
+Pregunta principal:
+¿Cómo se despliega y actualiza app-base desde desarrollo hacia landini-server?
+
+Función:
+definir el proceso operativo de deploy, actualización, validación, backups y rollback inicial de app-base.
+
+Debe leerse cuando:
+se vaya a actualizar staging, preparar deploy, validar runtime publicado, preservar .env/storage, ejecutar backup pre/post deploy o definir rollback inicial.
+
+No debe usarse para:
+infraestructura base, vhosts, DNS, router, certificados, hosting comercial o doctrina general de seguridad.
 
 
 mapa_entidades_app_base

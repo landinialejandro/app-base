@@ -1,4 +1,5 @@
 <<SECTION: METADATOS>>
+SECTION_VERSION: 00001
 TÍTULO: Deploy y actualización de app-base
 DOC_SLUG: deploy_app_base
 DOC_VERSION: 00001
@@ -8,6 +9,7 @@ GESTIÓN: Documento operativo para despliegue y actualización de app-base desde
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
+SECTION_VERSION: 00001
 
 Definir el proceso operativo para desplegar y actualizar app-base desde el entorno de desarrollo hacia landini-server, preservando runtime, configuración sensible, datos, seguridad, backups y validaciones.
 
@@ -21,6 +23,7 @@ funcion_deploy.MD = procedimiento_operativo
 <<END SECTION>>
 
 <<SECTION: ESTADO REAL DEL RUNTIME STAGING>>
+SECTION_VERSION: 00001
 
 ```text
 servidor = landini-server
@@ -69,6 +72,7 @@ tables_count = 49
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS DEL DEPLOY>>
+SECTION_VERSION: 00001
 
 ```text
 principio_1 = NO_SE_ASUME
@@ -93,6 +97,7 @@ autoridad_validacion = consola_runtime_y_Project_Lab
 <<END SECTION>>
 
 <<SECTION: MÉTODO ACTUAL RECOMENDADO>>
+SECTION_VERSION: 00001
 
 ```text
 metodo_actual = paquete_generado_desde_Git_HEAD_desarrollo
@@ -118,6 +123,7 @@ backup = landini-web-backup.service
 <<END SECTION>>
 
 <<SECTION: ELEMENTOS QUE DEBEN PRESERVARSE>>
+SECTION_VERSION: 00001
 
 ```text
 preservar = .env,storage/
@@ -133,6 +139,7 @@ SELinux_runtime = storage_y_bootstrap/cache_httpd_sys_rw_content_t
 <<END SECTION>>
 
 <<SECTION: ELEMENTOS QUE SE REGENERAN>>
+SECTION_VERSION: 00001
 
 ```text
 regenerar_o_controlar = bootstrap/cache/,public/build/,vendor/,caches_Laravel
@@ -145,6 +152,7 @@ no_regenerar_desde_local = .env,storage/,node_modules,.git
 <<END SECTION>>
 
 <<SECTION: PROCESO OPERATIVO DE ACTUALIZACIÓN>>
+SECTION_VERSION: 00001
 
 ```text
 paso_01 = validar_desarrollo_local
@@ -170,7 +178,7 @@ paso_19 = documentar_solo_si_cambia_infraestructura_contrato_operativo_o_evidenc
 
 ```text
 rsync_preserva = .env,storage/,bootstrap/cache/
-rsync_excluye = .git,node_modules,.env,storage/
+rsync_excluye = .git,node_modules,.env,storage/,bootstrap/cache/
 current_destino = /srv/web/sites/staging-landini/current
 incoming = temporal_no_runtime_publico
 ```
@@ -178,6 +186,7 @@ incoming = temporal_no_runtime_publico
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES POST-DEPLOY>>
+SECTION_VERSION: 00001
 
 ```text
 validar_artisan_version = php artisan --version
@@ -202,6 +211,7 @@ errores_historicos = permisos_previos,PCRE_JIT,symlink_403_AH00037
 <<END SECTION>>
 
 <<SECTION: BACKUPS PRE Y POST DEPLOY>>
+SECTION_VERSION: 00001
 
 ```text
 backup_pre_deploy = landini-web-backup.service_antes_de_tocar_current
@@ -222,6 +232,7 @@ tar_prefix = web/
 <<END SECTION>>
 
 <<SECTION: ROLLBACK INICIAL>>
+SECTION_VERSION: 00001
 
 ```text
 rollback_actual = manual
@@ -236,6 +247,7 @@ regla = no_declarar_rollback_exitoso_sin_ejecucion_y_validacion
 <<END SECTION>>
 
 <<SECTION: NO HACER>>
+SECTION_VERSION: 00001
 
 ```text
 no_hacer = git_pull_en_current
@@ -257,6 +269,7 @@ no_hacer = declarar_hosting_comercial_activo
 <<END SECTION>>
 
 <<SECTION: PENDIENTES PARA MADURAR EL DEPLOY>>
+SECTION_VERSION: 00001
 
 ```text
 pendiente = evaluar_releases_con_rollback_formal

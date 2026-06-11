@@ -782,7 +782,11 @@ certificados_publicos = solo staging.landini.com.ar
 
 ```text
 base_dirs = /srv/web/apps,/srv/web/sites,/srv/web/shared,/srv/web/logs,/srv/web/tmp
+/srv/web/sites/<service-key>/ = ubicacion_vigente_de_servicios_web_publicables
+/srv/web/apps = reserva_base_no_publicada; no_usar_como_DocumentRoot_vigente_sin_politica_nueva_explicita
 service_layout = /srv/web/sites/<service-key>/{current/public,shared/{config,logs,storage,uploads},releases,backups}
+current_apache = preferir_carpeta_real_en_este_servidor
+current_symlink_documentroot = no_usar_sin_validacion_explicita_por_riesgo_AH00037
 local_site = /srv/web/sites/local
 panel_site = /srv/web/sites/panel
 ```
@@ -795,7 +799,9 @@ panel_site = /srv/web/sites/panel
 /etc/apache2/vhosts.d/local-landini.conf = ServerName local.landini -> /srv/web/sites/local/current/public -> health_check_lan
 /etc/apache2/vhosts.d/panel-landini.conf = ServerName panel.landini -> /srv/web/sites/panel/current/public -> servicio_real_lan
 /etc/apache2/vhosts.d/staging-landini.conf = ServerName staging.landini.com.ar -> HTTP 301 a HTTPS
-/etc/apache2/vhosts.d/staging-landini-ssl.conf = ServerName staging.landini.com.ar -> HTTPS publico validado
+/etc/apache2/vhosts.d/staging-landini-ssl.conf = ServerName staging.landini.com.ar -> /srv/web/sites/staging-landini/current/public -> HTTPS publico validado
+staging-landini_DocumentRoot_vigente = /srv/web/sites/staging-landini/current/public
+staging-landini_app_symlink = no_es_DocumentRoot
 php_backend = SetHandler "proxy:fcgi://127.0.0.1:9000"
 server_name_global = /etc/apache2/conf.d/landini-servername.conf -> ServerName landini-server.local
 ```
@@ -847,9 +853,42 @@ vhost = /etc/apache2/vhosts.d/<service-key>-landini.conf
 logs = /srv/web/sites/<service-key>/shared/logs/
 backup_posterior_validado = obligatorio
 local = reservado_health_check
+servicio_publicable = servicio_independiente_bajo_/srv/web/sites/<service-key>/
+cada_servicio_requiere = ServerName_propio,site_dir_propio,vhost_propio,logs_propios,backup_posterior_validado
+tipos_previstos_iniciales = html_estatico,php_simple,laravel_app
+laravel_app = current_contiene_app; DocumentRoot_current_public; storage_y_bootstrap_cache_con_escritura_controlada_para_grupo_web
+html_estatico = current/public_con_index_html_y_assets; sin_PHP_Composer_env_storage_DB
+app_cliente = nuevo_service_key_no_compartir_app-base_staging
+otra_app_propia = nuevo_service_key_no_reusar_staging-landini
+no_publicar_desde_/srv/web/apps = true
+no_usar_local.landini_para_servicios_reales = true
+hosts_extra = no_abrir_sin_DNS_router_certificado_vhost_backup
 prohibido_nombres_operativos = test,prueba,demo,sample,example,dummy,temporal
 prohibido_sin_vhost_explicito = true
 exposicion_fuera_lan = prohibida hasta definir router,DNS_publico,HTTPS_ACME,politica_publicacion
+```
+
+[POLITICA_INICIAL_HOSTING_LIVIANO]
+
+```text
+estado = base_preparada_no_hosting_comercial_activo
+ruta_publicacion = /srv/web/sites/<service-key>/
+no_publicar_desde = /srv/web/apps
+/srv/web/apps = reserva_no_runtime_publico_vigente
+tipos_iniciales = html_estatico,php_simple,laravel_app
+unidad_operativa = servicio_web
+cada_servicio_requiere = service_key,ServerName,site_dir,vhost,logs,backup_posterior_validado
+si_publico = DNS_A_o_CNAME,router_80_443,certificado_HTTPS,default_deny_conservado
+si_laravel = current_con_app,DocumentRoot_current_public,storage_y_bootstrap_cache_escritura_controlada,.env_propio,DB_si_corresponde
+si_html = current_public_con_index_html,sin_DB,sin_Composer,sin_storage_runtime
+otra_app_propia = nuevo_service_key_no_reusar_staging-landini
+app_cliente = nuevo_service_key_no_compartir_runtime_con_apps_propias
+html_cliente = nuevo_service_key_tipo_html_estatico
+local.landini = reservado_health_check_lan
+panel.landini = servicio_real_lan_no_publico
+staging-landini = primer_servicio_publico_controlado
+regla = app-base/staging no es excepcion; es primer caso del patron /srv/web/sites/<service-key>/
+pendiente_para_hosting_comercial = aislamiento_por_cliente,usuarios_sistema_por_servicio_o_politica_equivalente,cuotas,monitoreo,alertas,restore_test_por_servicio,contrato_soporte,politica_actualizaciones,correo_saliente,formularios,retencion_logs
 ```
 
 [HERRAMIENTAS_WEB]
@@ -903,6 +942,8 @@ incluye_archivos = srv_web_20260609_173316.tar.gz,apache2_20260609_173316.tar.gz
 incluye_scripts = usr/local/sbin/landini-web-backup.sh,usr/local/sbin/landini-web-service-create.sh
 incluye_vhosts = apache2/vhosts.d/000-landini-default-deny.conf,apache2/vhosts.d/000-landini-default-deny-ssl.conf,apache2/vhosts.d/local-landini.conf,apache2/vhosts.d/panel-landini.conf,apache2/vhosts.d/staging-landini.conf,apache2/vhosts.d/staging-landini-ssl.conf
 incluye_sites = web/sites/local/current/public/index.php,web/sites/panel/current/public/index.php,web/sites/staging-landini/current/public/index.html
+backup_vigente_previo = anterior_a_normalizacion_laravel_current_real
+requiere_backup_web_post_normalizacion = true
 validacion = [OK] letsencrypt presente en último backup web; [OK] Backup web completo generado
 backups_validos_previos = backup_20260608_140542,backup_20260608_140709,backup_20260608_141105,backup_20260608_150436,backup_20260608_155118
 backup_fallido_eliminado = backup_20260608_140306
@@ -994,11 +1035,15 @@ PHP-FPM = no_publicar
 [PUBLICABLES]
 primer_publicable_futuro = staging-landini
 ServerName = staging.landini.com.ar
-tipo = landing_html_minima
+tipo_historico = landing_html_minima
+estado_actual = app_base_staging_laravel_publicado_controlado
+tipo_actual = laravel_app_staging
 estado = publicado_HTTPS_controlado
 exposicion_publica = true_HTTP_80_redirect_y_HTTPS_443_staging_only
 site_dir = /srv/web/sites/staging-landini/
 document_root = /srv/web/sites/staging-landini/current/public/
+current_real = /srv/web/sites/staging-landini/current
+app_symlink = /srv/web/sites/staging-landini/app -> /srv/web/sites/staging-landini/current
 shared_dir = /srv/web/sites/staging-landini/shared/
 logs_dir = /srv/web/sites/staging-landini/shared/logs/
 vhost_http = /etc/apache2/vhosts.d/staging-landini.conf
@@ -1007,9 +1052,17 @@ access_log = /srv/web/sites/staging-landini/shared/logs/access.log
 error_log = /srv/web/sites/staging-landini/shared/logs/error.log
 ssl_access_log = /srv/web/sites/staging-landini/shared/logs/ssl-access.log
 ssl_error_log = /srv/web/sites/staging-landini/shared/logs/ssl-error.log
-landing_file = /srv/web/sites/staging-landini/current/public/index.html
+landing_file_anterior = /srv/web/sites/staging-landini/current/public/index.html
+landing_file_anterior_no_contrato_vigente = true
 patron_real = /srv/web/sites/<service-key>/current/public + shared/logs + shared/config + shared/storage + shared/uploads + releases + backups
 document_root_no_usado = /srv/web/sites/staging-landini/public/
+incidente_layout = current_como_symlink_genero_403_AH00037
+correccion_layout = current_carpeta_real_y_app_symlink_opcional
+validacion_post_fix = HTTPS_local_host_header_200; acceso_externo_log_200
+curl_publico_desde_servidor = puede_timeout_por_hairpin_NAT; no_es_prueba_unica_de_falla
+apache_configtest = Syntax_OK
+permisos_laravel_revisados = chown_storage_bootstrap_cache_alejandro_www; chmod_dirs_2775; chmod_files_664; artisan_config_cache_route_view_clear_OK
+logs_antiguos_no_cerrados = warning_PCRE_JIT; errores_viejos_permisos_laravel_log
 
 [STAGING_LANDINI_FASE_1]
 estado = cerrada
@@ -1250,7 +1303,7 @@ DNS_publico = solo_staging.landini.com.ar_A_152.171.194.12
 certbot = instalado_renovacion_timer_activa
 no_abrir_adicional = DMZ,puertos_extra,hosts_extra,certificados_extra
 no_hosting_comercial_activo = true
-pendiente_antes_nuevos_servicios = politica_vhosts,estrategia_logs,nombres_LAN_comodos,estructura_sitios_apps,postfix,DB_por_servicio,alta_sitio_app,deploy_app_base_como_servicio_alojado_no_raiz_especial
+pendiente_antes_nuevos_servicios = contrato_alta_servicio_web,politica_vhosts,estrategia_logs,nombres_LAN_comodos,politica_/srv/web/apps,postfix,DB_por_servicio,certificado_por_servicio,backup_restore_por_servicio,alta_sitio_app,deploy_app_base_como_servicio_alojado_no_raiz_especial
 criterio_documental = no documentar microacciones; documentar cierres,cambios_estructurales,exposicion,seguridad,backup_restore,servicios_reales,decisiones_preventivas
 ```
 
